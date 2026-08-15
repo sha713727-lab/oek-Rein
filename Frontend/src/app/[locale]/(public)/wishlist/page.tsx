@@ -1,0 +1,50 @@
+import Link from "next/link";
+
+import { toCatalogProduct } from "@/features/catalog/map-product";
+import { ProductGrid } from "@/features/catalog/product-grid";
+import { readWishlist } from "@/lib/wishlist-cookie";
+import { productService } from "@/server/services/products/product.service";
+
+export default async function WishlistPage() {
+  const wishlist = await readWishlist();
+  const products = (await productService.getByIds(wishlist.ids)).map(toCatalogProduct);
+  const empty = products.length === 0;
+
+  return (
+    <div className="wishlist-page">
+      <div className="mx-auto max-w-[1600px] px-6 md:px-20">
+        {empty ? (
+          <div className="wishlist-empty">
+            <span className="wishlist-eyebrow">Your Collection</span>
+            <h1 className="wishlist-title">Saved Formulas You Love</h1>
+            <p className="wishlist-description">
+              Keep the Zermae products you want to return to — serums, creams, cleansers and body care, saved in one calm
+              list.
+            </p>
+            <div className="wishlist-actions">
+              <Link href="/collections/all" className="luxury-button-solid">
+                Continue Shopping
+              </Link>
+              <Link href="/collections/new" className="luxury-button-outline">
+                Explore New Arrivals
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="wishlist-header">
+              <span className="wishlist-eyebrow">Your Collection</span>
+              <h1 className="wishlist-title wishlist-title--compact">Saved Formulas You Love</h1>
+              <p className="wishlist-description">
+                {products.length} {products.length === 1 ? "product" : "products"} saved to your wishlist.
+              </p>
+            </div>
+            <div className="wishlist-grid-wrap">
+              <ProductGrid products={products} wishlistIds={wishlist.ids} columns={4} />
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,61 @@
+{
+  "name": "zermae",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "20.19.0"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:web": "next dev --port 3000",
+    "dev:api": "tsx src/server/http/start.ts",
+    "build": "next build",
+    "start": "node scripts/start.mjs",
+    "start:web": "next start --port 3000",
+    "start:api": "tsx src/server/http/start.ts",
+    "lint": "eslint src tests scripts --max-warnings 0",
+    "typecheck": "tsc --noEmit -p tsconfig.json --pretty false",
+    "test": "tsx --test tests/**/*.test.ts",
+    "migrate": "tsx src/server/database/migrate.ts",
+    "seed:admin": "tsx src/server/jobs/seed-admin.ts",
+    "audit": "npm audit --audit-level=high",
+    "deps:circular": "depcruise src --config dependency-cruiser.cjs"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "eslint --max-warnings 0"
+    ]
+  },
+  "dependencies": {
+    "bcrypt": "6.0.0",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "next": "16.3.1",
+    "nodemailer": "9.0.3",
+    "pg": "8.16.3",
+    "pino": "10.3.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "tailwind-merge": "3.6.0",
+    "tsx": "4.20.3",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/bcrypt": "6.0.0",
+    "@types/node": "24.2.0",
+    "@types/nodemailer": "6.4.17",
+    "@types/pg": "8.15.5",
+    "@types/react": "19.2.8",
+    "@types/react-dom": "19.2.3",
+    "dependency-cruiser": "16.10.4",
+    "eslint": "9.33.0",
+    "eslint-config-next": "16.3.1",
+    "eslint-plugin-simple-import-sort": "12.1.1",
+    "husky": "9.1.7",
+    "lint-staged": "16.1.5",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.2"
+  }
+}

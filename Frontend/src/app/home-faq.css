@@ -1,0 +1,196 @@
+.home-faq {
+  position: relative;
+  z-index: 1;
+  padding: 4.5rem 0 6rem;
+  overflow: hidden;
+  background: radial-gradient(circle at 18% 22%, color-mix(in srgb, var(--color-brand-blush) 28%, transparent), transparent 34%), color-mix(in srgb, var(--color-brand-blush) 10%, var(--color-brand-bg));
+}
+
+.home-faq-inner {
+  display: grid;
+  grid-template-columns: minmax(14rem, 22rem) minmax(0, 1fr);
+  align-items: center;
+  column-gap: clamp(2rem, 6vw, 5.5rem);
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 1180px;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.home-faq-stage {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.home-faq-arch {
+  position: relative;
+  display: flex;
+  width: min(22rem, 100%);
+  height: min(34rem, 78vh);
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 12rem 12rem 0 0;
+  background: color-mix(in srgb, var(--color-brand-mint) 22%, color-mix(in srgb, var(--color-brand-blush) 16%, white));
+}
+
+.home-faq-glow {
+  position: absolute;
+  left: 50%;
+  bottom: 12%;
+  z-index: 0;
+  width: 70%;
+  height: 28%;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-brand-white) 80%, transparent) 0%, transparent 72%);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.home-faq-cutout {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: auto;
+  height: min(30rem, 70vh);
+  max-width: 86%;
+  margin-bottom: 4%;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 22px rgba(63, 55, 52, 0.14));
+}
+
+.home-faq-copy {
+  min-width: 0;
+}
+
+.home-faq-title {
+  margin: 0 0 2rem;
+  font-family: var(--font-heading);
+  font-size: clamp(2.1rem, 4.2vw, 3.4rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+  color: var(--color-brand-primary);
+}
+
+.home-faq-sparkle {
+  display: inline-block;
+  width: 0.72em;
+  height: 0.72em;
+  margin: 0 0.12em;
+  color: var(--color-brand-accent);
+  vertical-align: middle;
+}
+
+.home-faq-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-faq-item {
+  border-top: 1px solid color-mix(in srgb, var(--color-brand-primary) 12%, transparent);
+}
+
+.home-faq-item:last-child {
+  border-bottom: 1px solid color-mix(in srgb, var(--color-brand-primary) 12%, transparent);
+}
+
+.home-faq-question {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.15rem 0;
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--font-body);
+  font-size: clamp(0.95rem, 1.15vw, 1.05rem);
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--color-brand-primary);
+}
+
+.home-faq-question::-webkit-details-marker {
+  display: none;
+}
+
+.home-faq-question::marker {
+  content: "";
+}
+
+.home-faq-toggle {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.15rem;
+  color: var(--color-brand-primary);
+}
+
+.home-faq-minus {
+  display: none;
+}
+
+.home-faq-item[open] .home-faq-plus {
+  display: none;
+}
+
+.home-faq-item[open] .home-faq-minus {
+  display: block;
+}
+
+.home-faq-answer {
+  margin: 0;
+  padding: 0 2rem 1.2rem 0;
+  max-width: 36rem;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 400;
+  line-height: 1.7;
+  color: var(--color-text-sub);
+}
+
+.home-faq-question:focus-visible {
+  outline: 2px solid var(--color-brand-accent);
+  outline-offset: 4px;
+}
+
+@media (max-width: 899px) {
+  .home-faq {
+    padding: 3.25rem 0 4.75rem;
+  }
+
+  .home-faq-inner {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 2.5rem;
+  }
+
+  .home-faq-arch {
+    width: min(18rem, 78vw);
+    height: min(26rem, 62vh);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .home-faq-title {
+    margin-bottom: 1.5rem;
+    text-align: left;
+  }
+}
+
+@media (min-width: 768px) {
+  .home-faq-inner {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-faq-item {
+    transition: none;
+  }
+}

@@ -1,0 +1,134 @@
+import express from 'express';
+import path from 'path';
+import { existsSync, readFileSync } from 'fs';
+import swaggerUi from 'swagger-ui-express';
+import { env } from './config/env.js';
+import { applySecurityMiddleware } from './middlewares/security.middleware.js';
+import { notFoundHandler, errorHandler } from './middlewares/error.middleware.js';
+import apiRoutes from './routes/index.js';
+
+const FRONTEND_DIST_DIR = path.resolve(process.cwd(), 'public');
+const FRONTEND_INDEX = path.join(FRONTEND_DIST_DIR, 'index.html');
+
+const STATIC_FILE_EXTENSIONS = new Set([
+  '.css',
+  '.js',
+  '.mjs',
+  '.map',
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.gif',
+  '.webp',
+  '.svg',
+  '.ico',
+  '.woff',
+  '.woff2',
+  '.ttf',
+  '.eot',
+  '.json',
+  '.webmanifest',
+  '.txt'
+]);
+
+const STATIC_ASSET_PREFIXES = ['/assets/', '/fonts/'];
+
+const shouldServeFrontend = () =>
+  env.NODE_ENV === 'production' && existsSync(FRONTEND_INDEX);
+
+const isBackendOnlyPath = (requestPath) =>
+  requestPath.startsWith(env.API_PREFIX) ||
+  requestPath.startsWith('/uploads') ||
+  requestPath.startsWith('/api-docs');
+
+const isStaticAssetRequest = (requestPath) => {
+  if (STATIC_ASSET_PREFIXES.some((prefix) => requestPath.startsWith(prefix))) {
+    return true;
+  }
+
+  const extension = path.extname(requestPath).toLowerCase();
+  return STATIC_FILE_EXTENSIONS.has(extension);
+};
+
+const setStaticHeaders = (res, filePath) => {
+  if (filePath.endsWith('.css')) {
+    res.setHeader('Content-Type', 'text/css; charset=UTF-8');
+    return;
+  }
+
+  if (filePath.endsWith('.js') || filePath.endsWith('.mjs')) {
+    res.setHeader('Content-Type', 'application/javascript; charset=UTF-8');
+    return;
+  }
+
+  if (filePath.endsWith('.webmanifest')) {
+    res.setHeader('Content-Type', 'application/manifest+json; charset=UTF-8');
+    return;
+  }
+
+  if (filePath.endsWith('index.html')) {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    return;
+  }
+
+  if (filePath.includes('/assets/')) {
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  }
+};
+
+export const createApp = () => {
+  const app = express();
+
+  applySecurityMiddleware(app);
+
+  app.use('/uploads', express.static(path.resolve(process.cwd(), env.UPLOAD_DIR)));
+
+  try {
+    const openapiPath = path.resolve(process.cwd(), 'swagger/openapi.json');
+    const openapiDocument = JSON.parse(readFileSync(openapiPath, 'utf8'));
+    if (env.NODE_ENV !== 'production') {
+      app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiDocument));
+    }
+  } catch {
+    // Swagger spec optional until file is present
+  }
+
+  app.use(env.API_PREFIX, apiRoutes);
+
+  if (shouldServeFrontend()) {
+    app.use(
+      express.static(FRONTEND_DIST_DIR, {
+        index: false,
+        fallthrough: true,
+        setHeaders: setStaticHeaders
+      })
+    );
+
+    app.get(/^(?!\/api\/|\/uploads\/|\/api-docs).*/, (req, res, next) => {
+      if (req.method !== 'GET' && req.method !== 'HEAD') {
+        return next();
+      }
+
+      if (isBackendOnlyPath(req.path) || isStaticAssetRequest(req.path)) {
+        return next();
+      }
+
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Content-Type', 'text/html; charset=UTF-8');
+
+      return res.sendFile(FRONTEND_INDEX, (error) => {
+        if (error) {
+          next(error);
+        }
+      });
+    });
+  }
+
+  app.use(notFoundHandler);
+  app.use(errorHandler);
+
+  return app;
+};
+
+export default createApp;
+

@@ -1,0 +1,22 @@
+{
+  "name": "Zermae",
+  "short_name": "Zermae",
+  "description": "Minimal, considered skincare for real routines. Your skin, reimagined.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F5F2EE",
+  "theme_color": "#3F3734",
+  "icons": [
+    {
+      "src": "/favicon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

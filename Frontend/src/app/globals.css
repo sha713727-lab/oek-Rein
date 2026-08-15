@@ -1,0 +1,55 @@
+@import "tailwindcss";
+@import "./zermae.css";
+
+@theme {
+  --color-brand-bg: #f5f2ee;
+  --color-brand-primary: #3f3734;
+  --color-brand-secondary: #c4b6a6;
+  --color-brand-accent: #96976c;
+  --color-brand-mint: #d5e4cf;
+  --color-brand-blush: #f0c5bf;
+  --color-brand-white: #ffffff;
+  --color-brand-surface: #ffffff;
+  --color-brand-border: rgba(63, 55, 52, 0.08);
+  --color-text-main: #3f3734;
+  --color-text-sub: rgba(63, 55, 52, 0.7);
+  --color-text-muted: rgba(63, 55, 52, 0.4);
+  --font-brand: var(--font-cormorant), "Cormorant Garamond", serif;
+  --font-heading: var(--font-cormorant), "Cormorant Garamond", serif;
+  --font-nav: var(--font-plus-jakarta), "Plus Jakarta Sans", sans-serif;
+  --font-body: var(--font-poppins), "Poppins", sans-serif;
+  --font-ui: var(--font-inter), "Inter", sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: auto;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  body {
+    background-color: var(--color-brand-bg);
+    color: var(--color-text-main);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-brand);
+    color: var(--color-brand-primary);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-accent);
+    outline-offset: 3px;
+  }
+}
