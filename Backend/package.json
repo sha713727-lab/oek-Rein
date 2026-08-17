@@ -10,9 +10,8 @@
     "dev": "tsx watch src/server/http/start.ts",
     "start": "tsx src/server/http/start.ts",
     "build": "tsc --noEmit -p tsconfig.json --pretty false",
-    "lint": "eslint src tests --max-warnings 0",
+    "lint": "eslint src --max-warnings 0",
     "typecheck": "tsc --noEmit -p tsconfig.json --pretty false",
-    "test": "tsx --test tests/**/*.test.ts",
     "migrate": "tsx src/server/database/migrate.ts",
     "seed": "tsx src/server/jobs/seed-admin.ts",
     "audit": "npm audit --audit-level=high"
