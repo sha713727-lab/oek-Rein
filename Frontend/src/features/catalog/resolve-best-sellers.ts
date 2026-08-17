@@ -10,39 +10,31 @@ export type ResolvedBestSeller = {
   href: string;
   image: string;
   alt: string;
-  tone: "blush" | "mint";
+  color: string;
   wished: boolean;
 };
 
-export function resolveBestSellers(products: SerializedProduct[], wishlistIds: string[]): ResolvedBestSeller[] {
-  return BEST_SELLERS.map((slot, index) => {
-    const matched = products[index];
-    if (!matched) {
-      return {
-        key: slot.id,
-        productId: "",
-        title: slot.title,
-        description: slot.description,
-        price: slot.price,
-        href: slot.href,
-        image: slot.image,
-        alt: slot.alt,
-        tone: slot.tone,
-        wished: false,
-      };
-    }
+export function resolveBestSellers(
+  products: SerializedProduct[],
+  wishlistIds: string[],
+  colors: string[] = [],
+): ResolvedBestSeller[] {
+  return products.map((matched, index) => {
+    const slot = BEST_SELLERS[index] ?? BEST_SELLERS[0];
+    const photo = matched.images[0];
     const intro = matched.description.intro.trim();
+    const fallback = slot?.tone === "mint" ? "#d5e4cf" : "#f0c5bf";
     return {
-      key: slot.id,
+      key: matched.sku || slot?.id || matched.id,
       productId: matched.id,
       title: matched.title,
-      description: intro.length > 0 ? intro : slot.description,
+      description: intro.length > 0 ? intro : (slot?.description ?? ""),
       price: matched.effectivePrice,
       href: `/product/${matched.id}`,
-      image: slot.image,
-      alt: slot.alt,
-      tone: slot.tone,
+      image: photo?.url ?? slot?.image ?? "",
+      alt: photo?.alt || matched.title,
+      color: matched.tileColor || colors[index] || fallback,
       wished: wishlistIds.includes(matched.id),
     };
-  }).filter((item) => item.productId.length > 0);
+  }).filter((item) => item.productId.length > 0 && item.image.length > 0);
 }

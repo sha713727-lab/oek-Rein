@@ -56,7 +56,7 @@ export function RegisterForm() {
         </button>
       </form>
       <p className="auth-form-meta">
-        Already a member?{" "}
+        <span>Already a member?</span>
         <Link href="/login" className="auth-link">
           Sign in
         </Link>

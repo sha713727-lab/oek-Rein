@@ -1,15 +1,21 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { CUSTOMER_ORDER_STATUS_LABELS } from "@/constants/account";
+import { formatMoney } from "@/constants/storefront";
+import { orderService } from "@/lib/api/orders";
 import { getSessionUser } from "@/lib/session";
-import { orderService } from "@/server/services/orders/order.service";
+import { getStorefront } from "@/lib/storefront";
 
 export default async function AccountOrdersPage() {
   const user = await getSessionUser();
   if (!user) {
     redirect("/login");
   }
-  const result = await orderService.listMine(user.id, 1, 50);
+  const [result, storefront] = await Promise.all([
+    orderService.listMine(user.id, 1, 50),
+    getStorefront(),
+  ]);
   return (
     <>
       <h1 className="customer-dashboard-title mb-8">Orders</h1>
@@ -27,7 +33,10 @@ export default async function AccountOrdersPage() {
                   {CUSTOMER_ORDER_STATUS_LABELS[String(order.status)] ?? String(order.status)}
                 </span>
               </div>
-              <p className="customer-order-card-total">PKR {Number(order.total).toLocaleString()}</p>
+              <p className="customer-order-card-total">{formatMoney(Number(order.total), storefront.commerce.currency)}</p>
+              <Link href={`/account/orders/${order.orderNumber}`} className="mt-3 inline-block text-sm underline-offset-4 hover:underline">
+                View details
+              </Link>
             </li>
           ))}
         </ul>

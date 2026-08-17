@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { ADMIN_ROLES } from "@/constants/roles";
 import { AdminHeader } from "@/features/admin/admin-header";
+import { AdminSidebar } from "@/features/admin/admin-sidebar";
 import { getSessionUser } from "@/lib/session";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
@@ -11,9 +12,12 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     redirect("/admin/login");
   }
   return (
-    <div className="admin-shell">
-      <AdminHeader name={user.name} email={user.email} />
-      <div className="admin-shell-main">{children}</div>
+    <div className="admin-app">
+      <AdminSidebar />
+      <div className="admin-app-main">
+        <AdminHeader />
+        <div className="admin-app-body">{children}</div>
+      </div>
     </div>
   );
 }

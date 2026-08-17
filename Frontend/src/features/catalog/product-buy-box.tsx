@@ -1,56 +1,61 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
-import { IconHeart, IconMinus, IconPlus, IconShield, IconTruck } from "@/components/icons/icons";
-import { Logo } from "@/components/ui/logo";
-import { addToCartAction, buyNowAction } from "@/features/cart/actions";
+import { IconBag, IconHeart, IconMinus, IconPlus, IconShield, IconTruck } from "@/components/icons/icons";
+import { formatMoney } from "@/constants/storefront";
+import { buyNowAction } from "@/features/cart/actions";
+import { AddToBagForm } from "@/features/cart/add-to-bag-form";
+import { ShareProduct } from "@/features/catalog/share-product";
+import { SizeGuide } from "@/features/catalog/size-guide";
 import { toggleWishlistAction } from "@/features/wishlist/actions";
+import { notifyToast } from "@/lib/bag-events";
 
 export type ProductBuyModel = {
   id: string;
   title: string;
   sku: string;
+  category: string;
+  intro: string;
+  volume: string;
   price: number;
+  originalPrice?: number | null;
   sizes: string[];
   colors: Array<{ name: string; hex: string }>;
+  howToUse: string;
   wished: boolean;
+  stock: number;
 };
 
-export function ProductBuyBox({ product }: { product: ProductBuyModel }) {
+export function ProductBuyBox({ product, currency = "PKR" }: { product: ProductBuyModel; currency?: string }) {
   const [size, setSize] = useState(product.sizes[0] ?? "");
-  const [colorIndex, setColorIndex] = useState(0);
+  const [color, setColor] = useState(product.colors[0]?.name ?? "");
   const [quantity, setQuantity] = useState(1);
-  const color = product.colors[colorIndex];
+  const [pending, startTransition] = useTransition();
+  const hasSale = Boolean(product.originalPrice && product.originalPrice > product.price);
+  const volumeLabel = size || product.volume;
+  const soldOut = product.stock < 1;
+  const maxQty = Math.max(1, Math.min(20, product.stock || 1));
+  const lowStock = product.stock > 0 && product.stock <= 8;
+  const selectedColor = product.colors.find((item) => item.name === color);
 
   return (
     <div className="product-info">
       <div className="product-info-head">
-        <Logo theme="dark" size="product" linked={false} className="product-brand" />
+        {product.category ? <p className="product-eyebrow">{product.category}</p> : null}
         <h1 className="product-title">{product.title}</h1>
+        {product.intro ? <p className="product-lead">{product.intro}</p> : null}
+        <p className="product-price-row">
+          {hasSale && product.originalPrice ? (
+            <span className="product-price-original">{formatMoney(product.originalPrice, currency)}</span>
+          ) : null}
+          <span className="product-price">{formatMoney(product.price, currency)}</span>
+        </p>
+        {volumeLabel ? <p className="product-volume">{volumeLabel}</p> : null}
         <p className="product-sku">{product.sku}</p>
-        <p className="product-price">PKR {product.price.toLocaleString()}</p>
+        {soldOut ? <p className="product-stock product-stock--out">Out of stock</p> : null}
+        {lowStock ? <p className="product-stock">Only {product.stock} left</p> : null}
       </div>
-      {product.colors.length > 0 ? (
-        <div className="product-option">
-          <span className="product-option-label">Color</span>
-          <div className="product-color-swatches">
-            {product.colors.map((item, index) => (
-              <button
-                key={item.name}
-                type="button"
-                onClick={() => setColorIndex(index)}
-                className={`product-color-swatch${colorIndex === index ? " product-color-swatch-active" : ""}`}
-                aria-label={item.name}
-              >
-                <svg width="100%" height="100%" aria-hidden="true">
-                  <rect width="100%" height="100%" fill={item.hex} />
-                </svg>
-              </button>
-            ))}
-          </div>
-        </div>
-      ) : null}
       {product.sizes.length > 0 ? (
         <div className="product-option">
           <span className="product-option-label">Size</span>
@@ -68,6 +73,24 @@ export function ProductBuyBox({ product }: { product: ProductBuyModel }) {
           </div>
         </div>
       ) : null}
+      {product.colors.length > 0 ? (
+        <div className="product-option">
+          <span className="product-option-label">Shade</span>
+          <div className="product-size-list">
+            {product.colors.map((item) => (
+              <button
+                key={item.name}
+                type="button"
+                onClick={() => setColor(item.name)}
+                className={`product-size-btn ${color === item.name ? "product-size-btn-active" : "product-size-btn-inactive"}`}
+              >
+                {item.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+      <SizeGuide sizes={product.sizes} howToUse={product.howToUse} />
       <div className="product-option">
         <span className="product-option-label">Quantity</span>
         <div className="product-qty">
@@ -75,6 +98,7 @@ export function ProductBuyBox({ product }: { product: ProductBuyModel }) {
             type="button"
             className="product-qty-btn"
             aria-label="Decrease quantity"
+            disabled={soldOut}
             onClick={() => setQuantity((value) => Math.max(1, value - 1))}
           >
             <IconMinus />
@@ -84,28 +108,43 @@ export function ProductBuyBox({ product }: { product: ProductBuyModel }) {
             type="button"
             className="product-qty-btn"
             aria-label="Increase quantity"
-            onClick={() => setQuantity((value) => Math.min(20, value + 1))}
+            disabled={soldOut}
+            onClick={() => setQuantity((value) => Math.min(maxQty, value + 1))}
           >
             <IconPlus />
           </button>
         </div>
       </div>
       <div className="product-actions">
-        <form action={addToCartAction}>
-          <input type="hidden" name="productId" value={product.id} />
-          <input type="hidden" name="quantity" value={quantity} />
-          {size ? <input type="hidden" name="size" value={size} /> : null}
-          {color ? <input type="hidden" name="color" value={color.name} /> : null}
-          <button type="submit" className="product-btn-cart">
-            Add To Cart
+        <AddToBagForm
+          productId={product.id}
+          quantity={quantity}
+          size={size}
+          color={color}
+          colorHex={selectedColor?.hex}
+          disabled={soldOut}
+        >
+          <button type="submit" className="product-btn-cart" disabled={soldOut}>
+            <IconBag />
+            {soldOut ? "Out Of Stock" : "Add To Cart"}
           </button>
-        </form>
-        <form action={buyNowAction}>
+        </AddToBagForm>
+        <form
+          action={(formData) => {
+            startTransition(async () => {
+              const result = await buyNowAction(formData);
+              if (result?.error) {
+                notifyToast(result.error, "error");
+              }
+            });
+          }}
+        >
           <input type="hidden" name="productId" value={product.id} />
           <input type="hidden" name="quantity" value={quantity} />
           {size ? <input type="hidden" name="size" value={size} /> : null}
-          {color ? <input type="hidden" name="color" value={color.name} /> : null}
-          <button type="submit" className="product-btn-buy">
+          {color ? <input type="hidden" name="color" value={color} /> : null}
+          {selectedColor ? <input type="hidden" name="colorHex" value={selectedColor.hex} /> : null}
+          <button type="submit" className="product-btn-buy" disabled={soldOut || pending}>
             Buy It Now
           </button>
         </form>
@@ -116,19 +155,20 @@ export function ProductBuyBox({ product }: { product: ProductBuyModel }) {
             {product.wished ? "Saved to Wishlist" : "Add to Wishlist"}
           </button>
         </form>
+        <ShareProduct title={product.title} />
       </div>
       <div className="product-trust-row">
         <div className="product-trust-item">
           <IconTruck />
-          Free Shipping
+          Delivery across Pakistan
         </div>
         <div className="product-trust-item">
           <IconShield />
-          Easy Returns
+          14-day exchange
         </div>
         <div className="product-trust-item">
-          <IconShield />
-          Secure Payment
+          <IconBag />
+          Cash on delivery
         </div>
       </div>
     </div>

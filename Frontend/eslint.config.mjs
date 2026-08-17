@@ -28,6 +28,7 @@ const config = [
       "@typescript-eslint/no-explicit-any": "error",
       "simple-import-sort/imports": "error",
       "simple-import-sort/exports": "error",
+      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
     },
   },
 ];

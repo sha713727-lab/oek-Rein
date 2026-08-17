@@ -2,12 +2,17 @@ import Link from "next/link";
 
 import { toCatalogProduct } from "@/features/catalog/map-product";
 import { ProductGrid } from "@/features/catalog/product-grid";
+import { productService } from "@/lib/api/products";
+import { getStorefront } from "@/lib/storefront";
 import { readWishlist } from "@/lib/wishlist-cookie";
-import { productService } from "@/server/services/products/product.service";
 
 export default async function WishlistPage() {
   const wishlist = await readWishlist();
-  const products = (await productService.getByIds(wishlist.ids)).map(toCatalogProduct);
+  const [productsRaw, storefront] = await Promise.all([
+    productService.getByIds(wishlist.ids),
+    getStorefront(),
+  ]);
+  const products = productsRaw.map(toCatalogProduct);
   const empty = products.length === 0;
 
   return (
@@ -40,7 +45,7 @@ export default async function WishlistPage() {
               </p>
             </div>
             <div className="wishlist-grid-wrap">
-              <ProductGrid products={products} wishlistIds={wishlist.ids} columns={4} />
+              <ProductGrid products={products} wishlistIds={wishlist.ids} columns={4} currency={storefront.commerce.currency} tileColors={storefront.content.productCardColors} />
             </div>
           </>
         )}

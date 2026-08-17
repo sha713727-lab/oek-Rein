@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import { IconSketchArrow, IconSparkle, IconStarBurst } from "@/components/icons/icons";
@@ -7,13 +6,12 @@ import {
   heroCtaLabel,
   heroExploreLabel,
   heroHeadline,
-  heroProductAlt,
-  heroProductSrc,
   heroProofLabel,
   heroProofValue,
-  heroSupport,
 } from "@/constants/brand";
+import { type StorefrontContent, tileStyle } from "@/constants/storefront";
 import { HeroWaveMarquee } from "@/features/catalog/hero-wave-marquee";
+import { CmsImage } from "@/features/media/cms-image";
 
 const PROOF_FACES = [
   { src: "/assets/images/women.jpg", alt: "Reviewed by a Zermae customer" },
@@ -76,31 +74,43 @@ function HeroFlowerMark() {
   );
 }
 
-export function HeroHome() {
+function heroLines(headline: string): string[] {
+  const words = headline.trim().split(/\s+/).filter(Boolean);
+  if (words.length <= 3) {
+    return words;
+  }
+  const first = words[0] ?? "";
+  const second = words[1] ?? "";
+  return [first, second, words.slice(2).join(" ")];
+}
+
+export function HeroHome({ content }: { content: StorefrontContent }) {
+  const title = content.heroHeadline || heroHeadline;
+  const lines = heroLines(title);
   return (
-    <section className="home-hero" aria-label={heroHeadline}>
+    <section className="home-hero" aria-label={title}>
       <div className="home-hero-blob" aria-hidden="true" />
       <HeroFlowerMark />
       <div className="home-hero-shell">
         <div className="home-hero-copy">
           <IconSparkle className="home-hero-sparkle" />
           <h1 className="home-hero-title">
-            <span>Beauty</span>
-            <span>Crafted</span>
-            <span>With Purity</span>
+            {lines.map((line) => (
+              <span key={line}>{line}</span>
+            ))}
           </h1>
-          <p className="home-hero-support">{heroSupport}</p>
+          <p className="home-hero-support">{content.heroSupport}</p>
           <Link href={heroCtaHref} className="home-hero-cta">
             {heroCtaLabel}
           </Link>
         </div>
-        <div className="home-hero-stage">
+        <div className="home-hero-stage" style={tileStyle(content.heroStageColor)}>
           <div className="home-hero-arch" aria-hidden="true" />
           <HeroBotanical />
           <div className="home-hero-product">
-            <Image
-              src={heroProductSrc}
-              alt={heroProductAlt}
+            <CmsImage
+              src={content.heroProductSrc}
+              alt={content.heroProductAlt}
               width={304}
               height={637}
               priority
@@ -115,7 +125,7 @@ export function HeroHome() {
             <div className="home-hero-faces">
               {PROOF_FACES.map((face) => (
                 <span key={face.src} className="home-hero-face">
-                  <Image src={face.src} alt={face.alt} fill sizes="40px" className="home-hero-face-image" />
+                  <CmsImage src={face.src} alt={face.alt} fill sizes="40px" className="home-hero-face-image" />
                 </span>
               ))}
               <IconSketchArrow className="home-hero-proof-arrow" />

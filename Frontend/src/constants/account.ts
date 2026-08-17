@@ -2,6 +2,7 @@ export const CUSTOMER_DASHBOARD_NAV = [
   { id: "dashboard", label: "Dashboard", path: "/account" },
   { id: "orders", label: "Orders", path: "/account/orders" },
   { id: "wishlist", label: "Wishlist", path: "/wishlist" },
+  { id: "addresses", label: "Addresses", path: "/account/addresses" },
   { id: "settings", label: "Settings", path: "/account/settings" },
 ] as const;
 

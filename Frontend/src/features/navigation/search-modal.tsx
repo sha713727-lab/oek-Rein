@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { IconClose, IconSearch } from "@/components/icons/icons";
-import { type SearchHit,searchProductsAction } from "@/features/navigation/search-actions";
+import { formatMoney } from "@/constants/storefront";
+import { type SearchHit, searchProductsAction } from "@/features/navigation/search-actions";
 
 const MIN_QUERY = 2;
 const DEBOUNCE_MS = 280;
@@ -115,7 +116,7 @@ export function SearchModal({ open, onClose }: { open: boolean; onClose: () => v
                     <Link href={`/product/${product.id}`} className="search-modal-result" onClick={handleClose}>
                       <div className="search-modal-result-media">
                         {product.image ? (
-                          <Image src={product.image} alt="" width={56} height={72} className="object-cover" />
+                          <Image src={product.image} alt="" width={56} height={72} className="search-modal-result-image" />
                         ) : (
                           <span className="search-modal-result-fallback" aria-hidden="true" />
                         )}
@@ -124,7 +125,7 @@ export function SearchModal({ open, onClose }: { open: boolean; onClose: () => v
                         <span className="search-modal-result-name">{product.title}</span>
                         {product.sku ? <span className="search-modal-result-meta">{product.sku}</span> : null}
                       </div>
-                      <span className="search-modal-result-price">PKR {product.price.toLocaleString()}</span>
+                      <span className="search-modal-result-price">{formatMoney(product.price, product.currency)}</span>
                     </Link>
                   </li>
                 ))}

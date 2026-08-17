@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -8,8 +7,10 @@ import { ProductBuyBox } from "@/features/catalog/product-buy-box";
 import { ProductGallery } from "@/features/catalog/product-gallery";
 import { ProductGrid } from "@/features/catalog/product-grid";
 import { ProductTabs } from "@/features/catalog/product-tabs";
+import { CmsImage } from "@/features/media/cms-image";
+import { productService } from "@/lib/api/products";
+import { getStorefront } from "@/lib/storefront";
 import { readWishlist } from "@/lib/wishlist-cookie";
-import { productService } from "@/server/services/products/product.service";
 import type { SerializedProduct } from "@/types/product";
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -22,21 +23,24 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   }
 
   const images = productImageUrls(product);
+  const uniqueImages = images.filter((image, index) => images.indexOf(image) === index);
   const category = product.category;
   const related = (await productService.list({ category, limit: 8 })).products
     .filter((item) => item.id !== product.id)
-    .slice(0, 4)
+    .slice(0, 3)
     .map(toCatalogProduct);
   const wishlist = await readWishlist();
+  const storefront = await getStorefront();
   const wished = wishlist.ids.includes(product.id);
-  const featureImage = images[1] ?? images[0];
+  const featureImage = uniqueImages[1];
   const words = product.title.trim().split(/\s+/);
   const titleAccent = words.length > 1 ? words.pop() : "";
   const titlePrimary = words.join(" ") || product.title;
+  const highlights = product.description.highlights.slice(0, 3);
 
   return (
     <div className="product-detail-page">
-      <div className="mx-auto max-w-[1600px] px-6 md:px-20">
+      <div className="product-detail-inner">
         <nav className="product-breadcrumb">
           <Link href="/">Home</Link>
           <span>/</span>
@@ -47,16 +51,23 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           <span className="text-text-sub">{product.title}</span>
         </nav>
         <div className="product-hero">
-          <ProductGallery images={images} title={product.title} />
+          <ProductGallery images={uniqueImages} title={product.title} />
           <ProductBuyBox
+            currency={storefront.commerce.currency}
             product={{
               id: product.id,
               title: product.title,
               sku: product.sku,
+              category: CATEGORY_LABELS[category] ?? "Zermae",
+              intro: product.description.intro,
+              volume: product.specifications.includes,
               price: product.effectivePrice,
+              originalPrice: product.originalPrice,
               sizes: [...product.sizes],
-              colors: product.colors.map((color) => ({ name: color.name, hex: color.hex })),
+              colors: product.colors.map((item) => ({ name: item.name, hex: item.hex })),
+              howToUse: product.specifications.care,
               wished,
+              stock: product.stock,
             }}
           />
         </div>
@@ -77,11 +88,17 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         />
         {featureImage ? (
           <div className="product-feature-grid">
-            <div className="product-feature-image">
-              <Image src={featureImage} alt={`${product.title} detail`} fill className="object-cover" sizes="50vw" />
+            <div className="product-feature-well">
+              <CmsImage
+                src={featureImage}
+                alt={`${product.title} detail`}
+                fill
+                sizes="(min-width: 1024px) 28vw, 80vw"
+                className="product-feature-still"
+              />
             </div>
-            <div className="px-2 lg:px-6">
-              <p className="product-feature-label">Craftsmanship</p>
+            <div className="product-feature-copy">
+              <p className="product-feature-label">In The Ritual</p>
               <h2 className="product-feature-title">
                 {titlePrimary}
                 {titleAccent ? (
@@ -91,27 +108,26 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                   </>
                 ) : null}
               </h2>
-              <p className="product-feature-desc">{product.description.intro}</p>
+              <p className="product-feature-desc">{product.description.detail || product.description.intro}</p>
+              {highlights.length > 0 ? (
+                <ul className="product-feature-list">
+                  {highlights.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              ) : null}
             </div>
           </div>
         ) : null}
         {related.length > 0 ? (
-          <section className="product-carousel-section">
+          <section className="product-carousel-section product-carousel-section--last">
             <h2 className="product-section-title">
-              Complete <span className="product-section-title-accent">The Look</span>
+              Complete <span className="product-section-title-accent">The Ritual</span>
             </h2>
-            <ProductGrid products={related} wishlistIds={wishlist.ids} columns={4} />
+            <ProductGrid products={related} wishlistIds={wishlist.ids} currency={storefront.commerce.currency} tileColors={storefront.content.productCardColors} />
           </section>
         ) : null}
       </div>
-      {related.length > 0 ? (
-        <div className="mx-auto max-w-[1600px] px-6 md:px-20">
-          <section className="product-carousel-section product-carousel-section--last">
-            <h2 className="product-section-title">You May Also Like</h2>
-            <ProductGrid products={related} wishlistIds={wishlist.ids} columns={4} />
-          </section>
-        </div>
-      ) : null}
     </div>
   );
 }

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import {
@@ -10,6 +9,7 @@ import {
   GLOW_STATS_IMAGE,
   GLOW_STATS_TITLE,
 } from "@/constants/site";
+import { CmsImage } from "@/features/media/cms-image";
 
 function StatBlob({ className }: { className: string }) {
   return (
@@ -22,7 +22,7 @@ function StatBlob({ className }: { className: string }) {
   );
 }
 
-export function GlowStats() {
+export function GlowStats({ image }: { image: string }) {
   return (
     <section className="glow-stats" aria-labelledby="glow-stats-title">
       <div className="glow-stats-inner">
@@ -45,15 +45,16 @@ export function GlowStats() {
           </Link>
         </div>
         <figure className="glow-stats-stage">
-          <div className="glow-stats-pill">
-            <Image
-              src={GLOW_STATS_IMAGE}
-              alt={GLOW_STATS_ALT}
-              width={480}
-              height={900}
-              className="glow-stats-cutout"
-            />
-          </div>
+          <div className="glow-stats-pill" aria-hidden="true" />
+          <CmsImage
+            src={image || GLOW_STATS_IMAGE}
+            alt={GLOW_STATS_ALT}
+            width={234}
+            height={606}
+            priority
+            sizes="(max-width: 899px) 16.5rem, 21rem"
+            className="glow-stats-cutout"
+          />
         </figure>
       </div>
     </section>

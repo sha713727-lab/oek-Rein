@@ -1,15 +1,18 @@
-import { cookies } from "next/headers";
+import { cache } from "react";
 
-import { sessionCookieName } from "@/constants/cookies";
-import { authService, type AuthUser } from "@/server/services/auth/auth.service";
+import { authApi, type AuthUser } from "@/lib/api/auth";
+import { AppError } from "@/lib/app-error";
 
-export async function getSessionUser(): Promise<AuthUser | null> {
-  const store = await cookies();
-  const token = store.get(sessionCookieName)?.value;
-  return authService.getUserFromSession(token);
-}
+export type { AuthUser };
 
-export async function getSessionToken(): Promise<string | undefined> {
-  const store = await cookies();
-  return store.get(sessionCookieName)?.value;
-}
+export const getSessionUser = cache(async (): Promise<AuthUser | null> => {
+  try {
+    const result = await authApi.me();
+    return result.user;
+  } catch (error) {
+    if (error instanceof AppError && (error.statusCode === 401 || error.statusCode === 403)) {
+      return null;
+    }
+    throw error;
+  }
+});

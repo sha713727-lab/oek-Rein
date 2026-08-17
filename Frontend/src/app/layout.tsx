@@ -4,11 +4,15 @@ import "./glow-stats.css";
 import "./features.css";
 import "./home-faq.css";
 import "./footer.css";
+import "./storefront.css";
 
 import { Cormorant_Garamond, Inter, Plus_Jakarta_Sans, Poppins } from "next/font/google";
 import type { ReactNode } from "react";
 
 import { brandDescription, brandHeadline, brandName } from "@/constants/brand";
+import { CookieBanner } from "@/features/consent/cookie-banner";
+import { ThemeStyle } from "@/features/theme/theme-style";
+import { getStorefront } from "@/lib/storefront";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -54,13 +58,16 @@ export const metadata = {
   manifest: "/site.webmanifest",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const storefront = await getStorefront();
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <body
         className={`${plusJakarta.variable} ${poppins.variable} ${inter.variable} ${cormorant.variable} min-h-screen bg-brand-bg antialiased`}
       >
+        <ThemeStyle theme={storefront.theme} />
         {children}
+        <CookieBanner />
       </body>
     </html>
   );

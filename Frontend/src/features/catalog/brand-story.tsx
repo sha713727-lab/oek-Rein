@@ -1,18 +1,12 @@
-import Image from "next/image";
-
 import { IconFlower, IconLeafMark } from "@/components/icons/icons";
 import {
   brandMark,
-  brandStoryEnd,
-  brandStoryLead,
-  brandStoryMid,
   brandStoryPortraitAlt,
-  brandStoryPortraitSrc,
   brandStoryPrimaryAlt,
-  brandStoryPrimarySrc,
   brandStorySecondaryAlt,
-  brandStorySecondarySrc,
 } from "@/constants/brand";
+import type { StorefrontContent } from "@/constants/storefront";
+import { CmsImage } from "@/features/media/cms-image";
 
 function StoryBotanical({ className }: { className: string }) {
   return (
@@ -39,7 +33,7 @@ function LeafCluster({ className }: { className: string }) {
   );
 }
 
-export function BrandStory() {
+export function BrandStory({ content }: { content: StorefrontContent }) {
   return (
     <section className="brand-story" aria-labelledby="brand-story-title">
       <StoryBotanical className="brand-story-vine brand-story-vine--tl" />
@@ -48,10 +42,10 @@ export function BrandStory() {
         <figure className="brand-story-still">
           <span className="brand-story-still-orb" aria-hidden="true" />
           <span className="brand-story-still-product brand-story-still-product--rear">
-            <Image src={brandStorySecondarySrc} alt="" fill sizes="180px" className="brand-story-cutout" />
+            <CmsImage src={content.brandStorySecondarySrc} alt="" fill sizes="180px" className="brand-story-cutout" />
           </span>
           <span className="brand-story-still-product brand-story-still-product--front">
-            <Image src={brandStoryPrimarySrc} alt={brandStoryPrimaryAlt} fill sizes="200px" className="brand-story-cutout" />
+            <CmsImage src={content.brandStoryPrimarySrc} alt={brandStoryPrimaryAlt} fill sizes="200px" className="brand-story-cutout" />
           </span>
         </figure>
         <div className="brand-story-copy">
@@ -62,21 +56,21 @@ export function BrandStory() {
             <span className="brand-story-name">{brandMark}</span>
             <span className="brand-story-inline">
               <span className="brand-story-inline-still">
-                <Image src={brandStoryPrimarySrc} alt={brandStoryPrimaryAlt} fill sizes="88px" className="brand-story-cutout" />
+                <CmsImage src={content.brandStoryPrimarySrc} alt={brandStoryPrimaryAlt} fill sizes="88px" className="brand-story-cutout" />
               </span>
               <span className="brand-story-inline-still brand-story-inline-still--mint">
-                <Image src={brandStorySecondarySrc} alt={brandStorySecondaryAlt} fill sizes="88px" className="brand-story-cutout" />
+                <CmsImage src={content.brandStorySecondarySrc} alt={brandStorySecondaryAlt} fill sizes="88px" className="brand-story-cutout" />
               </span>
             </span>
-            {brandStoryLead}{" "}
-            <LeafCluster className="brand-story-leaves" /> {brandStoryMid}{" "}
-            <IconFlower className="brand-story-bloom" /> {brandStoryEnd}
+            {content.brandStoryLead}{" "}
+            <LeafCluster className="brand-story-leaves" /> {content.brandStoryMid}{" "}
+            <IconFlower className="brand-story-bloom" /> {content.brandStoryEnd}
           </p>
         </div>
         <figure className="brand-story-photo">
           <span className="brand-story-photo-clip">
-            <Image
-              src={brandStoryPortraitSrc}
+            <CmsImage
+              src={content.brandStoryPortraitSrc}
               alt={brandStoryPortraitAlt}
               fill
               sizes="(min-width: 1024px) 16vw, 40vw"

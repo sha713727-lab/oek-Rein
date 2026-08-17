@@ -1,1 +1,1 @@
-Framework glue: env, logging, HMAC helpers, class merging.
+Framework glue: env, HMAC helpers, class merging, and the Backend API client.

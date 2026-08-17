@@ -1,16 +1,24 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { IconHeart, IconMinus, IconPlus } from "@/components/icons/icons";
+import { IconHeart, IconMinus, IconPlus, IconTrash } from "@/components/icons/icons";
+import { ConfirmSubmit } from "@/components/ui/confirm-submit";
 import { CATEGORY_LABELS } from "@/constants/catalog";
+import { calculateOrderTotals, getFreeShippingNote } from "@/constants/commerce";
+import { formatMoney } from "@/constants/storefront";
 import { removeFromCartAction, updateCartQuantityAction } from "@/features/cart/actions";
+import { OrderTotals } from "@/features/checkout/order-totals";
 import { toggleWishlistAction } from "@/features/wishlist/actions";
+import { orderService } from "@/lib/api/orders";
+import { productService } from "@/lib/api/products";
 import { readCart } from "@/lib/cart-cookie";
-import { productService } from "@/server/services/products/product.service";
 
 export default async function CartPage() {
   const cart = await readCart();
-  const products = await productService.getByIds(cart.items.map((item) => item.productId));
+  const [products, commerce] = await Promise.all([
+    productService.getByIds(cart.items.map((item) => item.productId)),
+    orderService.getCommerceSettings(),
+  ]);
   const map = new Map(products.map((product) => [product.id, product]));
   const lines = cart.items.map((item) => {
     const product = map.get(item.productId);
@@ -18,6 +26,7 @@ export default async function CartPage() {
     return { ...item, product, lineTotal: price * item.quantity };
   });
   const subtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
+  const totals = calculateOrderTotals(subtotal, commerce);
   const empty = lines.length === 0;
 
   return (
@@ -56,7 +65,7 @@ export default async function CartPage() {
                     <article key={`${line.productId}-${line.size ?? ""}-${line.color ?? ""}`} className="cart-item-card">
                       <Link href={`/product/${line.productId}`} className="cart-item-media">
                         {image ? (
-                          <Image src={image} alt={title} fill className="cart-item-image object-cover" sizes="160px" />
+                          <Image src={image} alt={title} fill className="cart-item-image" sizes="160px" />
                         ) : null}
                       </Link>
                       <div className="cart-item-body">
@@ -93,23 +102,37 @@ export default async function CartPage() {
                                 </button>
                               </form>
                             </div>
-                            <p className="cart-item-price">PKR {line.lineTotal.toLocaleString()}</p>
+                            <p className="cart-item-price">{formatMoney(line.lineTotal, commerce.currency)}</p>
                           </div>
                         </div>
-                        <div className="flex gap-4">
+                        <div className="cart-item-actions">
                           <form action={toggleWishlistAction}>
                             <input type="hidden" name="productId" value={line.productId} />
-                            <button type="submit" className="cart-item-link">
-                              <IconHeart /> Move to wishlist
-                            </button>
+                            <ConfirmSubmit
+                              className="cart-item-link"
+                              message="Move this item to your wishlist?"
+                              label={
+                                <>
+                                  <IconHeart />
+                                  <span>Move to wishlist</span>
+                                </>
+                              }
+                            />
                           </form>
                           <form action={removeFromCartAction}>
                             <input type="hidden" name="productId" value={line.productId} />
                             {line.size ? <input type="hidden" name="size" value={line.size} /> : null}
                             {line.color ? <input type="hidden" name="color" value={line.color} /> : null}
-                            <button type="submit" className="cart-item-link">
-                              Remove
-                            </button>
+                            <ConfirmSubmit
+                              className="cart-item-link"
+                              message="Remove this item from your bag?"
+                              label={
+                                <>
+                                  <IconTrash />
+                                  <span>Remove</span>
+                                </>
+                              }
+                            />
                           </form>
                         </div>
                       </div>
@@ -118,8 +141,17 @@ export default async function CartPage() {
                 })}
               </div>
               <aside className="cart-summary">
-                <p className="cart-summary-label">Subtotal</p>
-                <p className="cart-summary-total">PKR {subtotal.toLocaleString()}</p>
+                <p className="cart-summary-label">Order summary</p>
+                <OrderTotals
+                  subtotal={totals.subtotal}
+                  shippingFee={totals.shippingFee}
+                  taxAmount={totals.taxAmount}
+                  taxLabel={totals.taxLabel}
+                  total={totals.total}
+                  currency={commerce.currency}
+                />
+                <p className="checkout-note">{getFreeShippingNote(commerce)}</p>
+                <p className="checkout-note">Cash on delivery at checkout.</p>
                 <Link href="/checkout" className="luxury-button-solid">
                   Checkout
                 </Link>

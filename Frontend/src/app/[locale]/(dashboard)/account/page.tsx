@@ -2,21 +2,24 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { getCustomerFirstName } from "@/constants/account";
+import { formatMoney } from "@/constants/storefront";
 import { logoutAction } from "@/features/auth/actions";
+import { orderService } from "@/lib/api/orders";
 import { readCart } from "@/lib/cart-cookie";
 import { getSessionUser } from "@/lib/session";
+import { getStorefront } from "@/lib/storefront";
 import { readWishlist } from "@/lib/wishlist-cookie";
-import { orderService } from "@/server/services/orders/order.service";
 
 export default async function AccountPage() {
   const user = await getSessionUser();
   if (!user) {
     redirect("/login");
   }
-  const [orders, wishlist, cart] = await Promise.all([
+  const [orders, wishlist, cart, storefront] = await Promise.all([
     orderService.listMine(user.id, 1, 3),
     readWishlist(),
     readCart(),
+    getStorefront(),
   ]);
   const cartCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -58,10 +61,12 @@ export default async function AccountPage() {
         ) : (
           <ul className="space-y-3">
             {orders.orders.map((order) => (
-              <li key={String(order._id)} className="customer-order-card">
-                <p className="customer-order-card-id">{String(order.orderNumber)}</p>
-                <p className="customer-order-card-date">{String(order.status)}</p>
-                <p className="customer-order-card-total">PKR {Number(order.total).toLocaleString()}</p>
+              <li key={String(order._id)}>
+                <Link href={`/account/orders/${order.orderNumber}`} className="customer-order-card">
+                  <p className="customer-order-card-id">{String(order.orderNumber)}</p>
+                  <p className="customer-order-card-date">{String(order.status)}</p>
+                  <p className="customer-order-card-total">{formatMoney(Number(order.total), storefront.commerce.currency)}</p>
+                </Link>
               </li>
             ))}
           </ul>

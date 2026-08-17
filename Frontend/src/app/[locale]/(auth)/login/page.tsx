@@ -4,14 +4,16 @@ import { AUTH_BANNERS } from "@/constants/site";
 import { AuthPageFrame } from "@/features/auth/auth-page-frame";
 import { LoginForm } from "@/features/auth/login-form";
 import { getSessionUser } from "@/lib/session";
+import { getStorefront } from "@/lib/storefront";
 
 export default async function LoginPage() {
   const user = await getSessionUser();
   if (user) {
     redirect("/account");
   }
+  const storefront = await getStorefront();
   return (
-    <AuthPageFrame image={AUTH_BANNERS.login.src} imageAlt={AUTH_BANNERS.login.alt}>
+    <AuthPageFrame image={storefront.content.authLoginSrc} imageAlt={AUTH_BANNERS.login.alt}>
       <LoginForm />
     </AuthPageFrame>
   );

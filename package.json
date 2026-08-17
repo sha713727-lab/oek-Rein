@@ -2,13 +2,15 @@
   "name": "zermae",
   "private": true,
   "scripts": {
-    "dev": "npm run dev --prefix Frontend",
-    "build": "npm run build --prefix Frontend",
-    "start": "npm run start --prefix Frontend",
-    "lint": "npm run lint --prefix Frontend",
-    "typecheck": "npm run typecheck --prefix Frontend",
-    "test": "npm run test --prefix Frontend",
-    "migrate": "npm run migrate --prefix Frontend",
-    "seed:admin": "npm run seed:admin --prefix Frontend"
+    "dev": "node scripts/dev.mjs",
+    "build": "npm run build --prefix Backend && npm run build --prefix Frontend",
+    "start": "node scripts/start.mjs",
+    "lint": "npm run lint --prefix Backend && npm run lint --prefix Frontend",
+    "typecheck": "npm run typecheck --prefix Backend && npm run typecheck --prefix Frontend",
+    "test": "npm run test --prefix Backend && npm run test --prefix Frontend",
+    "db:migrate": "npm run migrate --prefix Backend",
+    "db:seed": "npm run seed --prefix Backend",
+    "migrate": "npm run db:migrate",
+    "seed:admin": "npm run db:seed"
   }
 }

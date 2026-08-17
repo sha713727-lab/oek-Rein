@@ -9,8 +9,10 @@ export function toCatalogProduct(product: SerializedProduct): CatalogProduct {
   return {
     id: product.id,
     title: product.title,
+    description: product.description.intro,
     price: product.effectivePrice,
     originalPrice: product.originalPrice,
     images: productImageUrls(product),
+    tileColor: product.tileColor,
   };
 }

@@ -2,15 +2,10 @@ import Link from "next/link";
 import type { ComponentType } from "react";
 
 import { IconFacebook, IconInstagram, IconPinterest, IconSparkle } from "@/components/icons/icons";
-import {
-  brandName,
-  footerSocialLabel,
-  footerStatementEnd,
-  footerStatementLead,
-  heroCtaHref,
-  heroExploreLabel,
-} from "@/constants/brand";
-import { FOOTER_SOCIAL } from "@/constants/site";
+import { brandName, footerSocialLabel, heroCtaHref, heroExploreLabel } from "@/constants/brand";
+import { FOOTER_NAV, FOOTER_SOCIAL } from "@/constants/site";
+import { type StorefrontContent, visibleNavLinks } from "@/constants/storefront";
+import { NewsletterForm } from "@/features/newsletter/newsletter-form";
 
 type IconProps = { className?: string | undefined };
 
@@ -33,7 +28,12 @@ function SocialBlob({ className }: { className: string }) {
   );
 }
 
-export function SiteFooter() {
+export function SiteFooter({ content }: { content: StorefrontContent }) {
+  const socialHrefs: Record<string, string> = {
+    facebook: content.socialFacebook,
+    instagram: content.socialInstagram,
+    pinterest: content.socialPinterest,
+  };
   return (
     <footer id="site-footer" className="site-footer">
       <div className="site-footer-inner">
@@ -51,9 +51,13 @@ export function SiteFooter() {
           <IconSparkle className="site-footer-badge-star" />
         </Link>
         <p className="site-footer-statement">
-          <span>{footerStatementLead}</span>
-          <span>{footerStatementEnd}</span>
+          <span>{content.footerStatementLead}</span>
+          <span>{content.footerStatementEnd}</span>
         </p>
+        <div className="footer-newsletter">
+          <p className="site-footer-social-label">Stay in the ritual</p>
+          <NewsletterForm />
+        </div>
         <div className="site-footer-social">
           <p className="site-footer-social-label">{footerSocialLabel}</p>
           <ul className="site-footer-social-list">
@@ -62,7 +66,7 @@ export function SiteFooter() {
               return (
                 <li key={item.id}>
                   <a
-                    href={item.href}
+                    href={socialHrefs[item.id] ?? item.href}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`site-footer-social-link site-footer-social-link--${index + 1}`}
@@ -76,6 +80,31 @@ export function SiteFooter() {
             })}
           </ul>
         </div>
+        <nav className="site-footer-links" aria-label="Footer">
+          {FOOTER_NAV.map((group) => {
+            const links =
+              group.id === "shop"
+                ? visibleNavLinks(content).map((item) => ({ label: item.label, href: item.path }))
+                : group.links;
+            if (links.length === 0) {
+              return null;
+            }
+            return (
+            <div key={group.id} className="site-footer-link-group">
+              <p className="site-footer-link-title">{group.title}</p>
+              <ul className="site-footer-link-list">
+                {links.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className="site-footer-link">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            );
+          })}
+        </nav>
       </div>
       <p className="site-footer-mark" aria-hidden="true">
         {brandName.toUpperCase()}

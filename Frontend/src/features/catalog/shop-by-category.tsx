@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { ComponentType } from "react";
 
@@ -14,15 +13,16 @@ import {
   IconSparkle,
 } from "@/components/icons/icons";
 import {
-  SHOP_RANGE_CATEGORIES,
   SHOP_RANGE_SIGNATURE,
   SHOP_RANGE_SUPPORT,
   SHOP_RANGE_TRUST,
 } from "@/constants/site";
+import { type StorefrontShopCategory, tileStyle } from "@/constants/storefront";
+import { CmsImage } from "@/features/media/cms-image";
 
 type IconProps = { className?: string | undefined };
 
-const CARD_ICONS: Record<(typeof SHOP_RANGE_CATEGORIES)[number]["icon"], ComponentType<IconProps>> = {
+const CARD_ICONS: Record<string, ComponentType<IconProps>> = {
   flower: IconFlower,
   drop: IconDrop,
   dropper: IconDropper,
@@ -51,7 +51,10 @@ function RangeBotanical({ className }: { className: string }) {
   );
 }
 
-export function ShopByCategory() {
+export function ShopByCategory({ categories }: { categories: StorefrontShopCategory[] }) {
+  if (categories.length === 0) {
+    return null;
+  }
   return (
     <section className="shop-range" aria-labelledby="shop-range-title">
       <div className="shop-range-blob shop-range-blob--mint" aria-hidden="true" />
@@ -91,10 +94,10 @@ export function ShopByCategory() {
           <p className="shop-range-support">{SHOP_RANGE_SUPPORT}</p>
         </header>
         <div className="shop-range-track">
-          {SHOP_RANGE_CATEGORIES.map((category) => {
-            const CardIcon = CARD_ICONS[category.icon];
+          {categories.map((category) => {
+            const CardIcon = CARD_ICONS[category.icon] ?? IconSparkle;
             return (
-              <article key={category.id} className={`shop-range-card shop-range-card--${category.tone}`}>
+              <article key={category.id} className="shop-range-card" style={tileStyle(category.color)}>
                 <span className="shop-range-card-icon">
                   <CardIcon />
                 </span>
@@ -102,13 +105,15 @@ export function ShopByCategory() {
                   <span className="shop-range-card-orb" aria-hidden="true" />
                   <RangeBotanical className="shop-range-card-vine" />
                   <div className="shop-range-card-product">
-                    <Image
-                      src={category.image}
-                      alt={category.alt}
-                      fill
-                      sizes="(min-width: 1200px) 16vw, 240px"
-                      className="shop-range-card-image"
-                    />
+                    {category.image ? (
+                      <CmsImage
+                        src={category.image}
+                        alt={category.alt || category.title}
+                        fill
+                        sizes="(min-width: 1200px) 16vw, 240px"
+                        className="shop-range-card-image"
+                      />
+                    ) : null}
                   </div>
                 </div>
                 <div className="shop-range-card-copy">
@@ -140,11 +145,11 @@ export function ShopByCategory() {
             );
           })}
         </ul>
+        <p className="shop-range-signature">
+          <IconSparkle className="shop-range-signature-mark" />
+          {SHOP_RANGE_SIGNATURE}
+        </p>
       </div>
-      <p className="shop-range-signature">
-        <IconSparkle className="shop-range-signature-mark" />
-        {SHOP_RANGE_SIGNATURE}
-      </p>
     </section>
   );
 }

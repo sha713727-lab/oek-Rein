@@ -2,8 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { IconShield, IconTruck } from "@/components/icons/icons";
+import { OrderSummary } from "@/features/orders/order-summary";
+import { orderService } from "@/lib/api/orders";
 import { getSessionUser } from "@/lib/session";
-import { orderService } from "@/server/services/orders/order.service";
+import { getStorefront } from "@/lib/storefront";
+import type { OrderRecord } from "@/types/order";
 
 export default async function OrderConfirmationPage({
   params,
@@ -12,15 +15,14 @@ export default async function OrderConfirmationPage({
 }) {
   const { orderId } = await params;
   const user = await getSessionUser();
-  let order: Record<string, unknown>;
+  let order: OrderRecord;
   try {
-    order = (await orderService.getByOrderNumber(orderId, user)) as Record<string, unknown>;
+    order = await orderService.getByOrderNumber(orderId, user);
   } catch {
     notFound();
   }
-  const shipping = order.shipping as { address?: string; city?: string; postalCode?: string } | undefined;
-  const items = (order.items as Array<{ name: string; quantity: number; price: number }> | undefined) ?? [];
 
+  const storefront = await getStorefront();
   return (
     <div className="order-confirmation-page">
       <div className="mx-auto max-w-[42rem] px-6 md:px-20">
@@ -28,25 +30,14 @@ export default async function OrderConfirmationPage({
           <span className="order-confirmation-eyebrow">Order Confirmed</span>
           <h1 className="order-confirmation-title">Thank You For Your Order</h1>
           <p className="order-confirmation-lead">
-            A confirmation email has been sent to <span className="order-confirmation-email">{String(order.email)}</span>.
+            We have your order for <span className="order-confirmation-email">{order.email}</span>. Pay the courier in
+            cash when it arrives.
           </p>
         </header>
         <div className="order-confirmation-card">
           <p className="order-confirmation-fallback-label">Order Reference</p>
-          <p className="order-confirmation-fallback-id">{String(order.orderNumber)}</p>
-          <ul className="mt-6 space-y-2 text-sm">
-            {items.map((item, index) => (
-              <li key={`${item.name}-${index}`}>
-                {item.name} × {item.quantity} — PKR {Number(item.price).toLocaleString()}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-6">Total PKR {Number(order.total).toLocaleString()}</p>
-          {shipping ? (
-            <p className="mt-3 text-sm text-text-sub">
-              {shipping.address}, {shipping.city} {shipping.postalCode}
-            </p>
-          ) : null}
+          <p className="order-confirmation-fallback-id">{order.orderNumber}</p>
+          <OrderSummary order={order} currency={storefront.commerce.currency} />
         </div>
         <div className="order-confirmation-assurance">
           <div className="order-confirmation-assurance-item">
@@ -55,15 +46,15 @@ export default async function OrderConfirmationPage({
           </div>
           <div className="order-confirmation-assurance-item">
             <IconShield />
-            <span>Secure checkout and protected transactions</span>
+            <span>Cash on delivery</span>
           </div>
         </div>
-        <div className="order-confirmation-actions">
+        <div className="order-confirmation-actions no-print">
           <Link href="/collections/all" className="luxury-button-solid">
             Continue Shopping
           </Link>
-          <Link href="/account/orders" className="luxury-button-outline">
-            View Orders
+          <Link href="/orders/lookup" className="luxury-button-outline">
+            Track later
           </Link>
         </div>
       </div>

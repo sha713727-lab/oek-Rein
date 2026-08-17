@@ -17,4 +17,5 @@ Frontend/logs
 Backend/node_modules
 Backend/coverage
 Backend/logs
-Frontend/src/server/uploads
+Frontend/public/uploads/*
+!Frontend/public/uploads/.gitkeep

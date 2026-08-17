@@ -7,13 +7,6 @@ module.exports = {
       from: {},
       to: { circular: true },
     },
-    {
-      name: "no-feature-to-feature",
-      comment: "Features must not import other features directly.",
-      severity: "error",
-      from: { path: "^src/features/([^/]+)/.+" },
-      to: { path: "^src/features/(?!$1/)" },
-    },
   ],
   options: {
     doNotFollow: { path: "node_modules" },

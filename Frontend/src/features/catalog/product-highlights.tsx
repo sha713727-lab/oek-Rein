@@ -1,4 +1,3 @@
-import Image from "next/image";
 import type { ComponentType } from "react";
 
 import { IconDrop, IconFlower, IconGlowFace, IconRabbit } from "@/components/icons/icons";
@@ -9,6 +8,7 @@ import {
   PRODUCT_HIGHLIGHTS_MARK,
   PRODUCT_HIGHLIGHTS_TITLE,
 } from "@/constants/site";
+import { CmsImage } from "@/features/media/cms-image";
 
 type IconProps = { className?: string | undefined };
 
@@ -20,23 +20,23 @@ const HIGHLIGHT_ICONS: Record<(typeof PRODUCT_HIGHLIGHTS)[number]["icon"], Compo
 };
 
 function HighlightArrow({ corner }: { corner: (typeof PRODUCT_HIGHLIGHTS)[number]["corner"] }) {
-  const paths = {
-    tl: "M12 36C38 34 62 24 86 10",
-    tr: "M88 36C62 34 38 24 14 10",
-    bl: "M12 12C38 14 62 24 86 38",
-    br: "M88 12C62 14 38 24 14 38",
+  const shafts = {
+    tl: "M10 12c28 6 56 18 92 36",
+    tr: "M110 12C82 18 54 30 18 48",
+    bl: "M10 44c28-6 56-18 92-36",
+    br: "M110 44C82 38 54 26 18 8",
   } as const;
   const heads = {
-    tl: "M76 6c6 1 10 4 12 8",
-    tr: "M24 6c-6 1-10 4-12 8",
-    bl: "M76 42c6-1 10-4 12-8",
-    br: "M24 42c-6-1-10-4-12-8",
+    tl: "M84 28c8 8 14 16 18 20M80 50c10 0 18-1 22-2",
+    tr: "M36 28c-8 8-14 16-18 20M40 50c-10 0-18-1-22-2",
+    bl: "M84 28c8-8 14-16 18-20M80 6c10 0 18 1 22 2",
+    br: "M36 28c-8-8-14-16-18-20M40 6c-10 0-18 1-22 2",
   } as const;
 
   return (
-    <svg className="product-highlights-arrow-svg" viewBox="0 0 100 48" fill="none" aria-hidden="true">
-      <path d={paths[corner]} stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
-      <path d={heads[corner]} stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+    <svg className="product-highlights-arrow-svg" viewBox="0 0 120 56" fill="none" aria-hidden="true">
+      <path d={shafts[corner]} stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <path d={heads[corner]} stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -55,7 +55,7 @@ function HighlightBotanical({ className }: { className: string }) {
   );
 }
 
-export function ProductHighlights() {
+export function ProductHighlights({ image }: { image: string }) {
   return (
     <section className="product-highlights" aria-labelledby="product-highlights-title">
       <HighlightBotanical className="product-highlights-vine" />
@@ -78,11 +78,12 @@ export function ProductHighlights() {
           <div className="product-highlights-stage">
             <span className="product-highlights-glow" aria-hidden="true" />
             <div className="product-highlights-product">
-              <Image
-                src={PRODUCT_HIGHLIGHTS_IMAGE}
+              <CmsImage
+                src={image || PRODUCT_HIGHLIGHTS_IMAGE}
                 alt={PRODUCT_HIGHLIGHTS_ALT}
-                width={480}
-                height={900}
+                width={304}
+                height={637}
+                sizes="(max-width: 480px) 7rem, (max-width: 899px) 8.25rem, 18rem"
                 className="product-highlights-cutout"
               />
             </div>

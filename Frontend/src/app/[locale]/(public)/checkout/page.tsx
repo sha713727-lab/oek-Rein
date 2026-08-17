@@ -1,11 +1,14 @@
 import { redirect } from "next/navigation";
 
-import { getFreeShippingNote } from "@/constants/commerce";
+import { calculateOrderTotals, getFreeShippingNote } from "@/constants/commerce";
+import { formatMoney } from "@/constants/storefront";
 import { CheckoutForm } from "@/features/checkout/checkout-form";
+import { OrderTotals } from "@/features/checkout/order-totals";
+import { addressService } from "@/lib/api/addresses";
+import { orderService } from "@/lib/api/orders";
+import { productService } from "@/lib/api/products";
 import { readCart } from "@/lib/cart-cookie";
 import { getSessionUser } from "@/lib/session";
-import { orderService } from "@/server/services/orders/order.service";
-import { productService } from "@/server/services/products/product.service";
 
 export default async function CheckoutPage() {
   const cart = await readCart();
@@ -17,6 +20,7 @@ export default async function CheckoutPage() {
     productService.getByIds(cart.items.map((item) => item.productId)),
     orderService.getCommerceSettings(),
   ]);
+  const addresses = user ? await addressService.list(user.id) : [];
   const map = new Map(products.map((product) => [product.id, product]));
   const lines = cart.items.map((item) => {
     const product = map.get(item.productId);
@@ -28,6 +32,7 @@ export default async function CheckoutPage() {
     };
   });
   const subtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
+  const totals = calculateOrderTotals(subtotal, commerce);
 
   return (
     <div className="checkout-page">
@@ -38,21 +43,36 @@ export default async function CheckoutPage() {
           <p className="section-intro-description">Enter your details to finalize your Zermae order.</p>
         </header>
         <div className="checkout-layout">
-          <CheckoutForm itemsJson={JSON.stringify(cart.items)} defaultName={user?.name} defaultEmail={user?.email} />
+          <CheckoutForm
+            itemsJson={JSON.stringify(cart.items)}
+            defaultName={user?.name}
+            defaultEmail={user?.email}
+            addresses={addresses}
+          />
           <aside className="checkout-summary">
             <p className="checkout-summary-title">Order Summary</p>
-            <ul className="space-y-3">
+            <ul className="checkout-summary-items">
               {lines.map((line, index) => (
-                <li key={`${line.title}-${index}`} className="flex justify-between text-sm">
+                <li key={`${line.title}-${index}`} className="checkout-summary-row">
                   <span>
                     {line.title} × {line.quantity}
                   </span>
-                  <span>PKR {line.lineTotal.toLocaleString()}</span>
+                  <span>{formatMoney(line.lineTotal, commerce.currency)}</span>
                 </li>
               ))}
             </ul>
-            <p className="mt-6 text-lg">Subtotal PKR {subtotal.toLocaleString()}</p>
-            <p className="checkout-note mt-4">{getFreeShippingNote(commerce)}</p>
+            <OrderTotals
+              subtotal={totals.subtotal}
+              shippingFee={totals.shippingFee}
+              taxAmount={totals.taxAmount}
+              taxLabel={totals.taxLabel}
+              total={totals.total}
+              currency={commerce.currency}
+            />
+            <p className="checkout-note">{getFreeShippingNote(commerce)}</p>
+            <p className="checkout-note">
+              Payment is cash on delivery. Pay the courier in {commerce.currency} when your order arrives. No card is charged online.
+            </p>
           </aside>
         </div>
       </div>

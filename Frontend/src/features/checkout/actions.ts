@@ -2,16 +2,13 @@
 
 import { redirect } from "next/navigation";
 
+import { orderService } from "@/lib/api/orders";
 import { writeCart } from "@/lib/cart-cookie";
-import { sha256Hex } from "@/lib/crypto";
 import { parseSchema } from "@/lib/parse-schema";
-import { getSessionUser } from "@/lib/session";
 import { checkoutSchema } from "@/schemas/order";
-import { orderService } from "@/server/services/orders/order.service";
 
 export async function checkoutAction(formData: FormData): Promise<{ error?: string }> {
   try {
-    const user = await getSessionUser();
     const items = JSON.parse(String(formData.get("items") ?? "[]")) as unknown;
     const parsed = parseSchema(checkoutSchema, {
       email: String(formData.get("email") ?? ""),
@@ -22,8 +19,9 @@ export async function checkoutAction(formData: FormData): Promise<{ error?: stri
       postalCode: String(formData.get("postalCode") ?? ""),
       paymentMethod: String(formData.get("paymentMethod") ?? "cod"),
       items,
+      promoCode: String(formData.get("promoCode") ?? "").trim() || undefined,
     });
-    const order = await orderService.checkout(parsed, user?.id ?? null, sha256Hex(JSON.stringify(parsed)));
+    const order = await orderService.checkout(parsed);
     await writeCart({ items: [] });
     redirect(`/order-confirmation/${String(order.orderNumber)}`);
   } catch (error) {

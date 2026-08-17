@@ -39,13 +39,18 @@ export function ProductTabs({ product }: { product: TabsModel }) {
         <div className="product-tab-content">
           {active === "Description" ? (
             <div className="product-tab-prose">
-              <p>{product.description.intro}</p>
-              <p>{product.description.detail}</p>
-              <ul className="product-tab-list">
-                {product.description.highlights.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
+              <p>
+                {product.description.detail && product.description.detail !== product.description.intro
+                  ? product.description.detail
+                  : product.description.intro}
+              </p>
+              {product.description.highlights.length > 0 ? (
+                <ul className="product-tab-list">
+                  {product.description.highlights.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              ) : null}
             </div>
           ) : null}
           {active === "Specifications" ? (

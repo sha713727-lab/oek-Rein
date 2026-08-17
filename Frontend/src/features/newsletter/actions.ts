@@ -1,8 +1,8 @@
 "use server";
 
+import { newsletterService } from "@/lib/api/newsletter";
 import { parseSchema } from "@/lib/parse-schema";
 import { newsletterSchema } from "@/schemas/auth";
-import { newsletterService } from "@/server/services/newsletter/newsletter.service";
 
 export async function subscribeNewsletterAction(formData: FormData): Promise<{ error?: string; ok?: boolean }> {
   try {

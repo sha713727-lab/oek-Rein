@@ -1,38 +1,148 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import {
+  formatOrderDate,
+  ORDER_STATUS,
+  ORDER_STATUS_LABELS,
+  type OrderStatus,
+} from "@/constants/order-status";
 import { ADMIN_ROLES } from "@/constants/roles";
+import { formatMoney } from "@/constants/storefront";
+import { IconOrders } from "@/features/admin/admin-nav-icons";
+import { CmsImage } from "@/features/media/cms-image";
+import { orderService } from "@/lib/api/orders";
 import { getSessionUser } from "@/lib/session";
-import { orderService } from "@/server/services/orders/order.service";
+import { getStorefront } from "@/lib/storefront";
 
-export default async function AdminOrdersPage() {
+const STATUS_FILTERS = ["all", ...Object.values(ORDER_STATUS)] as const;
+
+export default async function AdminOrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
   const user = await getSessionUser();
   if (!user || !ADMIN_ROLES.includes(user.role)) {
     redirect("/admin/login");
   }
-  const result = await orderService.listAdmin(1, 50);
+  const { status: rawStatus } = await searchParams;
+  const statusFilter = (STATUS_FILTERS as readonly string[]).includes(rawStatus ?? "")
+    ? (rawStatus as (typeof STATUS_FILTERS)[number])
+    : "all";
+  const [result, summary, storefront] = await Promise.all([
+    orderService.listAdmin(1, 50, statusFilter === "all" ? undefined : statusFilter),
+    orderService.summarize(),
+    getStorefront(),
+  ]);
+  const countFor = (status: string) => summary.byStatus.find((item) => item.status === status)?.count ?? 0;
+
   return (
-    <>
-      <h1 className="mb-8 text-3xl tracking-[0.18em] uppercase">Orders</h1>
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-brand-border">
-            <th className="py-2">Order</th>
-            <th>Customer</th>
-            <th>Status</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {result.orders.map((order) => (
-            <tr key={String(order._id)} className="border-b border-brand-border">
-              <td className="py-3">{String(order.orderNumber)}</td>
-              <td>{String(order.customer)}</td>
-              <td>{String(order.status)}</td>
-              <td>PKR {Number(order.total).toLocaleString()}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </>
+    <div className="admin-product-page">
+      <header className="admin-product-toolbar">
+        <div className="admin-product-toolbar-copy">
+          <h1 className="admin-product-title">
+            <IconOrders />
+            Orders
+          </h1>
+        </div>
+      </header>
+
+      <section className="admin-orders-stats" aria-label="Order counts">
+        <article className="admin-orders-stat">
+          <p className="admin-orders-stat-label">Total</p>
+          <p className="admin-orders-stat-value">{summary.orders}</p>
+        </article>
+        <article className="admin-orders-stat">
+          <p className="admin-orders-stat-label">Pending</p>
+          <p className="admin-orders-stat-value">{countFor("pending")}</p>
+        </article>
+        <article className="admin-orders-stat">
+          <p className="admin-orders-stat-label">Processing</p>
+          <p className="admin-orders-stat-value">{countFor("processing")}</p>
+        </article>
+        <article className="admin-orders-stat">
+          <p className="admin-orders-stat-label">Shipped</p>
+          <p className="admin-orders-stat-value">{countFor("shipped")}</p>
+        </article>
+      </section>
+
+      <nav className="admin-orders-filters" aria-label="Filter by status">
+        {STATUS_FILTERS.map((value) => (
+          <Link
+            key={value}
+            href={value === "all" ? "/admin/orders" : `/admin/orders?status=${value}`}
+            className={`admin-orders-filter${statusFilter === value ? " is-active" : ""}`}
+          >
+            {value === "all" ? "All" : ORDER_STATUS_LABELS[value]}
+          </Link>
+        ))}
+      </nav>
+
+      {result.orders.length === 0 ? (
+        <p className="admin-orders-empty">No orders in this view.</p>
+      ) : (
+        <section className="admin-product-card">
+          <div className="admin-orders-table-wrap">
+            <table className="admin-orders-table">
+              <thead>
+                <tr>
+                  <th>Order</th>
+                  <th>Customer</th>
+                  <th>Items</th>
+                  <th>Status</th>
+                  <th>Total</th>
+                  <th> </th>
+                </tr>
+              </thead>
+              <tbody>
+                {result.orders.map((order) => {
+                  const status = String(order.status) as OrderStatus;
+                  const units = order.items.reduce((sum, item) => sum + item.quantity, 0);
+                  const photo = order.items.find((item) => item.imageUrl)?.imageUrl;
+                  return (
+                    <tr key={String(order._id)}>
+                      <td>
+                        <p className="admin-orders-id">{String(order.orderNumber)}</p>
+                        <p className="admin-orders-muted">{formatOrderDate(order.createdAt)}</p>
+                      </td>
+                      <td>
+                        <p>{String(order.customer)}</p>
+                        <p className="admin-orders-muted">{String(order.email)}</p>
+                      </td>
+                      <td>
+                        <div className="admin-orders-items-cell">
+                          <span className="admin-orders-thumb">
+                            {photo ? (
+                              <CmsImage src={photo} alt="" width={40} height={40} className="admin-orders-thumb-img" />
+                            ) : (
+                              <span className="admin-orders-thumb-empty" />
+                            )}
+                          </span>
+                          <span>
+                            {units} {units === 1 ? "item" : "items"}
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`admin-status-pill admin-status-pill--${status}`}>
+                          {ORDER_STATUS_LABELS[status] ?? status}
+                        </span>
+                      </td>
+                      <td>{formatMoney(Number(order.total), storefront.commerce.currency)}</td>
+                      <td>
+                        <Link href={`/admin/orders/${order.orderNumber}`} className="admin-orders-open">
+                          Open
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+    </div>
   );
 }

@@ -1,20 +1,52 @@
+import Link from "next/link";
+
+import { normalizeCategoryFilter } from "@/constants/catalog";
 import { COLLECTION_HEROES } from "@/constants/site";
 import { toCatalogProduct } from "@/features/catalog/map-product";
 import { ProductGrid } from "@/features/catalog/product-grid";
+import { RitualFeature } from "@/features/catalog/ritual-feature";
+import { CmsImage } from "@/features/media/cms-image";
+import { productService } from "@/lib/api/products";
+import { getStorefront } from "@/lib/storefront";
 import { readWishlist } from "@/lib/wishlist-cookie";
-import { productService } from "@/server/services/products/product.service";
 
-export async function CollectionView({ category }: { category: string }) {
+const SORTS = [
+  { id: "newest", label: "Newest", sort: "createdAt", order: "desc" as const },
+  { id: "price-asc", label: "Price low to high", sort: "price", order: "asc" as const },
+  { id: "price-desc", label: "Price high to low", sort: "price", order: "desc" as const },
+  { id: "title", label: "Name", sort: "title", order: "asc" as const },
+];
+
+export async function CollectionView({
+  category,
+  page = 1,
+  sort = "newest",
+}: {
+  category: string;
+  page?: number | undefined;
+  sort?: string | undefined;
+}) {
   const slug = category in COLLECTION_HEROES ? category : "all";
   const hero = COLLECTION_HEROES[slug] ?? COLLECTION_HEROES.all;
-  const [result, wishlist] = await Promise.all([
-    productService.list({ category: slug, limit: 48 }),
+  const selected = SORTS.find((item) => item.id === sort) ?? SORTS[0];
+  const currentPage = Math.max(1, page);
+  const [result, wishlist, storefront] = await Promise.all([
+    productService.list({
+      category: normalizeCategoryFilter(slug),
+      limit: 24,
+      page: currentPage,
+      sort: selected?.sort,
+      order: selected?.order,
+    }),
     readWishlist(),
+    getStorefront(),
   ]);
   const products = result.products.map(toCatalogProduct);
   const splitIndex = Math.min(6, products.length);
   const before = products.slice(0, splitIndex);
   const after = products.slice(splitIndex);
+  const heroImage = storefront.content.collectionImages[slug] ?? hero?.image ?? "";
+  const titles = storefront.content.collectionTitles[slug] ?? { first: hero?.first ?? "The", second: hero?.second ?? "Ritual" };
 
   if (!hero) {
     return null;
@@ -22,36 +54,62 @@ export async function CollectionView({ category }: { category: string }) {
 
   return (
     <div className="min-h-screen bg-brand-bg">
-      <section className={`collection-hero collection-hero--${slug}`}>
-        <div className="collection-hero-bg">
-          <picture className="collection-hero-picture">
-            <source srcSet={hero.webp} type="image/webp" />
-            <img src={hero.jpg} className="collection-hero-bg-image" alt={hero.alt} />
-          </picture>
-          <div className="collection-hero-bg-gradient" aria-hidden="true" />
+      <section className={`collection-hero collection-hero--${hero.tone}`}>
+        <div className="collection-hero-stage" aria-hidden="true">
+          <div className="collection-hero-pill" />
+          <CmsImage
+            src={heroImage}
+            alt=""
+            width={304}
+            height={637}
+            priority
+            sizes="(max-width: 767px) 12rem, 18rem"
+            className="collection-hero-product"
+          />
         </div>
-        <div className="collection-hero-content">
+        <div className="collection-hero-copy">
           <h1 className="collection-hero-title">
-            {hero.first} <span className="collection-hero-title-accent">{hero.second}</span>
+            {titles.first} <span className="collection-hero-title-accent">{titles.second}</span>
           </h1>
-          <div className="collection-hero-divider" aria-hidden="true" />
         </div>
+        <div className="collection-hero-fade" aria-hidden="true" />
       </section>
-      <section className="mx-auto max-w-[1600px] px-6 py-16 md:px-20">
-        {before.length > 0 ? <ProductGrid products={before} wishlistIds={wishlist.ids} /> : null}
-        {products.length > 0 ? (
-          <div className={`collection-banner collection-banner--${slug}`} aria-label={hero.alt}>
-            <picture className="collection-banner-picture">
-              <source srcSet={hero.webp} type="image/webp" />
-              <img src={hero.jpg} className="collection-banner-img" alt={hero.alt} />
-            </picture>
+      <section className="collection-catalog">
+        <nav className="collection-sort" aria-label="Sort">
+          {SORTS.map((item) => (
+            <Link
+              key={item.id}
+              href={`/collections/${slug}?sort=${item.id}`}
+              className={item.id === selected?.id ? "collection-sort-active" : "collection-sort-link"}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+        {before.length > 0 ? (
+          <ProductGrid products={before} wishlistIds={wishlist.ids} currency={storefront.commerce.currency} tileColors={storefront.content.productCardColors} />
+        ) : null}
+        {products.length > 0 ? <RitualFeature image={heroImage} alt={hero.alt} tone={hero.tone} category={slug} /> : null}
+        {after.length > 0 ? (
+          <ProductGrid products={after} wishlistIds={wishlist.ids} currency={storefront.commerce.currency} tileColors={storefront.content.productCardColors} />
+        ) : null}
+        {products.length === 0 ? (
+          <div className="collection-empty">
+            <p>More formulas arriving soon.</p>
           </div>
         ) : null}
-        {after.length > 0 ? <ProductGrid products={after} wishlistIds={wishlist.ids} /> : null}
-        {products.length === 0 ? (
-          <div className="py-40 text-center">
-            <p className="text-xl italic text-text-muted">More formulas arriving soon...</p>
-          </div>
+        {result.pagination.totalPages > 1 ? (
+          <nav className="collection-pager" aria-label="Pages">
+            {result.pagination.hasPrev ? (
+              <Link href={`/collections/${slug}?sort=${selected?.id ?? "newest"}&page=${currentPage - 1}`}>Previous</Link>
+            ) : null}
+            <span>
+              Page {result.pagination.page} of {result.pagination.totalPages}
+            </span>
+            {result.pagination.hasNext ? (
+              <Link href={`/collections/${slug}?sort=${selected?.id ?? "newest"}&page=${currentPage + 1}`}>Next</Link>
+            ) : null}
+          </nav>
         ) : null}
       </section>
     </div>

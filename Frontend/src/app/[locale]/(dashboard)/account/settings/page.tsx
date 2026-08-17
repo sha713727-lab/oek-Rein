@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { ProfileForms } from "@/features/account/profile-forms";
 import { logoutAction } from "@/features/auth/actions";
 import { getSessionUser } from "@/lib/session";
 
@@ -11,8 +12,7 @@ export default async function AccountSettingsPage() {
   return (
     <>
       <h1 className="customer-dashboard-title mb-6">Settings</h1>
-      <p className="customer-dashboard-lead mb-2">{user.name}</p>
-      <p className="text-text-sub">{user.email}</p>
+      <ProfileForms name={user.name} email={user.email} />
       <form action={logoutAction} className="mt-8">
         <button type="submit" className="luxury-button-outline">
           Sign out

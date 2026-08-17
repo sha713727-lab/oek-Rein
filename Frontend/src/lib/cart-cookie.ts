@@ -3,16 +3,12 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 
 import { cartCookieName } from "@/constants/cookies";
+import { bagApi, type BagItem } from "@/lib/api/bag";
 import { getEnv } from "@/lib/env";
+import { getSessionUser } from "@/lib/session";
 import { cartStateSchema } from "@/schemas/order";
 
-export type CartItem = {
-  productId: string;
-  quantity: number;
-  size?: string | null | undefined;
-  color?: string | null | undefined;
-  colorHex?: string | null | undefined;
-};
+export type CartItem = BagItem;
 
 export type CartState = { items: CartItem[] };
 
@@ -47,6 +43,10 @@ function decode(value: string | undefined): CartState {
   }
 }
 
+function sameLine(left: CartItem, right: CartItem): boolean {
+  return left.productId === right.productId && (left.size ?? null) === (right.size ?? null) && (left.color ?? null) === (right.color ?? null);
+}
+
 export async function readCart(): Promise<CartState> {
   const store = await cookies();
   return decode(store.get(cartCookieName)?.value);
@@ -61,4 +61,24 @@ export async function writeCart(state: CartState): Promise<void> {
     path: "/",
     maxAge: 60 * 60 * 24 * 30,
   });
+  const user = await getSessionUser();
+  if (user) {
+    await bagApi.upsert(state.items);
+  }
+}
+
+export async function mergeAccountBag(): Promise<void> {
+  const user = await getSessionUser();
+  if (!user) {
+    return;
+  }
+  const cookie = await readCart();
+  const stored = await bagApi.find();
+  const items = [...cookie.items];
+  for (const line of stored) {
+    if (!items.some((item) => sameLine(item, line))) {
+      items.push(line);
+    }
+  }
+  await writeCart({ items });
 }

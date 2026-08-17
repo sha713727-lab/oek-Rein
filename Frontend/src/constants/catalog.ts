@@ -16,6 +16,12 @@ export const PRODUCT_STATUS = {
 
 export type ProductStatus = (typeof PRODUCT_STATUS)[keyof typeof PRODUCT_STATUS];
 
+export const PRODUCT_STATUS_LABELS: Record<ProductStatus, string> = {
+  draft: "Draft",
+  published: "Published",
+  archived: "Archived",
+};
+
 export const DISCOUNT_TYPES = {
   PERCENTAGE: "percentage",
   FIXED: "fixed",
@@ -29,10 +35,6 @@ export const FRONTEND_TO_BACKEND_CATEGORY: Record<string, ProductCategory | null
   creams: "creams",
   cleansers: "cleansers",
   body: "body-care",
-  summer: "serums",
-  rtw: "creams",
-  unstitched: "cleansers",
-  luxury: "body-care",
   all: null,
 };
 
@@ -83,6 +85,8 @@ export const PRODUCT_SPECIFICATION_FIELDS = [
   { key: "includes", label: "Size" },
 ] as const;
 
+export const PRODUCT_VOLUME_OPTIONS = ["15 ml", "30 ml", "50 ml", "100 ml", "200 ml"] as const;
+
 export const DEFAULT_RETURN_POLICY = `Unopened products may be exchanged within 14 days of delivery.
-Nationwide delivery within 3–5 working days. Free shipping on orders above PKR 15,000.
-Secure checkout with encrypted payment processing.`;
+Nationwide delivery within 3–5 working days. Free shipping may apply above the published order threshold.
+Payment is cash on delivery.`;

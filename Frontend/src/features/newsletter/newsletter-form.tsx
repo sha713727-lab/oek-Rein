@@ -4,7 +4,7 @@ import { useActionState } from "react";
 
 import { subscribeNewsletterAction } from "@/features/newsletter/actions";
 
-type State = { error?: string | undefined; ok?: boolean | undefined };
+type State = { error?: string; ok?: boolean };
 
 export function NewsletterForm() {
   const [state, action] = useActionState(async (_prev: State, formData: FormData) => {
@@ -14,19 +14,18 @@ export function NewsletterForm() {
   return (
     <form action={action} className="footer-newsletter-form flex flex-col" noValidate>
       <label className="sr-only" htmlFor="newsletter-email">
-        Email address
+        Email
       </label>
       <input
         id="newsletter-email"
         name="email"
         type="email"
         required
-        placeholder="Your email address"
+        placeholder="Email address"
         className="footer-newsletter-input"
-        autoComplete="email"
       />
       <button type="submit" className="footer-newsletter-btn">
-        Sign up
+        Subscribe
       </button>
       {state.error ? (
         <p role="alert" className="footer-newsletter-message">

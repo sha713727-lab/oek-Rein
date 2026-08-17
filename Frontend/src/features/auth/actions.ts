@@ -5,21 +5,10 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { sessionCookieName } from "@/constants/cookies";
-import { getEnv } from "@/lib/env";
+import { authApi } from "@/lib/api/auth";
+import { mergeAccountBag } from "@/lib/cart-cookie";
 import { parseSchema } from "@/lib/parse-schema";
-import { loginSchema, registerSchema } from "@/schemas/auth";
-import { authService } from "@/server/services/auth/auth.service";
-
-async function setSession(token: string): Promise<void> {
-  const store = await cookies();
-  store.set(sessionCookieName, token, {
-    httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: getEnv().SESSION_TTL_SECONDS,
-  });
-}
+import { forgotPasswordSchema, loginSchema, registerSchema, resetPasswordSchema } from "@/schemas/auth";
 
 export async function registerAction(formData: FormData): Promise<{ error?: string }> {
   try {
@@ -29,8 +18,8 @@ export async function registerAction(formData: FormData): Promise<{ error?: stri
       password: String(formData.get("password") ?? ""),
       confirmPassword: String(formData.get("confirmPassword") ?? ""),
     });
-    const result = await authService.register(parsed);
-    await setSession(result.sessionToken);
+    await authApi.register(parsed);
+    await mergeAccountBag();
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Unable to register" };
   }
@@ -43,8 +32,8 @@ export async function loginAction(formData: FormData): Promise<{ error?: string 
       email: String(formData.get("email") ?? ""),
       password: String(formData.get("password") ?? ""),
     });
-    const result = await authService.login(parsed);
-    await setSession(result.sessionToken);
+    await authApi.login(parsed);
+    await mergeAccountBag();
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Unable to sign in" };
   }
@@ -52,10 +41,40 @@ export async function loginAction(formData: FormData): Promise<{ error?: string 
 }
 
 export async function logoutAction(): Promise<void> {
-  const store = await cookies();
-  const token = store.get(sessionCookieName)?.value;
-  await authService.logout(token);
-  store.delete(sessionCookieName);
+  try {
+    await authApi.logout();
+  } catch {
+    const store = await cookies();
+    store.delete(sessionCookieName);
+  }
   revalidatePath("/");
   redirect("/");
+}
+
+export async function forgotPasswordAction(formData: FormData): Promise<{
+  error?: string;
+  ok?: boolean;
+  resetPath?: string;
+}> {
+  try {
+    const parsed = parseSchema(forgotPasswordSchema, { email: String(formData.get("email") ?? "") });
+    const result = await authApi.forgot(parsed);
+    return result.resetPath ? { ok: true, resetPath: result.resetPath } : { ok: true };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Unable to start a reset" };
+  }
+}
+
+export async function resetPasswordAction(formData: FormData): Promise<{ error?: string }> {
+  try {
+    const parsed = parseSchema(resetPasswordSchema, {
+      token: String(formData.get("token") ?? ""),
+      password: String(formData.get("password") ?? ""),
+      confirmPassword: String(formData.get("confirmPassword") ?? ""),
+    });
+    await authApi.reset(parsed);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Unable to update password" };
+  }
+  redirect("/login");
 }

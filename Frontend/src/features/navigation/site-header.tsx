@@ -2,18 +2,25 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { IconBag, IconClose, IconHeart, IconMenu, IconSearch, IconUser } from "@/components/icons/icons";
 import { Logo } from "@/components/ui/logo";
 import { NAV_ITEMS } from "@/constants/site";
+import type { StorefrontNavLink } from "@/constants/storefront";
+import { MiniCart } from "@/features/cart/mini-cart";
+import { CmsImage } from "@/features/media/cms-image";
 import { SearchModal } from "@/features/navigation/search-modal";
+import { SiteToast } from "@/features/navigation/site-toast";
+import { BAG_EVENT } from "@/lib/bag-events";
 import { cn } from "@/lib/cn";
 
 type SiteHeaderProps = {
   isAuthenticated: boolean;
   cartCount: number;
   wishlistCount: number;
+  navImages?: Record<string, { src: string; tone: "blush" | "mint" }>;
+  navLinks?: StorefrontNavLink[];
 };
 
 function formatBadge(count: number): string {
@@ -24,14 +31,10 @@ function isNavActive(pathname: string, path: string): boolean {
   return pathname === path || pathname.startsWith(`${path}/`);
 }
 
-export function SiteHeader({ isAuthenticated, cartCount, wishlistCount }: SiteHeaderProps) {
-  const pathname = usePathname() ?? "/";
-  const [open, setOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const path = pathname.replace(/\/$/, "") || "/";
-  const isHomePage = path === "/" || path === "/en";
-  const isDarkHeaderPage =
-    isHomePage ||
+function isStorefrontPath(path: string): boolean {
+  return (
+    path === "/" ||
+    path === "/en" ||
     path.startsWith("/collections") ||
     path.startsWith("/en/collections") ||
     path.startsWith("/product/") ||
@@ -49,9 +52,58 @@ export function SiteHeader({ isAuthenticated, cartCount, wishlistCount }: SiteHe
     path.startsWith("/about-us") ||
     path.startsWith("/en/about-us") ||
     path.startsWith("/contact") ||
-    path.startsWith("/en/contact");
+    path.startsWith("/en/contact") ||
+    path.startsWith("/privacy") ||
+    path.startsWith("/en/privacy") ||
+    path.startsWith("/terms") ||
+    path.startsWith("/en/terms") ||
+    path.startsWith("/shipping") ||
+    path.startsWith("/en/shipping") ||
+    path.startsWith("/returns") ||
+    path.startsWith("/en/returns") ||
+    path.startsWith("/faq") ||
+    path.startsWith("/en/faq") ||
+    path.startsWith("/orders") ||
+    path.startsWith("/en/orders")
+  );
+}
+
+export function SiteHeader({
+  isAuthenticated,
+  cartCount,
+  wishlistCount,
+  navImages = {},
+  navLinks,
+}: SiteHeaderProps) {
+  const links = (navLinks ?? NAV_ITEMS.map((item) => ({ id: item.id, label: item.label, path: item.path, hidden: false }))).filter(
+    (item) => !item.hidden,
+  );
+  const pathname = usePathname() ?? "/";
+  const [open, setOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [bagOpen, setBagOpen] = useState(false);
+  const path = pathname.replace(/\/$/, "") || "/";
+
+  useEffect(() => {
+    const onBag = () => setBagOpen(true);
+    window.addEventListener(BAG_EVENT, onBag);
+    return () => window.removeEventListener(BAG_EVENT, onBag);
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [open]);
+  const isDarkHeaderPage = isStorefrontPath(path);
   const headerToneClass = isDarkHeaderPage ? "site-header-dark" : "site-header-light";
   const headerIndicatorClass = isDarkHeaderPage ? "bg-brand-primary" : "bg-white";
+  const badgeCount = cartCount;
 
   return (
     <header className="site-header site-header-transparent">
@@ -60,7 +112,7 @@ export function SiteHeader({ isAuthenticated, cartCount, wishlistCount }: SiteHe
           <Logo theme={isDarkHeaderPage ? "dark" : "light"} size="nav" />
         </div>
         <nav className="site-header-nav" aria-label="Primary navigation">
-          {NAV_ITEMS.map((item) => {
+          {links.map((item) => {
             const active = isNavActive(pathname, item.path);
             return (
               <Link key={item.id} href={item.path} className={cn("site-header-link group", headerToneClass)}>
@@ -89,7 +141,7 @@ export function SiteHeader({ isAuthenticated, cartCount, wishlistCount }: SiteHe
             </button>
             <Link
               href="/wishlist"
-              className="site-header-icon-wrap site-header-icon-btn hidden sm:inline-flex"
+              className="site-header-icon-wrap site-header-icon-btn"
               aria-label={wishlistCount > 0 ? `Wishlist, ${wishlistCount} items` : "Wishlist"}
             >
               <IconHeart />
@@ -102,14 +154,16 @@ export function SiteHeader({ isAuthenticated, cartCount, wishlistCount }: SiteHe
             >
               <IconUser />
             </Link>
-            <Link
-              href="/cart"
+            <button
+              type="button"
               className="site-header-icon-wrap site-header-icon-btn"
-              aria-label={cartCount > 0 ? `Cart, ${cartCount} items` : "Cart"}
+              aria-label={badgeCount > 0 ? `Cart, ${badgeCount} items` : "Cart"}
+              aria-expanded={bagOpen}
+              onClick={() => setBagOpen(true)}
             >
               <IconBag />
-              {cartCount > 0 ? <span className="site-header-icon-badge">{formatBadge(cartCount)}</span> : null}
-            </Link>
+              {badgeCount > 0 ? <span className="site-header-icon-badge">{formatBadge(badgeCount)}</span> : null}
+            </button>
           </div>
           <button
             type="button"
@@ -124,21 +178,41 @@ export function SiteHeader({ isAuthenticated, cartCount, wishlistCount }: SiteHe
       </div>
       {open ? (
         <div className="site-header-mobile-menu lg:hidden">
-          <nav className="flex flex-col gap-5" aria-label="Mobile navigation">
-            {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.id}
-                href={item.path}
-                className="site-header-link site-header-dark"
-                onClick={() => setOpen(false)}
-              >
-                {item.label}
-              </Link>
-            ))}
+          <nav className="mobile-shop-nav" aria-label="Mobile navigation">
+            <p className="mobile-shop-nav-eyebrow">Shop the range</p>
+            <div className="mobile-shop-nav-grid">
+              {links.map((item) => {
+                const media = navImages[item.id];
+                return (
+                  <Link
+                    key={item.id}
+                    href={item.path}
+                    className={`mobile-shop-nav-card mobile-shop-nav-card--${media?.tone ?? "blush"}`}
+                    onClick={() => setOpen(false)}
+                  >
+                    <span className="mobile-shop-nav-visual">
+                      <span className="mobile-shop-nav-orb" aria-hidden="true" />
+                      {media?.src ? (
+                        <CmsImage
+                          src={media.src}
+                          alt=""
+                          fill
+                          sizes="42vw"
+                          className="mobile-shop-nav-image"
+                        />
+                      ) : null}
+                    </span>
+                    <span className="mobile-shop-nav-label">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </nav>
         </div>
       ) : null}
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <MiniCart open={bagOpen} onClose={() => setBagOpen(false)} />
+      <SiteToast />
     </header>
   );
 }

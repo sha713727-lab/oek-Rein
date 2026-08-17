@@ -1,24 +1,24 @@
 import type { ComponentType } from "react";
 
 import { IconFlask, IconLeafMark, IconShield, IconTruck } from "@/components/icons/icons";
-import { FEATURES } from "@/constants/site";
+import type { StorefrontContent } from "@/constants/storefront";
 
 type IconProps = { className?: string | undefined };
 
-const FEATURE_ICONS: Record<(typeof FEATURES)[number]["icon"], ComponentType<IconProps>> = {
+const FEATURE_ICONS: Record<string, ComponentType<IconProps>> = {
   flask: IconFlask,
   leaf: IconLeafMark,
   shield: IconShield,
   truck: IconTruck,
 };
 
-export function Features() {
+export function Features({ content }: { content: StorefrontContent }) {
   return (
     <section className="features-section" aria-label="Why Zermae">
       <div className="features-inner">
         <ul className="features-grid">
-          {FEATURES.map((feature) => {
-            const Icon = FEATURE_ICONS[feature.icon];
+          {content.features.map((feature) => {
+            const Icon = FEATURE_ICONS[feature.icon] ?? IconLeafMark;
             return (
               <li key={feature.title} className="feature-item">
                 <span className="feature-icon">

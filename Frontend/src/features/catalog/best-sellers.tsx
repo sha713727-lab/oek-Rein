@@ -1,22 +1,19 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 
 import { IconHeart, IconPlus, IconStarBurst } from "@/components/icons/icons";
 import { BEST_SELLERS_CTA, BEST_SELLERS_CTA_HREF, BEST_SELLERS_VIEW } from "@/constants/site";
-import { addToCartAction } from "@/features/cart/actions";
+import { formatMoney, tileStyle } from "@/constants/storefront";
+import { AddToBagForm } from "@/features/cart/add-to-bag-form";
 import type { ResolvedBestSeller } from "@/features/catalog/resolve-best-sellers";
+import { CmsImage } from "@/features/media/cms-image";
 import { toggleWishlistAction } from "@/features/wishlist/actions";
 import { cn } from "@/lib/cn";
 
 const VIEW_COPY = Array.from({ length: 3 }, () => `${BEST_SELLERS_VIEW.toUpperCase()} •`).join(" ");
 
-function formatPrice(price: number): string {
-  return `PKR ${price.toLocaleString()}`;
-}
-
-export function BestSellers({ items }: { items: ResolvedBestSeller[] }) {
+export function BestSellers({ items, currency = "PKR" }: { items: ResolvedBestSeller[]; currency?: string }) {
   return (
     <section className="best-sellers" aria-labelledby="best-sellers-title">
       <div className="best-sellers-wash" aria-hidden="true" />
@@ -38,12 +35,12 @@ export function BestSellers({ items }: { items: ResolvedBestSeller[] }) {
         </h2>
         <div className="best-sellers-grid">
           {items.map((item) => (
-            <article key={item.key} className={`best-sellers-card best-sellers-card--${item.tone}`}>
+            <article key={item.key} className="best-sellers-card" style={tileStyle(item.color)}>
               <div className="best-sellers-media">
                 <div className="best-sellers-media-clip">
                   <Link href={item.href} className="best-sellers-media-link" aria-label={item.title}>
                     <span className="best-sellers-orb" aria-hidden="true" />
-                    <Image
+                    <CmsImage
                       src={item.image}
                       alt={item.alt}
                       fill
@@ -79,17 +76,15 @@ export function BestSellers({ items }: { items: ResolvedBestSeller[] }) {
                     </button>
                   </form>
                 </div>
-                <form action={addToCartAction} className="product-quick-add">
-                  <input type="hidden" name="productId" value={item.productId} />
-                  <input type="hidden" name="quantity" value="1" />
+                <AddToBagForm productId={item.productId} className="product-quick-add">
                   <button type="submit" className="product-quick-add-btn" aria-label={`Add ${item.title} to bag`}>
                     <IconPlus />
                   </button>
-                </form>
+                </AddToBagForm>
               </div>
               <h3 className="best-sellers-name">{item.title}</h3>
               <p className="best-sellers-desc">{item.description}</p>
-              <p className="best-sellers-price">{formatPrice(item.price)}</p>
+              <p className="best-sellers-price">{formatMoney(item.price, currency)}</p>
             </article>
           ))}
         </div>

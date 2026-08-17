@@ -46,16 +46,19 @@ export function LoginForm() {
         <button type="submit" className="auth-btn auth-btn-primary luxury-button-solid">
           Sign In
         </button>
-        <Link href="/collections/all" className="auth-btn auth-btn-ghost">
+      </form>
+      <div className="auth-form-foot">
+        <Link href="/forgot-password" className="auth-link">
+          Forgot password?
+        </Link>
+        <Link href="/collections/all" className="auth-link auth-form-foot-end">
           Continue as Guest
         </Link>
-      </form>
-      <p className="auth-form-meta">
-        New to Zermae?{" "}
-        <Link href="/register" className="auth-link">
+        <span className="auth-form-foot-copy">New to Zermae?</span>
+        <Link href="/register" className="auth-link auth-form-foot-end">
           Create an account
         </Link>
-      </p>
+      </div>
     </div>
   );
 }
