@@ -43,6 +43,9 @@ export function middleware(request: NextRequest): NextResponse {
   if (!hasLocale(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = `/${DEFAULT_LOCALE}${pathname === "/" ? "" : pathname}`;
+    if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+      url.protocol = "http:";
+    }
     const rewritten = NextResponse.rewrite(url, { request: { headers: requestHeaders } });
     rewritten.headers.set("Content-Security-Policy", csp);
     rewritten.headers.set("X-Content-Type-Options", "nosniff");

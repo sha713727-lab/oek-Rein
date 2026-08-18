@@ -19,3 +19,5 @@ Backend/coverage
 Backend/logs
 Frontend/public/uploads/*
 !Frontend/public/uploads/.gitkeep
+deploy/secrets/
+*.tar.gz

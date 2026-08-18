@@ -1,0 +1,28 @@
+[Unit]
+Description=Zermae production API
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=zermae
+Group=zermae
+WorkingDirectory=/var/www/zermae/Backend
+EnvironmentFile=/var/www/zermae/Backend/.env
+Environment=HOME=/home/zermae
+Environment=NODE_ENV=production
+Environment=NODE_OPTIONS=--max-old-space-size=192
+Environment=PATH=__NODE_BIN__:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=__NODE_BIN__/node node_modules/tsx/dist/cli.mjs src/server/http/start.ts
+Restart=always
+RestartSec=4
+TimeoutStopSec=15
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=read-only
+ProtectSystem=strict
+ReadWritePaths=/var/www/zermae
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

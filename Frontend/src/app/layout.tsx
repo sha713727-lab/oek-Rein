@@ -42,6 +42,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata = {
+  metadataBase: new URL(process.env.APP_URL ?? "https://zermae.com"),
   title: {
     default: brandHeadline,
     template: `%s · ${brandName}`,
