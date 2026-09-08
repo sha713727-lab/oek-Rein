@@ -3,7 +3,7 @@ $ErrorActionPreference = "Stop"
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $VpsHost = if ($env:ZERMAE_VPS_HOST) { $env:ZERMAE_VPS_HOST } else { "132.148.73.92" }
-$SshUser = if ($env:ZERMAE_SSH_USER) { $env:ZERMAE_SSH_USER } else { "root" }
+$SshUser = if ($env:ZERMAE_SSH_USER) { $env:ZERMAE_SSH_USER } else { "greentech" }
 $KeyPath = Join-Path $env:USERPROFILE ".ssh\zermae_godaddy"
 $Archive = Join-Path $env:TEMP "zermae.tar.gz"
 $RemoteHost = "${SshUser}@${VpsHost}"
@@ -60,7 +60,17 @@ scp -i $KeyPath -o StrictHostKeyChecking=accept-new $Archive "${RemoteHost}:/tmp
 scp -i $KeyPath -o StrictHostKeyChecking=accept-new (Join-Path $RepoRoot "deploy\provision.sh") "${RemoteHost}:/tmp/zermae-provision.sh"
 
 Write-Host "Running remote provision..."
-ssh -i $KeyPath $RemoteHost "sed -i 's/\r$//' /tmp/zermae-provision.sh && chmod +x /tmp/zermae-provision.sh && ZERMAE_TARBALL=/tmp/zermae.tar.gz bash /tmp/zermae-provision.sh"
+$remoteProvision = if ($SshUser -eq "root") {
+  "sed -i 's/\r$//' /tmp/zermae-provision.sh && chmod +x /tmp/zermae-provision.sh && ZERMAE_TARBALL=/tmp/zermae.tar.gz bash /tmp/zermae-provision.sh"
+} else {
+  "sed -i 's/\r$//' /tmp/zermae-provision.sh && chmod +x /tmp/zermae-provision.sh && sudo ZERMAE_TARBALL=/tmp/zermae.tar.gz bash /tmp/zermae-provision.sh"
+}
+ssh -i $KeyPath $RemoteHost $remoteProvision
 
 Write-Host "Deploy finished. Fetching credentials file name only..."
-ssh -i $KeyPath $RemoteHost "systemctl is-active zermae-api zermae-web nginx; echo '---'; grep '^URL:' /root/zermae-credentials.txt; echo 'Admin user:'; grep '^Admin:' /root/zermae-credentials.txt"
+$remoteStatus = if ($SshUser -eq "root") {
+  "systemctl is-active zermae-api zermae-web nginx; echo '---'; grep '^URL:' /root/zermae-credentials.txt; echo 'Admin user:'; grep '^Admin:' /root/zermae-credentials.txt"
+} else {
+  "sudo systemctl is-active zermae-api zermae-web nginx; echo '---'; sudo grep '^URL:' /root/zermae-credentials.txt; echo 'Admin user:'; sudo grep '^Admin:' /root/zermae-credentials.txt"
+}
+ssh -i $KeyPath $RemoteHost $remoteStatus
