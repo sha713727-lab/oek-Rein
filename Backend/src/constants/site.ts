@@ -175,12 +175,6 @@ export const GLOW_STATS_CTA_HREF = "/collections/all";
 export const GLOW_STATS_IMAGE = "/assets/images/lumieNightCream.png";
 export const GLOW_STATS_ALT = `${brandName} vitamin C radiance serum`;
 
-export const GLOW_STATS = [
-  { id: "reviews", value: "120K+", label: "Customer Reviews" },
-  { id: "products", value: "60+", label: "Brand Products" },
-  { id: "users", value: "12M+", label: "Product Users" },
-] as const;
-
 export const FEATURES = [
   {
     title: "Thoughtful Formulas",

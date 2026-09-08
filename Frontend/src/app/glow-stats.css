@@ -44,41 +44,6 @@
   color: var(--color-text-sub);
 }
 
-.glow-stats-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem 1rem;
-  margin: 2.75rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.glow-stats-metric {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-.glow-stats-value {
-  font-family: var(--font-heading);
-  font-size: clamp(2rem, 3.4vw, 2.85rem);
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  color: var(--color-brand-primary);
-}
-
-.glow-stats-label {
-  margin-top: 0.55rem;
-  font-family: var(--font-body);
-  font-size: 0.78rem;
-  font-weight: 400;
-  line-height: 1.35;
-  color: var(--color-text-sub);
-}
-
 .glow-stats-cta {
   display: inline-flex;
   align-items: center;
@@ -158,12 +123,6 @@
   }
 
   .glow-stats-lead {
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .glow-stats-metrics {
-    max-width: 28rem;
     margin-left: auto;
     margin-right: auto;
   }
