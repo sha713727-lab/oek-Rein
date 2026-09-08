@@ -1,23 +1,15 @@
 import Link from "next/link";
 
-import { IconSketchArrow, IconSparkle, IconStarBurst } from "@/components/icons/icons";
+import { IconSparkle, IconStarBurst } from "@/components/icons/icons";
 import {
   heroCtaHref,
   heroCtaLabel,
   heroExploreLabel,
   heroHeadline,
-  heroProofLabel,
-  heroProofValue,
 } from "@/constants/brand";
 import { type StorefrontContent, tileStyle } from "@/constants/storefront";
 import { HeroWaveMarquee } from "@/features/catalog/hero-wave-marquee";
 import { CmsImage } from "@/features/media/cms-image";
-
-const PROOF_FACES = [
-  { src: "/assets/images/women.jpg", alt: "Reviewed by a Zermae customer" },
-  { src: "/assets/images/women.png", alt: "Loved by a Zermae customer" },
-  { src: "/assets/images/newArrival.jpg", alt: "Chosen by a Zermae customer" },
-] as const;
 
 const EXPLORE_COPY = Array.from({ length: 3 }, () => `${heroExploreLabel.toUpperCase()} •`).join(" ");
 
@@ -121,20 +113,6 @@ export function HeroHome({ content }: { content: StorefrontContent }) {
           </div>
         </div>
         <div className="home-hero-proof">
-          <div className="home-hero-proof-cluster">
-            <div className="home-hero-faces">
-              {PROOF_FACES.map((face) => (
-                <span key={face.src} className="home-hero-face">
-                  <CmsImage src={face.src} alt={face.alt} fill sizes="40px" className="home-hero-face-image" />
-                </span>
-              ))}
-              <IconSketchArrow className="home-hero-proof-arrow" />
-            </div>
-            <p className="home-hero-proof-stat">
-              <span className="home-hero-proof-value">{heroProofValue}</span>
-              <span className="home-hero-proof-label">{heroProofLabel}</span>
-            </p>
-          </div>
           <Link href={heroCtaHref} className="home-hero-badge" aria-label={heroExploreLabel}>
             <span className="home-hero-badge-ring">
               <svg viewBox="0 0 200 200" aria-hidden="true">

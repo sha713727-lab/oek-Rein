@@ -61,18 +61,21 @@ export function HeroWaveMarquee() {
       }
       const unit = textPath.getComputedTextLength() / REPEAT_COUNT;
       if (unit <= 0) {
+        window.requestAnimationFrame(() => {
+          if (!cancelled) {
+            run();
+          }
+        });
         return;
       }
-      const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-      if (motion.matches) {
-        return;
-      }
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const speed = reducedMotion ? 0.028 : 0.052;
       let offset = 0;
       let last = performance.now();
       const tick = (now: number) => {
         const delta = Math.min(now - last, 32);
         last = now;
-        offset = (offset + delta * 0.052) % unit;
+        offset = (offset + delta * speed) % unit;
         textPath.setAttribute("startOffset", String(-offset));
         frameRef.current = window.requestAnimationFrame(tick);
       };

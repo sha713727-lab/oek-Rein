@@ -20,18 +20,7 @@ export function BestSellers({ items, currency = "PKR" }: { items: ResolvedBestSe
       <div className="best-sellers-blob best-sellers-blob--mint" aria-hidden="true" />
       <div className="best-sellers-inner">
         <h2 id="best-sellers-title" className="best-sellers-title">
-          Our Best{" "}
-          <span className="best-sellers-title-mark">
-            Sellers
-            <svg className="best-sellers-title-oval" viewBox="0 0 200 72" fill="none" aria-hidden="true">
-              <path
-                d="M12 40C26 8 172 6 188 36c-12 26-152 32-176 4Z"
-                stroke="currentColor"
-                strokeWidth="1.4"
-                strokeLinecap="round"
-              />
-            </svg>
-          </span>
+          Our Best Sellers
         </h2>
         <div className="best-sellers-grid">
           {items.map((item) => (

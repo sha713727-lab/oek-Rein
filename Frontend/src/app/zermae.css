@@ -1146,69 +1146,7 @@
   }
 
   .home-hero-proof {
-    @apply relative flex flex-col items-end gap-6 self-start pt-8;
-  }
-
-  .home-hero-proof-cluster {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 1.15rem;
-  }
-
-  .home-hero-faces {
-    @apply relative flex items-center;
-  }
-
-  .home-hero-face {
-    @apply relative overflow-hidden rounded-full;
-    width: 2.55rem;
-    height: 2.55rem;
-    margin-left: -0.55rem;
-    border: 2px solid var(--color-brand-white);
-    background: var(--color-brand-secondary);
-  }
-
-  .home-hero-face:first-child {
-    margin-left: 0;
-  }
-
-  .home-hero-face-image {
-    object-fit: cover;
-    object-position: center top;
-  }
-
-  .home-hero-proof-arrow {
-    position: absolute;
-    right: -1.6rem;
-    top: 2.1rem;
-    width: 2.6rem;
-    height: 2.6rem;
-    color: var(--color-brand-primary);
-    transform: rotate(18deg);
-  }
-
-  .home-hero-proof-stat {
-    @apply flex flex-col items-end text-right;
-    margin-right: 0.2rem;
-  }
-
-  .home-hero-proof-value {
-    font-family: var(--font-heading);
-    font-size: clamp(1.8rem, 2.4vw, 2.35rem);
-    font-weight: 600;
-    line-height: 1;
-    letter-spacing: -0.03em;
-    color: var(--color-brand-primary);
-  }
-
-  .home-hero-proof-label {
-    margin-top: 0.35rem;
-    font-family: var(--font-body);
-    font-size: 0.78rem;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    color: var(--color-text-sub);
+    @apply relative flex flex-col items-end self-start pt-8;
   }
 
   .home-hero-badge {
@@ -1298,9 +1236,12 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .home-hero-badge-ring,
+    .home-hero-badge-ring {
+      animation-duration: 48s;
+    }
+
     .home-hero-product-image {
-      animation: none;
+      animation-duration: 12s;
     }
 
     .home-hero-cta:hover {
@@ -1410,22 +1351,6 @@
     letter-spacing: -0.02em;
     line-height: 1.05;
     color: var(--color-brand-primary);
-  }
-
-  .shop-range-title-mark {
-    position: relative;
-    display: inline-block;
-    padding: 0 0.15em 0.08em;
-  }
-
-  .shop-range-title-oval {
-    position: absolute;
-    left: -8%;
-    top: -18%;
-    width: 116%;
-    height: 136%;
-    color: var(--color-brand-accent);
-    pointer-events: none;
   }
 
   .shop-range-support {
@@ -1749,22 +1674,6 @@
     color: var(--color-brand-primary);
   }
 
-  .best-sellers-title-mark {
-    position: relative;
-    display: inline-block;
-    padding: 0 0.12em 0.06em;
-  }
-
-  .best-sellers-title-oval {
-    position: absolute;
-    left: -10%;
-    top: -16%;
-    width: 120%;
-    height: 132%;
-    color: var(--color-brand-accent);
-    pointer-events: none;
-  }
-
   .best-sellers-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -1984,7 +1893,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .best-sellers-view-ring {
-      animation: none;
+      animation-duration: 48s;
     }
 
     .best-sellers-card:hover .best-sellers-image,
@@ -2038,56 +1947,10 @@
     }
 
     .home-hero-proof {
-      flex-direction: row;
-      flex-wrap: nowrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
+      align-items: flex-end;
       width: 100%;
       padding-top: 0.25rem;
       padding-bottom: 0.75rem;
-    }
-
-    .home-hero-proof-cluster {
-      flex-direction: row;
-      flex-wrap: nowrap;
-      align-items: center;
-      gap: 0.85rem;
-      min-width: 0;
-    }
-
-    .home-hero-faces {
-      padding-right: 0.95rem;
-      flex-shrink: 0;
-    }
-
-    .home-hero-face {
-      width: 2.15rem;
-      height: 2.15rem;
-    }
-
-    .home-hero-proof-arrow {
-      right: -0.85rem;
-      top: 1.2rem;
-      width: 1.7rem;
-      height: 1.7rem;
-      transform: rotate(8deg);
-    }
-
-    .home-hero-proof-stat {
-      align-items: flex-start;
-      text-align: left;
-      margin-left: 0.35rem;
-      margin-right: 0;
-    }
-
-    .home-hero-proof-value {
-      font-size: 1.55rem;
-    }
-
-    .home-hero-proof-label {
-      font-size: 0.72rem;
-      margin-top: 0.15rem;
     }
 
     .home-hero-badge {
@@ -2166,35 +2029,6 @@
 
     .home-hero-wave-type {
       font-size: 32px;
-    }
-
-    .home-hero-proof {
-      gap: 0.5rem;
-    }
-
-    .home-hero-proof-cluster {
-      gap: 0.55rem;
-    }
-
-    .home-hero-face {
-      width: 1.9rem;
-      height: 1.9rem;
-      border-width: 1.5px;
-    }
-
-    .home-hero-proof-arrow {
-      right: -0.7rem;
-      top: 1.05rem;
-      width: 1.45rem;
-      height: 1.45rem;
-    }
-
-    .home-hero-proof-value {
-      font-size: 1.35rem;
-    }
-
-    .home-hero-proof-label {
-      font-size: 0.65rem;
     }
 
     .home-hero-badge {

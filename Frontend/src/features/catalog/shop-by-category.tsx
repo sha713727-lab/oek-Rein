@@ -71,25 +71,7 @@ export function ShopByCategory({ categories }: { categories: StorefrontShopCateg
             <span className="shop-range-eyebrow-line" />
           </p>
           <h2 id="shop-range-title" className="shop-range-title">
-            Shop by{" "}
-            <span className="shop-range-title-mark">
-              Category
-              <svg className="shop-range-title-oval" viewBox="0 0 220 78" fill="none" aria-hidden="true">
-                <path
-                  d="M14 42C28 10 188 6 206 38c-12 28-168 34-192 4Z"
-                  stroke="currentColor"
-                  strokeWidth="1.4"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M198 34c6 2 10 8 11 14"
-                  stroke="currentColor"
-                  strokeWidth="1.3"
-                  strokeLinecap="round"
-                />
-                <path d="M206 40c4-6 10-8 16-6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-              </svg>
-            </span>
+            Shop by Category
           </h2>
           <p className="shop-range-support">{SHOP_RANGE_SUPPORT}</p>
         </header>

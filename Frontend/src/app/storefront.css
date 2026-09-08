@@ -301,21 +301,8 @@
 }
 
 .ritual-feature-mark {
-  position: relative;
-  display: inline-block;
-  padding: 0 0.14em 0.08em;
   font-style: italic;
   color: var(--color-brand-accent);
-}
-
-.ritual-feature-oval {
-  position: absolute;
-  left: -10%;
-  top: -16%;
-  width: 120%;
-  height: 136%;
-  color: var(--color-brand-accent);
-  pointer-events: none;
 }
 
 .ritual-feature-board {
@@ -1448,13 +1435,22 @@
   .product-card-still,
   .product-card-orb,
   .product-card:hover .product-card-still,
-  .product-card:hover .product-card-orb,
+  .product-card:hover .product-card-orb {
+    transition: none;
+    transform: none;
+  }
+
   .collection-hero::before,
-  .collection-hero::after,
+  .collection-hero::after {
+    animation-duration: 36s;
+  }
+
   .collection-hero-pill,
-  .collection-hero-product,
+  .collection-hero-product {
+    animation-duration: 12s;
+  }
+
   .collection-hero-copy {
-    animation: none;
     transition: none;
     transform: none;
   }

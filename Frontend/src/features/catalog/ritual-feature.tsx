@@ -41,17 +41,7 @@ export function RitualFeature({
     <section className={`ritual-feature ritual-feature--${tone}`} aria-labelledby="ritual-feature-title">
       <h2 id="ritual-feature-title" className="ritual-feature-title">
         {ritual.title}{" "}
-        <span className="ritual-feature-mark">
-          {ritual.mark}
-          <svg className="ritual-feature-oval" viewBox="0 0 200 72" fill="none" aria-hidden="true">
-            <path
-              d="M12 40C26 8 172 6 188 36c-12 26-152 32-176 4Z"
-              stroke="currentColor"
-              strokeWidth="1.4"
-              strokeLinecap="round"
-            />
-          </svg>
-        </span>
+        <span className="ritual-feature-mark">{ritual.mark}</span>
       </h2>
       <div className="ritual-feature-board">
         <article className="ritual-feature-note ritual-feature-note--left">

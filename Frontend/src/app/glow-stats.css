@@ -54,38 +54,14 @@
 }
 
 .glow-stats-metric {
-  position: relative;
   display: flex;
-  min-height: 7.5rem;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
 }
 
-.glow-stats-blob {
-  position: absolute;
-  left: 50%;
-  top: 42%;
-  z-index: 0;
-  width: min(9.5rem, 100%);
-  height: auto;
-  color: color-mix(in srgb, var(--color-brand-mint) 72%, white);
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-}
-
-.glow-stats-metric--2 .glow-stats-blob {
-  transform: translate(-50%, -50%) rotate(18deg) scaleX(-1);
-}
-
-.glow-stats-metric--3 .glow-stats-blob {
-  transform: translate(-50%, -50%) rotate(-12deg);
-}
-
 .glow-stats-value {
-  position: relative;
-  z-index: 1;
   font-family: var(--font-heading);
   font-size: clamp(2rem, 3.4vw, 2.85rem);
   font-weight: 600;
@@ -95,8 +71,6 @@
 }
 
 .glow-stats-label {
-  position: relative;
-  z-index: 1;
   margin-top: 0.55rem;
   font-family: var(--font-body);
   font-size: 0.78rem;

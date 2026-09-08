@@ -61,18 +61,7 @@ export function ProductHighlights({ image }: { image: string }) {
       <HighlightBotanical className="product-highlights-vine" />
       <div className="product-highlights-inner">
         <h2 id="product-highlights-title" className="product-highlights-title">
-          {PRODUCT_HIGHLIGHTS_TITLE}{" "}
-          <span className="product-highlights-title-mark">
-            {PRODUCT_HIGHLIGHTS_MARK}
-            <svg className="product-highlights-title-oval" viewBox="0 0 220 78" fill="none" aria-hidden="true">
-              <path
-                d="M14 42C28 10 188 6 206 38c-12 28-168 34-192 4Z"
-                stroke="currentColor"
-                strokeWidth="1.4"
-                strokeLinecap="round"
-              />
-            </svg>
-          </span>
+          {PRODUCT_HIGHLIGHTS_TITLE} {PRODUCT_HIGHLIGHTS_MARK}
         </h2>
         <div className="product-highlights-board">
           <div className="product-highlights-stage">

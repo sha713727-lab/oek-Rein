@@ -51,22 +51,6 @@
   }
 }
 
-.product-highlights-title-mark {
-  position: relative;
-  display: inline-block;
-  padding: 0 0.14em 0.08em;
-}
-
-.product-highlights-title-oval {
-  position: absolute;
-  left: -8%;
-  top: -18%;
-  width: 116%;
-  height: 136%;
-  color: var(--color-brand-accent);
-  pointer-events: none;
-}
-
 .product-highlights-board {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(14rem, 22rem) minmax(0, 1fr);
