@@ -18,6 +18,7 @@ import {
   SHOP_RANGE_TRUST,
 } from "@/constants/site";
 import { type StorefrontShopCategory, tileStyle } from "@/constants/storefront";
+import { CatalogEmptyState } from "@/features/catalog/catalog-empty-state";
 import { CmsImage } from "@/features/media/cms-image";
 
 type IconProps = { className?: string | undefined };
@@ -52,9 +53,6 @@ function RangeBotanical({ className }: { className: string }) {
 }
 
 export function ShopByCategory({ categories }: { categories: StorefrontShopCategory[] }) {
-  if (categories.length === 0) {
-    return null;
-  }
   return (
     <section className="shop-range" aria-labelledby="shop-range-title">
       <div className="shop-range-blob shop-range-blob--mint" aria-hidden="true" />
@@ -75,42 +73,52 @@ export function ShopByCategory({ categories }: { categories: StorefrontShopCateg
           </h2>
           <p className="shop-range-support">{SHOP_RANGE_SUPPORT}</p>
         </header>
-        <div className="shop-range-track">
-          {categories.map((category) => {
-            const CardIcon = CARD_ICONS[category.icon] ?? IconSparkle;
-            return (
-              <article key={category.id} className="shop-range-card" style={tileStyle(category.color)}>
-                <span className="shop-range-card-icon">
-                  <CardIcon />
-                </span>
-                <div className="shop-range-card-visual">
-                  <span className="shop-range-card-orb" aria-hidden="true" />
-                  <RangeBotanical className="shop-range-card-vine" />
-                  <div className="shop-range-card-product">
-                    {category.image ? (
-                      <CmsImage
-                        src={category.image}
-                        alt={category.alt || category.title}
-                        fill
-                        sizes="(min-width: 1200px) 16vw, 240px"
-                        className="shop-range-card-image"
-                      />
-                    ) : null}
+        {categories.length === 0 ? (
+          <CatalogEmptyState
+            eyebrow="Categories"
+            title="No categories yet"
+            copy="Shop categories will appear here once they are published. Meanwhile, browse the full collection."
+            primaryHref="/collections/all"
+            primaryLabel="Shop All"
+          />
+        ) : (
+          <div className="shop-range-track">
+            {categories.map((category) => {
+              const CardIcon = CARD_ICONS[category.icon] ?? IconSparkle;
+              return (
+                <article key={category.id} className="shop-range-card" style={tileStyle(category.color)}>
+                  <span className="shop-range-card-icon">
+                    <CardIcon />
+                  </span>
+                  <div className="shop-range-card-visual">
+                    <span className="shop-range-card-orb" aria-hidden="true" />
+                    <RangeBotanical className="shop-range-card-vine" />
+                    <div className="shop-range-card-product">
+                      {category.image ? (
+                        <CmsImage
+                          src={category.image}
+                          alt={category.alt || category.title}
+                          fill
+                          sizes="(min-width: 1200px) 16vw, 240px"
+                          className="shop-range-card-image"
+                        />
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-                <div className="shop-range-card-copy">
-                  <h3 className="shop-range-card-title">{category.title}</h3>
-                  <span className="shop-range-card-rule" aria-hidden="true" />
-                  <p className="shop-range-card-desc">{category.description}</p>
-                  <Link href={category.href} className="shop-range-card-cta">
-                    Explore
-                    <IconArrowRight className="shop-range-card-cta-arrow" />
-                  </Link>
-                </div>
-              </article>
-            );
-          })}
-        </div>
+                  <div className="shop-range-card-copy">
+                    <h3 className="shop-range-card-title">{category.title}</h3>
+                    <span className="shop-range-card-rule" aria-hidden="true" />
+                    <p className="shop-range-card-desc">{category.description}</p>
+                    <Link href={category.href} className="shop-range-card-cta">
+                      Explore
+                      <IconArrowRight className="shop-range-card-cta-arrow" />
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
         <ul className="shop-range-trust">
           {SHOP_RANGE_TRUST.map((item) => {
             const TrustIcon = TRUST_ICONS[item.icon];

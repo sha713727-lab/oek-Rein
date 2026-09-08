@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { normalizeCategoryFilter } from "@/constants/catalog";
 import { COLLECTION_HEROES } from "@/constants/site";
+import { CatalogEmptyState } from "@/features/catalog/catalog-empty-state";
 import { toCatalogProduct } from "@/features/catalog/map-product";
 import { ProductGrid } from "@/features/catalog/product-grid";
 import { RitualFeature } from "@/features/catalog/ritual-feature";
@@ -75,17 +76,19 @@ export async function CollectionView({
         <div className="collection-hero-fade" aria-hidden="true" />
       </section>
       <section className="collection-catalog">
-        <nav className="collection-sort" aria-label="Sort">
-          {SORTS.map((item) => (
-            <Link
-              key={item.id}
-              href={`/collections/${slug}?sort=${item.id}`}
-              className={item.id === selected?.id ? "collection-sort-active" : "collection-sort-link"}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        {products.length > 0 ? (
+          <nav className="collection-sort" aria-label="Sort">
+            {SORTS.map((item) => (
+              <Link
+                key={item.id}
+                href={`/collections/${slug}?sort=${item.id}`}
+                className={item.id === selected?.id ? "collection-sort-active" : "collection-sort-link"}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        ) : null}
         {before.length > 0 ? (
           <ProductGrid products={before} wishlistIds={wishlist.ids} currency={storefront.commerce.currency} tileColors={storefront.content.productCardColors} />
         ) : null}
@@ -94,9 +97,15 @@ export async function CollectionView({
           <ProductGrid products={after} wishlistIds={wishlist.ids} currency={storefront.commerce.currency} tileColors={storefront.content.productCardColors} />
         ) : null}
         {products.length === 0 ? (
-          <div className="collection-empty">
-            <p>More formulas arriving soon.</p>
-          </div>
+          <CatalogEmptyState
+            eyebrow="Collection"
+            title="No products in this collection"
+            copy="Formulas for this ritual are not listed yet. Browse the full shop or check new arrivals while we prepare more."
+            primaryHref="/collections/all"
+            primaryLabel="Shop All"
+            secondaryHref="/collections/new"
+            secondaryLabel="New Arrivals"
+          />
         ) : null}
         {result.pagination.totalPages > 1 ? (
           <nav className="collection-pager" aria-label="Pages">

@@ -9,7 +9,7 @@ import "./storefront.css";
 import { Cormorant_Garamond, Inter, Plus_Jakarta_Sans, Poppins } from "next/font/google";
 import type { ReactNode } from "react";
 
-import { brandDescription, brandHeadline, brandName } from "@/constants/brand";
+import { brandDescription, brandName } from "@/constants/brand";
 import { CookieBanner } from "@/features/consent/cookie-banner";
 import { ThemeStyle } from "@/features/theme/theme-style";
 import { getStorefront } from "@/lib/storefront";
@@ -44,17 +44,20 @@ const cormorant = Cormorant_Garamond({
 export const metadata = {
   metadataBase: new URL(process.env.APP_URL ?? "https://zermae.com"),
   title: {
-    default: brandHeadline,
+    default: brandName,
     template: `%s · ${brandName}`,
   },
   description: brandDescription,
+  applicationName: brandName,
   icons: {
     icon: [
+      { url: "/favicon.ico" },
       { url: "/favicon.svg", type: "image/svg+xml" },
       { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
       { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
     ],
-    apple: "/apple-touch-icon.png",
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    shortcut: ["/favicon.ico"],
   },
   manifest: "/site.webmanifest",
 };

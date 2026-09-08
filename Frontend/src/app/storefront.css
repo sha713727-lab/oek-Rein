@@ -462,6 +462,63 @@
   }
 }
 
+.catalog-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 36rem;
+  margin: 2.5rem auto 0;
+  padding: 3.25rem 1.25rem 3.75rem;
+  text-align: center;
+}
+
+.catalog-empty-eyebrow {
+  margin: 0 0 0.85rem;
+  font-family: var(--font-nav);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-brand-accent);
+}
+
+.catalog-empty-title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: clamp(1.85rem, 4vw, 2.65rem);
+  font-weight: 500;
+  font-style: italic;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--color-brand-primary);
+}
+
+.catalog-empty-copy {
+  margin: 1rem 0 0;
+  max-width: 28rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1.7;
+  color: var(--color-text-sub);
+}
+
+.catalog-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  margin-top: 1.85rem;
+}
+
+.catalog-empty-actions .luxury-button-solid,
+.catalog-empty-actions .luxury-button-outline {
+  min-width: 11.5rem;
+}
+
 .collection-empty {
   padding: 5rem 1rem;
   text-align: center;
