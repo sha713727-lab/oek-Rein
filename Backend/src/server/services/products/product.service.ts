@@ -146,7 +146,11 @@ export class ProductService {
 
   async getByIds(ids: string[], client?: DbClient): Promise<SerializedProduct[]> {
     const docs = await productRepository.findByIds(ids, client);
-    return docs.map(serializeProduct);
+    return docs.filter((item) => item.status === PRODUCT_STATUS.PUBLISHED).map(serializeProduct);
+  }
+
+  async getPublishedByIds(ids: string[], client?: DbClient): Promise<SerializedProduct[]> {
+    return this.getByIds(ids, client);
   }
 
   async getBySkus(skus: string[]): Promise<SerializedProduct[]> {
@@ -175,34 +179,45 @@ export class ProductService {
   async ensureBestSellers(): Promise<SerializedProduct[]> {
     const items: SerializedProduct[] = [];
     for (const slot of BEST_SELLERS) {
-      let record = await productRepository.findBySku(slot.sku);
-      if (!record) {
-        const slug = await productRepository.generateUniqueSlug(slot.title);
-        record = await productRepository.create({
-          title: slot.title,
-          slug,
-          sku: slot.sku,
-          category: slot.category,
-          price: slot.price,
-          originalPrice: null,
-          discount: 0,
-          discountType: DISCOUNT_TYPES.PERCENTAGE,
-          descriptionIntro: slot.description,
-          descriptionDetail: slot.description,
-          descriptionHighlights: [],
-          specComposition: "",
-          specCare: "",
-          specIncludes: "50 ml",
-          returnPolicy: DEFAULT_RETURN_POLICY,
-          sizes: [],
-          tileColor: null,
-          bestSeller: true,
-          stock: 80,
-          status: PRODUCT_STATUS.PUBLISHED,
-          images: [{ url: slot.image, alt: slot.alt, order: 0 }],
-          colors: [],
-        });
+      const active = await productRepository.findBySku(slot.sku);
+      if (active) {
+        if (active.status === PRODUCT_STATUS.PUBLISHED) {
+          items.push(serializeProduct(active));
+        }
+        continue;
       }
+
+      // Soft-deleted (or otherwise removed) SKUs must never be recreated by storefront traffic.
+      const existing = await productRepository.findBySkuIncludingDeleted(slot.sku);
+      if (existing) {
+        continue;
+      }
+
+      const slug = await productRepository.generateUniqueSlug(slot.title);
+      const record = await productRepository.create({
+        title: slot.title,
+        slug,
+        sku: slot.sku,
+        category: slot.category,
+        price: slot.price,
+        originalPrice: null,
+        discount: 0,
+        discountType: DISCOUNT_TYPES.PERCENTAGE,
+        descriptionIntro: slot.description,
+        descriptionDetail: slot.description,
+        descriptionHighlights: [],
+        specComposition: "",
+        specCare: "",
+        specIncludes: "50 ml",
+        returnPolicy: DEFAULT_RETURN_POLICY,
+        sizes: [],
+        tileColor: null,
+        bestSeller: true,
+        stock: 80,
+        status: PRODUCT_STATUS.PUBLISHED,
+        images: [{ url: slot.image, alt: slot.alt, order: 0 }],
+        colors: [],
+      });
       items.push(serializeProduct(record));
     }
     return items;

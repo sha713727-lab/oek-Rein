@@ -13,11 +13,7 @@ import { getStorefront } from "@/lib/storefront";
 import { readWishlist } from "@/lib/wishlist-cookie";
 
 export default async function HomePage() {
-  const [storefront, wishlist] = await Promise.all([
-    getStorefront(),
-    readWishlist(),
-    productService.ensureBestSellers(),
-  ]);
+  const [storefront, wishlist] = await Promise.all([getStorefront(), readWishlist()]);
   const products = await productService.getBySkus(storefront.content.bestSellerSkus);
   const bestSellers = resolveBestSellers(products, wishlist.ids, storefront.content.bestSellerColors);
 

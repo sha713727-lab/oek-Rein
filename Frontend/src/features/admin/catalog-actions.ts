@@ -53,8 +53,9 @@ export async function saveProductAction(formData: FormData): Promise<{ error?: s
 
 export async function deleteProductAction(formData: FormData): Promise<void> {
   await requireAdmin();
-  await productService.remove(String(formData.get("id") ?? ""));
-  revalidateStorefront();
+  const id = String(formData.get("id") ?? "");
+  await productService.remove(id);
+  revalidateStorefront(id);
   redirect("/admin/inventory");
 }
 

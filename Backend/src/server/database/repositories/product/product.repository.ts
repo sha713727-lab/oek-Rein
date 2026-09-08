@@ -109,6 +109,20 @@ export class ProductRepository {
     return mapped ?? null;
   }
 
+  async findBySkuIncludingDeleted(sku: string, client?: PoolClient): Promise<ProductRecord | null> {
+    const result = await query<ProductSqlRow>(
+      `SELECT ${PRODUCT_COLUMNS} FROM product WHERE sku = $1 ORDER BY deleted_at NULLS FIRST, created_at DESC LIMIT 1`,
+      [sku.toUpperCase().trim()],
+      client,
+    );
+    const row = result.rows[0];
+    if (!row) {
+      return null;
+    }
+    const [mapped] = await attachProductRelations([row], client);
+    return mapped ?? null;
+  }
+
   async generateUniqueSlug(title: string, excludeId?: string): Promise<string> {
     const base = slugify(title);
     const result = await query<{ slug: string }>(
@@ -303,7 +317,8 @@ export class ProductRepository {
 
   async softDeleteById(id: string): Promise<boolean> {
     const result = await query(
-      `UPDATE product SET deleted_at = NOW(), version = version + 1
+      `UPDATE product
+       SET deleted_at = NOW(), best_seller = FALSE, version = version + 1
        WHERE id = $1 AND deleted_at IS NULL`,
       [id],
     );
