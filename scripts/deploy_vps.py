@@ -57,11 +57,18 @@ def run(client: paramiko.SSHClient, command: str, password: str | None = None, a
         line = stdout.readline()
         if not line:
             break
-        print(line, end="")
-        chunks.append(line)
+        text = line if isinstance(line, str) else line.decode("utf-8", errors="replace")
+        try:
+            print(text, end="")
+        except UnicodeEncodeError:
+            print(text.encode("ascii", errors="replace").decode("ascii"), end="")
+        chunks.append(text)
     err = stderr.read().decode("utf-8", errors="replace")
     if err:
-        print(err, end="")
+        try:
+            print(err, end="")
+        except UnicodeEncodeError:
+            print(err.encode("ascii", errors="replace").decode("ascii"), end="")
     code = stdout.channel.recv_exit_status()
     if code != 0:
         raise RuntimeError(f"Remote command failed ({code}): {command}")
