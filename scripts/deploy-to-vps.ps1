@@ -31,12 +31,13 @@ Write-Host $publicKey
 Write-Host ""
 
 try {
-  $probe = Test-Ssh
+  $probe = Test-Ssh 2>$null
 } catch {
   $probe = ""
 }
 
-if ($probe -notmatch "SSH_OK") {
+$probeText = if ($null -eq $probe) { "" } else { "$probe" }
+if ($probeText -notmatch "SSH_OK") {
   Write-Host "SSH is not ready yet. Add the public key above to the VPS, then re-run this script."
   Write-Host "GoDaddy: Hosting -> GreenTechAgency -> Server Actions / Settings -> SSH keys, user $SshUser"
   exit 2
