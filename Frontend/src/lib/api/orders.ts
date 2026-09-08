@@ -35,4 +35,5 @@ export const orderService = {
   summarize: async () => apiRequest<OrderSummary>("GET", "/admin/orders/summary"),
   updateStatus: async (id: string, status: OrderStatus) =>
     apiRequest<OrderRecord>("PATCH", `/admin/orders/${id}`, { status }),
+  remove: async (id: string) => apiRequest<void>("DELETE", `/admin/orders/${id}`),
 };

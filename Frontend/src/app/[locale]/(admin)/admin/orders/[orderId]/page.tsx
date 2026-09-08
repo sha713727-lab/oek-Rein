@@ -11,10 +11,11 @@ import {
 import { ADMIN_ROLES } from "@/constants/roles";
 import { formatMoney } from "@/constants/storefront";
 import { IconOrders } from "@/features/admin/admin-nav-icons";
-import { updateOrderStatusAction, updateOrderTrackingAction } from "@/features/admin/catalog-actions";
+import { updateOrderStatusAction, updateOrderTrackingAction, deleteOrderAction } from "@/features/admin/catalog-actions";
 import { CmsImage } from "@/features/media/cms-image";
 import { PrintButton } from "@/features/orders/print-button";
 import { orderService } from "@/lib/api/orders";
+import { customerWhatsAppSendUrl } from "@/lib/order-whatsapp";
 import { getSessionUser } from "@/lib/session";
 import { getStorefront } from "@/lib/storefront";
 
@@ -34,6 +35,14 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
   const next = ORDER_STATUS_TRANSITIONS[status] ?? [];
   const storefront = await getStorefront();
   const currency = storefront.commerce.currency;
+  const whatsappUrl = customerWhatsAppSendUrl({
+    orderNumber: order.orderNumber,
+    customer: order.customer,
+    phone: order.phone,
+    items: order.items,
+    total: order.total,
+    currency,
+  });
 
   return (
     <div className="admin-product-page">
@@ -55,6 +64,20 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
           </p>
         </div>
         <div className="admin-product-toolbar-actions">
+          {whatsappUrl ? (
+            <a href={whatsappUrl} className="admin-product-cta" target="_blank" rel="noreferrer">
+              WhatsApp customer
+            </a>
+          ) : null}
+          <form action={deleteOrderAction}>
+            <input type="hidden" name="orderId" value={order.id} />
+            <ConfirmSubmit
+              className="admin-product-delete"
+              message="Delete this order permanently from admin? Pending stock will be restored."
+              label="Delete order"
+              confirmLabel="Delete"
+            />
+          </form>
           <PrintButton label="Print" className="admin-product-ghost" />
         </div>
       </header>
@@ -131,6 +154,16 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
               <dt>Phone</dt>
               <dd>{order.phone}</dd>
             </div>
+            {whatsappUrl ? (
+              <div>
+                <dt>WhatsApp</dt>
+                <dd>
+                  <a href={whatsappUrl} className="admin-orders-open" target="_blank" rel="noreferrer">
+                    Send order confirmation
+                  </a>
+                </dd>
+              </div>
+            ) : null}
             <div>
               <dt>Ship to</dt>
               <dd>

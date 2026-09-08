@@ -86,3 +86,11 @@ export async function updateOrderTrackingAction(formData: FormData): Promise<voi
   );
   revalidateStorefront();
 }
+
+export async function deleteOrderAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(formData.get("orderId") ?? "");
+  await orderService.remove(id);
+  revalidateStorefront();
+  redirect("/admin/orders");
+}

@@ -11,8 +11,14 @@ import { saveUpload } from "@/lib/save-upload";
 import { getSessionUser } from "@/lib/session";
 
 async function readImage(formData: FormData, field: string): Promise<string> {
+  if (String(formData.get(`${field}Cleared`) ?? "") === "1") {
+    return "";
+  }
   const uploaded = await saveUpload(formData.get(`${field}File`) as File | null);
-  return uploaded || String(formData.get(field) ?? "").trim();
+  if (uploaded) {
+    return uploaded;
+  }
+  return String(formData.get(field) ?? "").trim();
 }
 
 async function readImageMap(formData: FormData, prefix: string, keys: string[]): Promise<Record<string, string>> {
@@ -22,7 +28,7 @@ async function readImageMap(formData: FormData, prefix: string, keys: string[]):
       return [key, value] as const;
     }),
   );
-  return Object.fromEntries(entries.filter(([, value]) => value));
+  return Object.fromEntries(entries);
 }
 
 export async function updateCommerceSettingsAction(formData: FormData): Promise<{ error?: string }> {
@@ -74,6 +80,28 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
       authAdminSrc,
       categoryImages,
       collectionImages,
+    });
+    // Force exact image paths from the form (including intentional clears) so resolve defaults
+    // cannot resurrect stock FAQ / homepage art after Remove.
+    published.content.heroProductSrc = heroProductSrc;
+    published.content.brandStoryPrimarySrc = brandStoryPrimarySrc;
+    published.content.brandStorySecondarySrc = brandStorySecondarySrc;
+    published.content.brandStoryPortraitSrc = brandStoryPortraitSrc;
+    published.content.productHighlightsImage = productHighlightsImage;
+    published.content.glowStatsImage = glowStatsImage;
+    published.content.faqImage = faqImage;
+    published.content.authLoginSrc = authLoginSrc;
+    published.content.authRegisterSrc = authRegisterSrc;
+    published.content.authAdminSrc = authAdminSrc;
+    published.content.collectionImages = {
+      ...published.content.collectionImages,
+      ...collectionImages,
+    };
+    categoryIndexes.forEach((index) => {
+      const category = published.content.shopCategories[index];
+      if (category) {
+        category.image = categoryImages[index] ?? "";
+      }
     });
     await storefrontService.updatePublished(published.commerce, published.theme, published.content);
     revalidateStorefront();

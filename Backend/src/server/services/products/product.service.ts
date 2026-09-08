@@ -176,6 +176,10 @@ export class ProductService {
     return productRepository.decrementStock(id, quantity, client);
   }
 
+  async releaseStock(id: string, quantity: number, client?: DbClient): Promise<void> {
+    await productRepository.incrementStock(id, quantity, client);
+  }
+
   async ensureBestSellers(): Promise<SerializedProduct[]> {
     const items: SerializedProduct[] = [];
     for (const slot of BEST_SELLERS) {

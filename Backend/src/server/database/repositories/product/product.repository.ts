@@ -343,6 +343,15 @@ export class ProductRepository {
     }
     return mapped;
   }
+
+  async incrementStock(id: string, quantity: number, client?: PoolClient): Promise<void> {
+    await query(
+      `UPDATE product SET stock = stock + $2, version = version + 1
+       WHERE id = $1 AND deleted_at IS NULL`,
+      [id, quantity],
+      client,
+    );
+  }
 }
 
 export { serializeProduct };

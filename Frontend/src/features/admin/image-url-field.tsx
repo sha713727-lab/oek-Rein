@@ -26,6 +26,7 @@ export function ImageUrlField({
   const inputRef = useRef<HTMLInputElement>(null);
   const [url, setUrl] = useState(defaultValue);
   const [preview, setPreview] = useState(defaultValue);
+  const [cleared, setCleared] = useState(false);
   const [error, setError] = useState("");
   const [dragOver, setDragOver] = useState(false);
 
@@ -52,6 +53,9 @@ export function ImageUrlField({
       inputRef.current.files = transfer.files;
     }
     setError("");
+    setCleared(false);
+    // Clear persisted URL so publish uses the new file upload, not the previous path.
+    setUrl("");
     setPreview((current) => {
       if (current.startsWith("blob:")) {
         URL.revokeObjectURL(current);
@@ -64,7 +68,9 @@ export function ImageUrlField({
     if (inputRef.current) {
       inputRef.current.value = "";
     }
+    setCleared(true);
     setUrl("");
+    setError("");
     setPreview((current) => {
       if (current.startsWith("blob:")) {
         URL.revokeObjectURL(current);
@@ -80,6 +86,7 @@ export function ImageUrlField({
       </label>
       {hint ? <p className="admin-product-kicker">{hint}</p> : null}
       <input type="hidden" name={name} value={url} />
+      <input type="hidden" name={`${name}Cleared`} value={cleared ? "1" : "0"} />
       <input
         id={inputId}
         ref={inputRef}
@@ -139,7 +146,7 @@ export function ImageUrlField({
           {error}
         </p>
       ) : (
-        <p className="admin-product-kicker">PNG, JPG, or WEBP. Up to 5MB. Path is saved automatically.</p>
+        <p className="admin-product-kicker">PNG, JPG, or WEBP. Up to 5MB. Publish to update the live shop.</p>
       )}
     </div>
   );

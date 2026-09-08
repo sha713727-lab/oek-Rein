@@ -80,9 +80,14 @@ export function sendJson(res: ServerResponse, status: number, body: unknown, ext
   res.end(payload);
 }
 
-export function sendSuccess<T>(res: ServerResponse, data: T, status = 200): void {
+export function sendSuccess<T>(
+  res: ServerResponse,
+  data: T,
+  status = 200,
+  extraHeaders: Record<string, string> = {},
+): void {
   const body: ApiSuccessBody<T> = { data };
-  sendJson(res, status, body);
+  sendJson(res, status, body, extraHeaders);
 }
 
 export function sendError(res: ServerResponse, error: unknown, correlationId?: string): void {

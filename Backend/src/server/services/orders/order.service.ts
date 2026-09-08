@@ -5,10 +5,12 @@ import { ADMIN_ROLES, type Role } from "@/constants/roles";
 import { formatMoney } from "@/constants/storefront";
 import { AppError } from "@/lib/app-error";
 import { sha256Hex } from "@/lib/crypto";
+import { getEnv } from "@/lib/env";
 import { withTransaction } from "@/server/database/query";
 import { idempotencyRepository } from "@/server/database/repositories/idempotency/idempotency.repository";
 import { orderRepository } from "@/server/database/repositories/order/order.repository";
 import { sendMail } from "@/server/mail/mailer";
+import { notifyOrderPlaced, orderEmailText, shopOrderAlertEmail } from "@/server/messaging/whatsapp";
 import { productService } from "@/server/services/products/product.service";
 import { promoService } from "@/server/services/promo/promo.service";
 import { storefrontService } from "@/server/services/storefront/storefront.service";
@@ -140,12 +142,17 @@ export class OrderService {
       responseBody: order,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
-    const lines = order.items.map((item) => `${item.name} × ${item.quantity}`).join("\n");
     await sendMail({
       to: order.email,
       subject: `Zermae order ${order.orderNumber}`,
-      text: `Thank you for your order ${order.orderNumber}.\n\n${lines}\n\nTotal ${formatMoney(order.total)}\nPayment: cash on delivery.\n\nLook up a guest order at /orders/lookup with this email and order number.`,
+      text: orderEmailText(order, getEnv().APP_URL),
     });
+    await sendMail({
+      to: getEnv().SUPPORT_EMAIL,
+      subject: `New Zermae order ${order.orderNumber}`,
+      text: shopOrderAlertEmail(order),
+    });
+    await notifyOrderPlaced(order);
     return order;
   }
 
@@ -211,6 +218,26 @@ export class OrderService {
       order.version,
       status === ORDER_STATUS.CANCELLED ? new Date() : null,
     );
+  }
+
+  async remove(id: string): Promise<void> {
+    const order = await orderRepository.findById(id);
+    if (!order) {
+      throw AppError.notFound("Order not found");
+    }
+    const shouldRestoreStock =
+      order.status === ORDER_STATUS.PENDING || order.status === ORDER_STATUS.PROCESSING;
+    await withTransaction(async (client) => {
+      if (shouldRestoreStock) {
+        for (const item of order.items) {
+          await productService.releaseStock(item.productId, item.quantity, client);
+        }
+      }
+      const deleted = await orderRepository.softDeleteById(id, client);
+      if (!deleted) {
+        throw AppError.notFound("Order not found");
+      }
+    });
   }
 }
 

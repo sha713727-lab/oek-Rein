@@ -100,15 +100,17 @@ export function HeroHome({ content }: { content: StorefrontContent }) {
           <div className="home-hero-arch" aria-hidden="true" />
           <HeroBotanical />
           <div className="home-hero-product">
-            <CmsImage
-              src={content.heroProductSrc}
-              alt={content.heroProductAlt}
-              width={304}
-              height={637}
-              priority
-              sizes="(min-width: 1280px) 28vw, (min-width: 768px) 42vw, 70vw"
-              className="home-hero-product-image"
-            />
+            {content.heroProductSrc ? (
+              <CmsImage
+                src={content.heroProductSrc}
+                alt={content.heroProductAlt}
+                width={304}
+                height={637}
+                priority
+                sizes="(min-width: 1280px) 28vw, (min-width: 768px) 42vw, 70vw"
+                className="home-hero-product-image"
+              />
+            ) : null}
             <IconSparkle className="home-hero-product-sparkle" />
           </div>
         </div>

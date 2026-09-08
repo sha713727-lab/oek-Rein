@@ -37,6 +37,13 @@ const envSchema = z.object({
   SMTP_SECURE: booleanFromString.optional(),
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
+  /** ultramsg | meta | auto (default) */
+  WHATSAPP_PROVIDER: z.enum(["ultramsg", "meta", "auto"]).optional(),
+  ULTRAMSG_INSTANCE_ID: z.string().optional(),
+  ULTRAMSG_TOKEN: z.string().optional(),
+  WHATSAPP_ACCESS_TOKEN: z.string().optional(),
+  WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
+  WHATSAPP_API_VERSION: z.string().optional(),
   UPLOAD_MAX_FILE_SIZE: z.coerce.number().int().positive(),
   UPLOAD_DIR: z.string().min(1),
   STORAGE_PROVIDER: z.enum(["local", "cloudinary", "s3"]),

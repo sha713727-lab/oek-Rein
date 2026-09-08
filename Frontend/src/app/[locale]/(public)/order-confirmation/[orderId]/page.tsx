@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { IconShield, IconTruck } from "@/components/icons/icons";
+import { SUPPORT_PHONE, supportWhatsAppUrl } from "@/constants/site";
 import { OrderSummary } from "@/features/orders/order-summary";
 import { orderService } from "@/lib/api/orders";
 import { getSessionUser } from "@/lib/session";
@@ -23,6 +24,9 @@ export default async function OrderConfirmationPage({
   }
 
   const storefront = await getStorefront();
+  const whatsappHref = supportWhatsAppUrl(
+    `Assalam o Alaikum Zermae, I just placed order ${order.orderNumber}. Please confirm.`,
+  );
   return (
     <div className="order-confirmation-page">
       <div className="mx-auto max-w-[42rem] px-6 md:px-20">
@@ -30,8 +34,21 @@ export default async function OrderConfirmationPage({
           <span className="order-confirmation-eyebrow">Order Confirmed</span>
           <h1 className="order-confirmation-title">Thank You For Your Order</h1>
           <p className="order-confirmation-lead">
-            We have your order for <span className="order-confirmation-email">{order.email}</span>. Pay the courier in
-            cash when it arrives.
+            We have your order for <span className="order-confirmation-email">{order.email}</span>
+            {order.phone ? (
+              <>
+                {" "}
+                and will reach you on <span className="order-confirmation-email">{order.phone}</span>
+              </>
+            ) : null}
+            . Pay the courier in cash when it arrives.
+          </p>
+          <p className="order-confirmation-lead">
+            A confirmation is sent to your WhatsApp and email when messaging is enabled. Need help? WhatsApp us on{" "}
+            <a href={whatsappHref} className="order-confirmation-email" target="_blank" rel="noreferrer">
+              {SUPPORT_PHONE}
+            </a>
+            .
           </p>
         </header>
         <div className="order-confirmation-card">
@@ -50,7 +67,10 @@ export default async function OrderConfirmationPage({
           </div>
         </div>
         <div className="order-confirmation-actions no-print">
-          <Link href="/collections/all" className="luxury-button-solid">
+          <a href={whatsappHref} className="luxury-button-solid" target="_blank" rel="noreferrer">
+            WhatsApp Zermae
+          </a>
+          <Link href="/collections/all" className="luxury-button-outline">
             Continue Shopping
           </Link>
           <Link href="/orders/lookup" className="luxury-button-outline">

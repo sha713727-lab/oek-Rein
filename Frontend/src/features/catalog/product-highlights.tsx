@@ -4,7 +4,6 @@ import { IconDrop, IconFlower, IconGlowFace, IconRabbit } from "@/components/ico
 import {
   PRODUCT_HIGHLIGHTS,
   PRODUCT_HIGHLIGHTS_ALT,
-  PRODUCT_HIGHLIGHTS_IMAGE,
   PRODUCT_HIGHLIGHTS_MARK,
   PRODUCT_HIGHLIGHTS_TITLE,
 } from "@/constants/site";
@@ -67,14 +66,16 @@ export function ProductHighlights({ image }: { image: string }) {
           <div className="product-highlights-stage">
             <span className="product-highlights-glow" aria-hidden="true" />
             <div className="product-highlights-product">
-              <CmsImage
-                src={image || PRODUCT_HIGHLIGHTS_IMAGE}
-                alt={PRODUCT_HIGHLIGHTS_ALT}
-                width={304}
-                height={637}
-                sizes="(max-width: 480px) 7rem, (max-width: 899px) 8.25rem, 18rem"
-                className="product-highlights-cutout"
-              />
+              {image ? (
+                <CmsImage
+                  src={image}
+                  alt={PRODUCT_HIGHLIGHTS_ALT}
+                  width={304}
+                  height={637}
+                  sizes="(max-width: 480px) 7rem, (max-width: 899px) 8.25rem, 18rem"
+                  className="product-highlights-cutout"
+                />
+              ) : null}
             </div>
           </div>
           {PRODUCT_HIGHLIGHTS.map((item) => {

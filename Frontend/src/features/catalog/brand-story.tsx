@@ -41,12 +41,16 @@ export function BrandStory({ content }: { content: StorefrontContent }) {
       <div className="brand-story-shell">
         <figure className="brand-story-still">
           <span className="brand-story-still-orb" aria-hidden="true" />
-          <span className="brand-story-still-product brand-story-still-product--rear">
-            <CmsImage src={content.brandStorySecondarySrc} alt="" fill sizes="180px" className="brand-story-cutout" />
-          </span>
-          <span className="brand-story-still-product brand-story-still-product--front">
-            <CmsImage src={content.brandStoryPrimarySrc} alt={brandStoryPrimaryAlt} fill sizes="200px" className="brand-story-cutout" />
-          </span>
+          {content.brandStorySecondarySrc ? (
+            <span className="brand-story-still-product brand-story-still-product--rear">
+              <CmsImage src={content.brandStorySecondarySrc} alt="" fill sizes="180px" className="brand-story-cutout" />
+            </span>
+          ) : null}
+          {content.brandStoryPrimarySrc ? (
+            <span className="brand-story-still-product brand-story-still-product--front">
+              <CmsImage src={content.brandStoryPrimarySrc} alt={brandStoryPrimaryAlt} fill sizes="200px" className="brand-story-cutout" />
+            </span>
+          ) : null}
         </figure>
         <div className="brand-story-copy">
           <h2 id="brand-story-title" className="sr-only">
@@ -55,12 +59,16 @@ export function BrandStory({ content }: { content: StorefrontContent }) {
           <p className="brand-story-text">
             <span className="brand-story-name">{brandMark}</span>
             <span className="brand-story-inline">
-              <span className="brand-story-inline-still">
-                <CmsImage src={content.brandStoryPrimarySrc} alt={brandStoryPrimaryAlt} fill sizes="88px" className="brand-story-cutout" />
-              </span>
-              <span className="brand-story-inline-still brand-story-inline-still--mint">
-                <CmsImage src={content.brandStorySecondarySrc} alt={brandStorySecondaryAlt} fill sizes="88px" className="brand-story-cutout" />
-              </span>
+              {content.brandStoryPrimarySrc ? (
+                <span className="brand-story-inline-still">
+                  <CmsImage src={content.brandStoryPrimarySrc} alt={brandStoryPrimaryAlt} fill sizes="88px" className="brand-story-cutout" />
+                </span>
+              ) : null}
+              {content.brandStorySecondarySrc ? (
+                <span className="brand-story-inline-still brand-story-inline-still--mint">
+                  <CmsImage src={content.brandStorySecondarySrc} alt={brandStorySecondaryAlt} fill sizes="88px" className="brand-story-cutout" />
+                </span>
+              ) : null}
             </span>
             {content.brandStoryLead}{" "}
             <LeafCluster className="brand-story-leaves" /> {content.brandStoryMid}{" "}
@@ -69,13 +77,15 @@ export function BrandStory({ content }: { content: StorefrontContent }) {
         </div>
         <figure className="brand-story-photo">
           <span className="brand-story-photo-clip">
-            <CmsImage
-              src={content.brandStoryPortraitSrc}
-              alt={brandStoryPortraitAlt}
-              fill
-              sizes="(min-width: 1024px) 16vw, 40vw"
-              className="brand-story-photo-image"
-            />
+            {content.brandStoryPortraitSrc ? (
+              <CmsImage
+                src={content.brandStoryPortraitSrc}
+                alt={brandStoryPortraitAlt}
+                fill
+                sizes="(min-width: 1024px) 16vw, 40vw"
+                className="brand-story-photo-image"
+              />
+            ) : null}
           </span>
           <IconFlower className="brand-story-photo-bloom" />
         </figure>

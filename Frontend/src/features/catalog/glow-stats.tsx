@@ -5,7 +5,6 @@ import {
   GLOW_STATS_COPY,
   GLOW_STATS_CTA,
   GLOW_STATS_CTA_HREF,
-  GLOW_STATS_IMAGE,
   GLOW_STATS_TITLE,
 } from "@/constants/site";
 import { CmsImage } from "@/features/media/cms-image";
@@ -25,15 +24,17 @@ export function GlowStats({ image }: { image: string }) {
         </div>
         <figure className="glow-stats-stage">
           <div className="glow-stats-pill" aria-hidden="true" />
-          <CmsImage
-            src={image || GLOW_STATS_IMAGE}
-            alt={GLOW_STATS_ALT}
-            width={234}
-            height={606}
-            priority
-            sizes="(max-width: 899px) 16.5rem, 21rem"
-            className="glow-stats-cutout"
-          />
+          {image ? (
+            <CmsImage
+              src={image}
+              alt={GLOW_STATS_ALT}
+              width={234}
+              height={606}
+              priority
+              sizes="(max-width: 899px) 16.5rem, 21rem"
+              className="glow-stats-cutout"
+            />
+          ) : null}
         </figure>
       </div>
     </section>

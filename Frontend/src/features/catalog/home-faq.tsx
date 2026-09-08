@@ -1,8 +1,7 @@
-import Image from "next/image";
-
 import { IconMinus, IconPlus, IconSparkle } from "@/components/icons/icons";
 import { brandName } from "@/constants/brand";
 import type { StorefrontContent } from "@/constants/storefront";
+import { CmsImage } from "@/features/media/cms-image";
 
 export function HomeFaq({ content }: { content: StorefrontContent }) {
   return (
@@ -12,15 +11,16 @@ export function HomeFaq({ content }: { content: StorefrontContent }) {
           <div className="home-faq-arch" aria-hidden="true">
             <span className="home-faq-glow" />
           </div>
-          <Image
-            src={content.faqImage}
-            alt={content.faqImageAlt}
-            width={226}
-            height={597}
-            unoptimized
-            sizes="(max-width: 899px) 18rem, 22rem"
-            className="home-faq-cutout"
-          />
+          {content.faqImage ? (
+            <CmsImage
+              src={content.faqImage}
+              alt={content.faqImageAlt || "Frequently asked questions"}
+              width={226}
+              height={597}
+              sizes="(max-width: 899px) 18rem, 22rem"
+              className="home-faq-cutout"
+            />
+          ) : null}
         </figure>
         <div className="home-faq-copy">
           <h2 id="home-faq-title" className="home-faq-title">

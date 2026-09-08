@@ -9,9 +9,12 @@ import {
 } from "@/constants/order-status";
 import { ADMIN_ROLES } from "@/constants/roles";
 import { formatMoney } from "@/constants/storefront";
+import { deleteOrderAction } from "@/features/admin/catalog-actions";
 import { IconOrders } from "@/features/admin/admin-nav-icons";
 import { CmsImage } from "@/features/media/cms-image";
+import { ConfirmSubmit } from "@/components/ui/confirm-submit";
 import { orderService } from "@/lib/api/orders";
+import { customerWhatsAppSendUrl } from "@/lib/order-whatsapp";
 import { getSessionUser } from "@/lib/session";
 import { getStorefront } from "@/lib/storefront";
 
@@ -100,6 +103,14 @@ export default async function AdminOrdersPage({
                   const status = String(order.status) as OrderStatus;
                   const units = order.items.reduce((sum, item) => sum + item.quantity, 0);
                   const photo = order.items.find((item) => item.imageUrl)?.imageUrl;
+                  const whatsappUrl = customerWhatsAppSendUrl({
+                    orderNumber: String(order.orderNumber),
+                    customer: String(order.customer),
+                    phone: String(order.phone),
+                    items: order.items,
+                    total: Number(order.total),
+                    currency: storefront.commerce.currency,
+                  });
                   return (
                     <tr key={String(order._id)}>
                       <td>
@@ -131,9 +142,25 @@ export default async function AdminOrdersPage({
                       </td>
                       <td>{formatMoney(Number(order.total), storefront.commerce.currency)}</td>
                       <td>
-                        <Link href={`/admin/orders/${order.orderNumber}`} className="admin-orders-open">
-                          Open
-                        </Link>
+                        <div className="admin-orders-items-cell" style={{ gap: "0.5rem", flexWrap: "wrap" }}>
+                          <Link href={`/admin/orders/${order.orderNumber}`} className="admin-orders-open">
+                            Open
+                          </Link>
+                          {whatsappUrl ? (
+                            <a href={whatsappUrl} className="admin-orders-open" target="_blank" rel="noreferrer">
+                              WhatsApp
+                            </a>
+                          ) : null}
+                          <form action={deleteOrderAction}>
+                            <input type="hidden" name="orderId" value={String(order.id)} />
+                            <ConfirmSubmit
+                              className="admin-product-delete"
+                              message={`Delete order ${order.orderNumber}?`}
+                              label="Delete"
+                              confirmLabel="Delete"
+                            />
+                          </form>
+                        </div>
                       </td>
                     </tr>
                   );

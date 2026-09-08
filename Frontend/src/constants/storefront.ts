@@ -202,14 +202,22 @@ function asText(value: unknown, fallback: string): string {
   return text.length > 0 ? text : fallback;
 }
 
+/** Missing/null → fallback. Explicit empty string is kept so CMS clears persist. */
+function asStoredText(value: unknown, fallback: string): string {
+  if (value === undefined || value === null) {
+    return fallback;
+  }
+  return String(value).trim();
+}
+
 function asImageMap(value: unknown, fallback: Record<string, string>): Record<string, string> {
   const record = asRecord(value);
   const next = { ...fallback };
   for (const key of Object.keys(fallback)) {
-    const item = String(record[key] ?? "").trim();
-    if (item) {
-      next[key] = item;
+    if (!Object.prototype.hasOwnProperty.call(record, key)) {
+      continue;
     }
+    next[key] = String(record[key] ?? "").trim();
   }
   return next;
 }
@@ -277,13 +285,18 @@ function asShopCategories(
     const record = asRecord(item);
     const fallback = DEFAULT_SHOP_CATEGORIES[index] ?? DEFAULT_SHOP_CATEGORIES[0]!;
     const id = asText(record.id, `${fallback.id}-${index + 1}`);
+    const imageRaw = record.image;
+    const image =
+      imageRaw === undefined || imageRaw === null
+        ? images[id] || fallback.image
+        : String(imageRaw).trim();
     return {
       id,
-      title: asText(record.title, fallback.title),
-      description: asText(record.description, fallback.description),
+      title: asStoredText(record.title, fallback.title),
+      description: asStoredText(record.description, fallback.description),
       href: asPath(record.href, fallback.href),
-      image: asText(record.image, images[id] || fallback.image),
-      alt: asText(record.alt, fallback.alt),
+      image,
+      alt: asStoredText(record.alt, fallback.alt),
       icon: asIcon(record.icon, fallback.icon),
       color: asHex(record.color, colors[id] || fallback.color),
       hidden: asBool(record.hidden),
@@ -308,18 +321,17 @@ function asFaqItems(value: unknown): StorefrontFaqItem[] {
   if (!Array.isArray(value)) {
     return fallback;
   }
-  const next = value
+  return value
     .map((item, index) => {
       const record = asRecord(item);
       return {
         id: asText(record.id, fallback[index]?.id ?? `faq-${index + 1}`),
-        question: asText(record.question, fallback[index]?.question ?? ""),
-        answer: asText(record.answer, fallback[index]?.answer ?? ""),
+        question: asStoredText(record.question, fallback[index]?.question ?? ""),
+        answer: asStoredText(record.answer, fallback[index]?.answer ?? ""),
       };
     })
     .filter((item) => item.question && item.answer)
     .slice(0, 8);
-  return next.length > 0 ? next : fallback;
 }
 
 function asFeatures(value: unknown): StorefrontFeature[] {
@@ -327,18 +339,17 @@ function asFeatures(value: unknown): StorefrontFeature[] {
   if (!Array.isArray(value)) {
     return fallback;
   }
-  const next = value
+  return value
     .map((item, index) => {
       const record = asRecord(item);
       return {
-        title: asText(record.title, fallback[index]?.title ?? ""),
-        description: asText(record.description, fallback[index]?.description ?? ""),
+        title: asStoredText(record.title, fallback[index]?.title ?? ""),
+        description: asStoredText(record.description, fallback[index]?.description ?? ""),
         icon: asText(record.icon, fallback[index]?.icon ?? "leaf"),
       };
     })
     .filter((item) => item.title && item.description)
     .slice(0, 4);
-  return next.length > 0 ? next : fallback;
 }
 
 function asCollectionTitles(value: unknown): Record<string, StorefrontCollectionTitle> {
@@ -346,14 +357,17 @@ function asCollectionTitles(value: unknown): Record<string, StorefrontCollection
   const record = asRecord(value);
   const next: Record<string, StorefrontCollectionTitle> = { ...fallback };
   for (const key of Object.keys(fallback)) {
+    if (!Object.prototype.hasOwnProperty.call(record, key)) {
+      continue;
+    }
     const item = asRecord(record[key]);
     const current = fallback[key];
     if (!current) {
       continue;
     }
     next[key] = {
-      first: asText(item.first, current.first),
-      second: asText(item.second, current.second),
+      first: asStoredText(item.first, current.first),
+      second: asStoredText(item.second, current.second),
     };
   }
   return next;
@@ -370,39 +384,39 @@ export function resolveStorefrontContent(raw: unknown): StorefrontContent {
   const shopImages = Object.fromEntries(shopCategories.map((item) => [item.id, item.image]));
   const shopCardColors = Object.fromEntries(shopCategories.map((item) => [item.id, item.color]));
   return {
-    heroHeadline: asText(record.heroHeadline, DEFAULT_STOREFRONT_CONTENT.heroHeadline),
-    heroSupport: asText(record.heroSupport, DEFAULT_STOREFRONT_CONTENT.heroSupport),
-    heroProductSrc: asText(record.heroProductSrc, DEFAULT_STOREFRONT_CONTENT.heroProductSrc),
-    heroProductAlt: asText(record.heroProductAlt, DEFAULT_STOREFRONT_CONTENT.heroProductAlt),
-    brandStoryPrimarySrc: asText(record.brandStoryPrimarySrc, DEFAULT_STOREFRONT_CONTENT.brandStoryPrimarySrc),
-    brandStorySecondarySrc: asText(record.brandStorySecondarySrc, DEFAULT_STOREFRONT_CONTENT.brandStorySecondarySrc),
-    brandStoryPortraitSrc: asText(record.brandStoryPortraitSrc, DEFAULT_STOREFRONT_CONTENT.brandStoryPortraitSrc),
-    brandStoryLead: asText(record.brandStoryLead, DEFAULT_STOREFRONT_CONTENT.brandStoryLead),
-    brandStoryMid: asText(record.brandStoryMid, DEFAULT_STOREFRONT_CONTENT.brandStoryMid),
-    brandStoryEnd: asText(record.brandStoryEnd, DEFAULT_STOREFRONT_CONTENT.brandStoryEnd),
-    productHighlightsImage: asText(record.productHighlightsImage, DEFAULT_STOREFRONT_CONTENT.productHighlightsImage),
-    glowStatsImage: asText(record.glowStatsImage, DEFAULT_STOREFRONT_CONTENT.glowStatsImage),
-    faqImage: asText(record.faqImage, DEFAULT_STOREFRONT_CONTENT.faqImage),
-    faqImageAlt: asText(record.faqImageAlt, DEFAULT_STOREFRONT_CONTENT.faqImageAlt),
+    heroHeadline: asStoredText(record.heroHeadline, DEFAULT_STOREFRONT_CONTENT.heroHeadline),
+    heroSupport: asStoredText(record.heroSupport, DEFAULT_STOREFRONT_CONTENT.heroSupport),
+    heroProductSrc: asStoredText(record.heroProductSrc, DEFAULT_STOREFRONT_CONTENT.heroProductSrc),
+    heroProductAlt: asStoredText(record.heroProductAlt, DEFAULT_STOREFRONT_CONTENT.heroProductAlt),
+    brandStoryPrimarySrc: asStoredText(record.brandStoryPrimarySrc, DEFAULT_STOREFRONT_CONTENT.brandStoryPrimarySrc),
+    brandStorySecondarySrc: asStoredText(record.brandStorySecondarySrc, DEFAULT_STOREFRONT_CONTENT.brandStorySecondarySrc),
+    brandStoryPortraitSrc: asStoredText(record.brandStoryPortraitSrc, DEFAULT_STOREFRONT_CONTENT.brandStoryPortraitSrc),
+    brandStoryLead: asStoredText(record.brandStoryLead, DEFAULT_STOREFRONT_CONTENT.brandStoryLead),
+    brandStoryMid: asStoredText(record.brandStoryMid, DEFAULT_STOREFRONT_CONTENT.brandStoryMid),
+    brandStoryEnd: asStoredText(record.brandStoryEnd, DEFAULT_STOREFRONT_CONTENT.brandStoryEnd),
+    productHighlightsImage: asStoredText(record.productHighlightsImage, DEFAULT_STOREFRONT_CONTENT.productHighlightsImage),
+    glowStatsImage: asStoredText(record.glowStatsImage, DEFAULT_STOREFRONT_CONTENT.glowStatsImage),
+    faqImage: asStoredText(record.faqImage, DEFAULT_STOREFRONT_CONTENT.faqImage),
+    faqImageAlt: asStoredText(record.faqImageAlt, DEFAULT_STOREFRONT_CONTENT.faqImageAlt),
     faqItems: asFaqItems(record.faqItems),
     features: asFeatures(record.features),
-    footerStatementLead: asText(record.footerStatementLead, DEFAULT_STOREFRONT_CONTENT.footerStatementLead),
-    footerStatementEnd: asText(record.footerStatementEnd, DEFAULT_STOREFRONT_CONTENT.footerStatementEnd),
-    socialFacebook: asText(record.socialFacebook, DEFAULT_STOREFRONT_CONTENT.socialFacebook),
-    socialInstagram: asText(record.socialInstagram, DEFAULT_STOREFRONT_CONTENT.socialInstagram),
-    socialPinterest: asText(record.socialPinterest, DEFAULT_STOREFRONT_CONTENT.socialPinterest),
-    aboutCopy: asText(record.aboutCopy, DEFAULT_STOREFRONT_CONTENT.aboutCopy),
-    contactLead: asText(record.contactLead, DEFAULT_STOREFRONT_CONTENT.contactLead),
-    authLoginSrc: asText(record.authLoginSrc, DEFAULT_STOREFRONT_CONTENT.authLoginSrc),
-    authRegisterSrc: asText(record.authRegisterSrc, DEFAULT_STOREFRONT_CONTENT.authRegisterSrc),
-    authAdminSrc: asText(record.authAdminSrc, DEFAULT_STOREFRONT_CONTENT.authAdminSrc),
+    footerStatementLead: asStoredText(record.footerStatementLead, DEFAULT_STOREFRONT_CONTENT.footerStatementLead),
+    footerStatementEnd: asStoredText(record.footerStatementEnd, DEFAULT_STOREFRONT_CONTENT.footerStatementEnd),
+    socialFacebook: asStoredText(record.socialFacebook, DEFAULT_STOREFRONT_CONTENT.socialFacebook),
+    socialInstagram: asStoredText(record.socialInstagram, DEFAULT_STOREFRONT_CONTENT.socialInstagram),
+    socialPinterest: asStoredText(record.socialPinterest, DEFAULT_STOREFRONT_CONTENT.socialPinterest),
+    aboutCopy: asStoredText(record.aboutCopy, DEFAULT_STOREFRONT_CONTENT.aboutCopy),
+    contactLead: asStoredText(record.contactLead, DEFAULT_STOREFRONT_CONTENT.contactLead),
+    authLoginSrc: asStoredText(record.authLoginSrc, DEFAULT_STOREFRONT_CONTENT.authLoginSrc),
+    authRegisterSrc: asStoredText(record.authRegisterSrc, DEFAULT_STOREFRONT_CONTENT.authRegisterSrc),
+    authAdminSrc: asStoredText(record.authAdminSrc, DEFAULT_STOREFRONT_CONTENT.authAdminSrc),
     shopImages,
     shopCardColors,
     shopCategories,
     navLinks: asNavLinks(record.navLinks),
     collectionImages: asImageMap(record.collectionImages, DEFAULT_STOREFRONT_CONTENT.collectionImages),
     collectionTitles: asCollectionTitles(record.collectionTitles),
-    bestSellerSkus: skus.length > 0 ? skus : DEFAULT_STOREFRONT_CONTENT.bestSellerSkus,
+    bestSellerSkus: Array.isArray(record.bestSellerSkus) ? skus : DEFAULT_STOREFRONT_CONTENT.bestSellerSkus,
     bestSellerColors: asHexList(record.bestSellerColors, DEFAULT_STOREFRONT_CONTENT.bestSellerColors),
     heroStageColor: asHex(record.heroStageColor, DEFAULT_STOREFRONT_CONTENT.heroStageColor),
     productCardColors: asHexList(record.productCardColors, DEFAULT_STOREFRONT_CONTENT.productCardColors),

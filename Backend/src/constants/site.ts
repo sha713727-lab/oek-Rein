@@ -7,8 +7,40 @@ export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "en";
 
 export const SUPPORT_EMAIL = "support@zermae.com";
-export const SUPPORT_PHONE = "+92 300 123 4567";
+/** Display form for customers */
+export const SUPPORT_PHONE = "0311 700 3196";
+/** Local Pakistan mobile (no spaces) */
+export const SUPPORT_PHONE_LOCAL = "03117003196";
+/** E.164 for tel: links and WhatsApp */
+export const SUPPORT_PHONE_E164 = "+923117003196";
+export const SUPPORT_PHONE_DIGITS = "923117003196";
+export const SUPPORT_WHATSAPP_URL = `https://wa.me/${SUPPORT_PHONE_DIGITS}`;
 export const SUPPORT_ADDRESS = "12 Gulberg III, Lahore, Pakistan 54000";
+
+export function supportWhatsAppUrl(prefill?: string): string {
+  if (!prefill?.trim()) {
+    return SUPPORT_WHATSAPP_URL;
+  }
+  return `${SUPPORT_WHATSAPP_URL}?text=${encodeURIComponent(prefill.trim())}`;
+}
+
+/** Normalize PK / international phones to WhatsApp digits (country code, no +). */
+export function toWhatsAppDigits(phone: string): string | null {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length < 10) {
+    return null;
+  }
+  if (digits.startsWith("92") && digits.length >= 12) {
+    return digits.slice(0, 12);
+  }
+  if (digits.startsWith("0") && digits.length === 11) {
+    return `92${digits.slice(1)}`;
+  }
+  if (digits.length === 10 && digits.startsWith("3")) {
+    return `92${digits}`;
+  }
+  return digits;
+}
 
 export const NAV_ITEMS = [
   { id: "navNew", label: "New Arrivals", path: "/collections/new" },

@@ -22,10 +22,37 @@ function asRecord(value: unknown): Record<string, unknown> {
 export async function handler(ctx: RequestContext) {
   await requireAdmin(await authService.getUserFromSession(ctx.sessionToken));
   const body = asRecord(ctx.body);
+  const rawContent = asRecord(body.content);
+  const content = resolveStorefrontContent(rawContent);
+  // Keep intentional empty image clears from admin (do not revive stock assets).
+  for (const key of [
+    "heroProductSrc",
+    "brandStoryPrimarySrc",
+    "brandStorySecondarySrc",
+    "brandStoryPortraitSrc",
+    "productHighlightsImage",
+    "glowStatsImage",
+    "faqImage",
+    "authLoginSrc",
+    "authRegisterSrc",
+    "authAdminSrc",
+  ] as const) {
+    if (Object.prototype.hasOwnProperty.call(rawContent, key)) {
+      content[key] = String(rawContent[key] ?? "").trim();
+    }
+  }
+  if (rawContent.collectionImages && typeof rawContent.collectionImages === "object") {
+    const images = rawContent.collectionImages as Record<string, unknown>;
+    for (const key of Object.keys(content.collectionImages)) {
+      if (Object.prototype.hasOwnProperty.call(images, key)) {
+        content.collectionImages[key] = String(images[key] ?? "").trim();
+      }
+    }
+  }
   await storefrontService.updatePublished(
     resolveCommerceSettings(asRecord(body.commerce)),
     resolveStorefrontTheme(body.theme),
-    resolveStorefrontContent(body.content),
+    content,
   );
   return storefrontService.getFull();
 }

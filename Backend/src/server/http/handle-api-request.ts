@@ -115,7 +115,11 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       res.end();
       return;
     }
-    sendJson(res, req.method === "POST" ? status : 200, { data });
+    const extraHeaders: Record<string, string> = {};
+    if (req.method === "GET" && matched.route.path === "/storefront") {
+      extraHeaders["Cache-Control"] = "no-store, max-age=0";
+    }
+    sendJson(res, req.method === "POST" ? status : 200, { data }, extraHeaders);
   } catch (error) {
     logger.error({ err: error instanceof Error ? error.message : "error", correlationId, path: url.pathname }, "API request failed");
     sendError(res, error, correlationId);

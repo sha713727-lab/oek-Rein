@@ -364,6 +364,17 @@ export class OrderRepository {
     return order;
   }
 
+  async softDeleteById(id: string, client?: PoolClient): Promise<boolean> {
+    const result = await query(
+      `UPDATE sales_order
+       SET deleted_at = NOW(), version = version + 1
+       WHERE id = $1 AND deleted_at IS NULL`,
+      [id],
+      client,
+    );
+    return (result.rowCount ?? 0) > 0;
+  }
+
   async summarize(): Promise<{
     orders: number;
     revenue: number;

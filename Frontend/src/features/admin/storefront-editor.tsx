@@ -328,7 +328,7 @@ export function StorefrontEditor({
               Homepage images
             </h2>
             <p className="admin-product-kicker admin-storefront-lead">
-              Upload PNGs for the brand story, highlights, and glow stats blocks.
+              Upload PNGs for the brand story, highlights, glow stats, and FAQ blocks.
             </p>
             <div className="admin-product-fields">
               <ImageUrlField
@@ -352,6 +352,12 @@ export function StorefrontEditor({
                 defaultValue={content.productHighlightsImage}
               />
               <ImageUrlField name="glowStatsImage" label="Glow stats" defaultValue={content.glowStatsImage} />
+              <ImageUrlField
+                name="faqImage"
+                label="FAQ photo"
+                defaultValue={content.faqImage}
+                hint="Shown beside the FAQ list on the homepage. Remove clears it on the live shop after Publish."
+              />
             </div>
           </section>
         </div>
@@ -652,9 +658,9 @@ export function StorefrontEditor({
             <h2 id="storefront-faq-heading" className="admin-product-card-title">
               FAQ
             </h2>
-            <div className="admin-product-fields">
-              <ImageUrlField name="faqImage" label="FAQ photo" defaultValue={content.faqImage} />
-            </div>
+            <p className="admin-product-kicker admin-storefront-lead">
+              Edit questions and answers here. Change the FAQ photo under Homepage → Homepage images.
+            </p>
             <div className="admin-storefront-groups admin-storefront-groups--tight">
               {content.faqItems.map((item, index) => (
                 <div key={item.id} className="admin-storefront-group">
