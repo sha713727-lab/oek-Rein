@@ -2,12 +2,19 @@ import { IconEnvelope, IconMap, IconPhone } from "@/components/icons/icons";
 import {
   SUPPORT_ADDRESS,
   SUPPORT_EMAIL,
-  SUPPORT_PHONE,
-  SUPPORT_PHONE_E164,
-  SUPPORT_WHATSAPP_URL,
+  formatSupportPhoneDisplay,
+  supportPhoneE164,
+  supportWhatsAppUrlFromPhone,
 } from "@/constants/site";
 
-export function ContactDetails() {
+type ContactDetailsProps = {
+  supportPhone?: string;
+};
+
+export function ContactDetails({ supportPhone }: ContactDetailsProps) {
+  const display = formatSupportPhoneDisplay(supportPhone);
+  const tel = supportPhoneE164(supportPhone);
+  const whatsapp = supportWhatsAppUrlFromPhone(supportPhone);
   return (
     <ul className="info-page-contact-list">
       <li className="info-page-contact-item">
@@ -22,12 +29,12 @@ export function ContactDetails() {
         <div>
           <p className="info-page-contact-label">Call / WhatsApp</p>
           <p className="info-page-contact-value">
-            <a href={`tel:${SUPPORT_PHONE_E164}`} className="info-page-link">
-              {SUPPORT_PHONE}
+            <a href={`tel:${tel}`} className="info-page-link">
+              {display}
             </a>
           </p>
           <p className="info-page-contact-value">
-            <a href={SUPPORT_WHATSAPP_URL} target="_blank" rel="noreferrer" className="info-page-link">
+            <a href={whatsapp} target="_blank" rel="noreferrer" className="info-page-link">
               Chat on WhatsApp
             </a>
           </p>

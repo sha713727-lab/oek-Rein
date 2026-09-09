@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { IconShield, IconTruck } from "@/components/icons/icons";
-import { SUPPORT_PHONE, supportWhatsAppUrl } from "@/constants/site";
+import { formatSupportPhoneDisplay, supportWhatsAppUrlFromPhone } from "@/constants/site";
 import { OrderSummary } from "@/features/orders/order-summary";
 import { orderService } from "@/lib/api/orders";
 import { getSessionUser } from "@/lib/session";
@@ -24,7 +24,9 @@ export default async function OrderConfirmationPage({
   }
 
   const storefront = await getStorefront();
-  const whatsappHref = supportWhatsAppUrl(
+  const supportDisplay = formatSupportPhoneDisplay(storefront.content.supportPhone);
+  const whatsappHref = supportWhatsAppUrlFromPhone(
+    storefront.content.supportPhone,
     `Assalam o Alaikum Zermae, I just placed order ${order.orderNumber}. Please confirm.`,
   );
   return (
@@ -46,7 +48,7 @@ export default async function OrderConfirmationPage({
           <p className="order-confirmation-lead">
             A confirmation is sent to your WhatsApp and email when messaging is enabled. Need help? WhatsApp us on{" "}
             <a href={whatsappHref} className="order-confirmation-email" target="_blank" rel="noreferrer">
-              {SUPPORT_PHONE}
+              {supportDisplay}
             </a>
             .
           </p>

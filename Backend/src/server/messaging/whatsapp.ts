@@ -1,11 +1,20 @@
-import { SUPPORT_PHONE, SUPPORT_PHONE_DIGITS, SUPPORT_PHONE_E164, toWhatsAppDigits } from "@/constants/site";
+import {
+  formatSupportPhoneDisplay,
+  resolveSupportPhoneDigits,
+  supportPhoneE164,
+  toWhatsAppDigits,
+} from "@/constants/site";
 import { formatMoney } from "@/constants/storefront";
 import { getEnv } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import type { OrderRecord } from "@/types/order";
 
-function customerOrderMessage(order: OrderRecord): string {
+type SupportPhoneOpts = { supportPhone?: string | null };
+
+function customerOrderMessage(order: OrderRecord, opts: SupportPhoneOpts = {}): string {
   const lines = order.items.map((item) => `• ${item.name} × ${item.quantity}`).join("\n");
+  const display = formatSupportPhoneDisplay(opts.supportPhone);
+  const e164 = supportPhoneE164(opts.supportPhone);
   return [
     `Assalam o Alaikum ${order.customer},`,
     ``,
@@ -19,24 +28,25 @@ function customerOrderMessage(order: OrderRecord): string {
     `Delivery: 3–5 working days`,
     ``,
     `We will call or WhatsApp you on ${order.phone} if we need anything.`,
-    `Questions? Message us on WhatsApp ${SUPPORT_PHONE} (${SUPPORT_PHONE_E164}).`,
+    `Questions? Message us on WhatsApp ${display} (${e164}).`,
     ``,
     `— Zermae`,
   ].join("\n");
 }
 
 /** One-tap link: opens WhatsApp on your phone with the customer confirmation ready to send. */
-export function customerWhatsAppSendUrl(order: OrderRecord): string | null {
+export function customerWhatsAppSendUrl(order: OrderRecord, opts: SupportPhoneOpts = {}): string | null {
   const digits = toWhatsAppDigits(order.phone);
   if (!digits) {
     return null;
   }
-  return `https://wa.me/${digits}?text=${encodeURIComponent(customerOrderMessage(order))}`;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(customerOrderMessage(order, opts))}`;
 }
 
-export function shopOrderAlertEmail(order: OrderRecord): string {
+export function shopOrderAlertEmail(order: OrderRecord, opts: SupportPhoneOpts = {}): string {
   const lines = order.items.map((item) => `${item.name} × ${item.quantity}`).join("\n");
-  const sendUrl = customerWhatsAppSendUrl(order);
+  const sendUrl = customerWhatsAppSendUrl(order, opts);
+  const display = formatSupportPhoneDisplay(opts.supportPhone);
   return [
     `New COD order ${order.orderNumber}`,
     ``,
@@ -50,7 +60,7 @@ export function shopOrderAlertEmail(order: OrderRecord): string {
     `Total: ${formatMoney(order.total)}`,
     ``,
     sendUrl
-      ? `Tap to WhatsApp the customer confirmation from your phone (${SUPPORT_PHONE}):\n${sendUrl}`
+      ? `Tap to WhatsApp the customer confirmation from your phone (${display}):\n${sendUrl}`
       : `Customer phone could not be converted for WhatsApp.`,
     ``,
     `Admin: open the order in /admin/orders/${order.orderNumber}`,
@@ -154,19 +164,23 @@ export async function sendWhatsAppText(toPhone: string, body: string): Promise<b
 }
 
 /** Notify customer + shop WhatsApp after a successful order. Never throws. */
-export async function notifyOrderPlaced(order: OrderRecord): Promise<void> {
-  const customerBody = customerOrderMessage(order);
+export async function notifyOrderPlaced(order: OrderRecord, opts: SupportPhoneOpts = {}): Promise<void> {
+  const shopDigits = resolveSupportPhoneDigits(opts.supportPhone);
+  const customerBody = customerOrderMessage(order, opts);
   const businessBody = businessOrderMessage(order);
   const customerOk = await sendWhatsAppText(order.phone, customerBody);
-  const businessOk = await sendWhatsAppText(SUPPORT_PHONE_DIGITS, businessBody);
+  const businessOk = await sendWhatsAppText(shopDigits, businessBody);
   logger.info(
-    { orderNumber: order.orderNumber, customerOk, businessOk },
+    { orderNumber: order.orderNumber, customerOk, businessOk, shopDigits },
     "Order WhatsApp notifications attempted",
   );
 }
 
-export function orderEmailText(order: OrderRecord, appUrl: string): string {
+export function orderEmailText(order: OrderRecord, appUrl: string, opts: SupportPhoneOpts = {}): string {
   const lines = order.items.map((item) => `${item.name} × ${item.quantity}`).join("\n");
+  const display = formatSupportPhoneDisplay(opts.supportPhone);
+  const e164 = supportPhoneE164(opts.supportPhone);
+  const digits = resolveSupportPhoneDigits(opts.supportPhone);
   return [
     `Assalam o Alaikum ${order.customer},`,
     ``,
@@ -178,8 +192,8 @@ export function orderEmailText(order: OrderRecord, appUrl: string): string {
     `Payment: Cash on delivery`,
     `We will deliver within 3–5 working days.`,
     ``,
-    `Need help? Call or WhatsApp ${SUPPORT_PHONE} (${SUPPORT_PHONE_E164}).`,
-    `WhatsApp: https://wa.me/${SUPPORT_PHONE_DIGITS}`,
+    `Need help? Call or WhatsApp ${display} (${e164}).`,
+    `WhatsApp: https://wa.me/${digits}`,
     ``,
     `Track a guest order: ${appUrl.replace(/\/$/, "")}/orders/lookup`,
     `(use this email and order number)`,

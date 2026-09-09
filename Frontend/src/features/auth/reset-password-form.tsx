@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 
 import { resetPasswordAction } from "@/features/auth/actions";
+import { PasswordField } from "@/features/auth/password-field";
 
 type State = { error?: string | undefined };
 
@@ -36,22 +37,20 @@ export function ResetPasswordForm({ token }: { token: string }) {
       </div>
       <form className="auth-form" action={action}>
         <input type="hidden" name="token" value={token} />
-        <label className="auth-field">
-          <span className="sr-only">New password</span>
-          <input type="password" name="password" placeholder="New password" autoComplete="new-password" required minLength={8} className="auth-input" />
-        </label>
-        <label className="auth-field">
-          <span className="sr-only">Confirm password</span>
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Confirm password"
-            autoComplete="new-password"
-            required
-            minLength={8}
-            className="auth-input"
-          />
-        </label>
+        <PasswordField
+          name="password"
+          label="New password"
+          placeholder="New password"
+          autoComplete="new-password"
+          minLength={8}
+        />
+        <PasswordField
+          name="confirmPassword"
+          label="Confirm password"
+          placeholder="Confirm password"
+          autoComplete="new-password"
+          minLength={8}
+        />
         {state.error ? <p className="auth-form-error">{state.error}</p> : null}
         <button type="submit" className="auth-btn auth-btn-primary luxury-button-solid">
           Update password

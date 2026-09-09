@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 
 import { registerAction } from "@/features/auth/actions";
+import { PasswordField } from "@/features/auth/password-field";
 
 type State = { error?: string | undefined };
 
@@ -28,28 +29,13 @@ export function RegisterForm() {
           <span className="sr-only">Email Address</span>
           <input type="email" name="email" placeholder="Email Address" autoComplete="email" required className="auth-input" />
         </label>
-        <label className="auth-field">
-          <span className="sr-only">Password</span>
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            autoComplete="new-password"
-            required
-            className="auth-input"
-          />
-        </label>
-        <label className="auth-field">
-          <span className="sr-only">Confirm password</span>
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Confirm Password"
-            autoComplete="new-password"
-            required
-            className="auth-input"
-          />
-        </label>
+        <PasswordField name="password" label="Password" placeholder="Password" autoComplete="new-password" />
+        <PasswordField
+          name="confirmPassword"
+          label="Confirm password"
+          placeholder="Confirm Password"
+          autoComplete="new-password"
+        />
         {state.error ? <p className="auth-form-error">{state.error}</p> : null}
         <button type="submit" className="auth-btn auth-btn-primary luxury-button-solid">
           Create Account

@@ -115,6 +115,7 @@ export function storefrontPublishFromForm(formData: FormData, images: Storefront
       socialPinterest: formData.get("socialPinterest"),
       aboutCopy: formData.get("aboutCopy"),
       contactLead: formData.get("contactLead"),
+      supportPhone: formData.get("supportPhone"),
       authLoginSrc: images.authLoginSrc,
       authRegisterSrc: images.authRegisterSrc,
       authAdminSrc: images.authAdminSrc,

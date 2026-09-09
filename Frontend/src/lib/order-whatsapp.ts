@@ -1,4 +1,8 @@
-import { SUPPORT_PHONE, SUPPORT_PHONE_E164, toWhatsAppDigits } from "@/constants/site";
+import {
+  formatSupportPhoneDisplay,
+  supportPhoneE164,
+  toWhatsAppDigits,
+} from "@/constants/site";
 import { formatMoney } from "@/constants/storefront";
 
 type OrderWhatsAppInput = {
@@ -8,11 +12,14 @@ type OrderWhatsAppInput = {
   items: readonly { name: string; quantity: number }[];
   total: number;
   currency?: string;
+  supportPhone?: string;
 };
 
 export function customerOrderWhatsAppMessage(order: OrderWhatsAppInput): string {
   const lines = order.items.map((item) => `• ${item.name} × ${item.quantity}`).join("\n");
   const money = formatMoney(order.total, order.currency ?? "PKR");
+  const display = formatSupportPhoneDisplay(order.supportPhone);
+  const e164 = supportPhoneE164(order.supportPhone);
   return [
     `Assalam o Alaikum ${order.customer},`,
     ``,
@@ -25,7 +32,7 @@ export function customerOrderWhatsAppMessage(order: OrderWhatsAppInput): string 
     `Payment: Cash on delivery`,
     `Delivery: 3–5 working days`,
     ``,
-    `Questions? WhatsApp us on ${SUPPORT_PHONE} (${SUPPORT_PHONE_E164}).`,
+    `Questions? WhatsApp us on ${display} (${e164}).`,
     ``,
     `— Zermae`,
   ].join("\n");

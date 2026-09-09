@@ -110,6 +110,7 @@ export default async function AdminOrdersPage({
                     items: order.items,
                     total: Number(order.total),
                     currency: storefront.commerce.currency,
+                    supportPhone: storefront.content.supportPhone,
                   });
                   return (
                     <tr key={String(order._id)}>

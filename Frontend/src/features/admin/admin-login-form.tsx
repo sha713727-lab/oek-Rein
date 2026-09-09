@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
 
 import { AdminPasscodeModal } from "@/features/admin/admin-passcode-modal";
 import { adminLoginAction, adminVerifyAction } from "@/features/admin/actions";
+import { PasswordField } from "@/features/auth/password-field";
 
 type LoginState = {
   error?: string | undefined;
@@ -40,10 +42,12 @@ export function AdminLoginForm() {
             <span className="sr-only">Email</span>
             <input type="email" name="email" required className="auth-input" placeholder="Email Address" />
           </label>
-          <label className="auth-field">
-            <span className="sr-only">Password</span>
-            <input type="password" name="password" required className="auth-input" placeholder="Password" />
-          </label>
+          <PasswordField name="password" label="Password" placeholder="Password" autoComplete="current-password" />
+          <div className="auth-form-password-meta">
+            <Link href="/forgot-password" className="auth-link">
+              Forgot password?
+            </Link>
+          </div>
           {loginState.error ? <p className="auth-form-error">{loginState.error}</p> : null}
           <button type="submit" className="auth-btn auth-btn-primary luxury-button-solid">
             Continue

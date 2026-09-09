@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 
 import { loginAction } from "@/features/auth/actions";
+import { PasswordField } from "@/features/auth/password-field";
 
 type State = { error?: string | undefined };
 
@@ -31,27 +32,19 @@ export function LoginForm() {
             className="auth-input"
           />
         </label>
-        <label className="auth-field">
-          <span className="sr-only">Password</span>
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            autoComplete="current-password"
-            required
-            className="auth-input"
-          />
-        </label>
+        <PasswordField name="password" label="Password" placeholder="Password" autoComplete="current-password" />
+        <div className="auth-form-password-meta">
+          <Link href="/forgot-password" className="auth-link">
+            Forgot password?
+          </Link>
+        </div>
         {state.error ? <p className="auth-form-error">{state.error}</p> : null}
         <button type="submit" className="auth-btn auth-btn-primary luxury-button-solid">
           Sign In
         </button>
       </form>
       <div className="auth-form-foot">
-        <Link href="/forgot-password" className="auth-link">
-          Forgot password?
-        </Link>
-        <Link href="/collections/all" className="auth-link auth-form-foot-end">
+        <Link href="/collections/all" className="auth-link">
           Continue as Guest
         </Link>
         <span className="auth-form-foot-copy">New to Zermae?</span>

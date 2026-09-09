@@ -142,17 +142,19 @@ export class OrderService {
       responseBody: order,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
+    const storefront = await storefrontService.getFull();
+    const supportOpts = { supportPhone: storefront.content.supportPhone };
     await sendMail({
       to: order.email,
       subject: `Zermae order ${order.orderNumber}`,
-      text: orderEmailText(order, getEnv().APP_URL),
+      text: orderEmailText(order, getEnv().APP_URL, supportOpts),
     });
     await sendMail({
       to: getEnv().SUPPORT_EMAIL,
       subject: `New Zermae order ${order.orderNumber}`,
-      text: shopOrderAlertEmail(order),
+      text: shopOrderAlertEmail(order, supportOpts),
     });
-    await notifyOrderPlaced(order);
+    await notifyOrderPlaced(order, supportOpts);
     return order;
   }
 

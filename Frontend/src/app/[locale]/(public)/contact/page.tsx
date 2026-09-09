@@ -32,7 +32,7 @@ export default async function ContactPage() {
               <p className="section-intro-description">{storefront.content.contactLead}</p>
             </header>
             <div className="info-page-content">
-              <ContactDetails />
+              <ContactDetails supportPhone={storefront.content.supportPhone} />
               <ContactForm />
               <p className="info-page-note">
                 Our client care team responds within one business day, Monday through Saturday.

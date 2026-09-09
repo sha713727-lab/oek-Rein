@@ -3818,9 +3818,17 @@
     @apply block w-full;
   }
 
+  .auth-field-label {
+    @apply mb-2 block text-xs tracking-[0.16em] uppercase text-text-muted;
+  }
+
   .auth-input {
     @apply w-full border border-brand-border bg-brand-white px-4 py-3.5 text-sm text-brand-primary outline-none transition-colors placeholder:text-text-muted focus:border-brand-primary;
     font-family: var(--font-body);
+  }
+
+  .auth-form-password-meta {
+    @apply -mt-2 mb-1 flex justify-end;
   }
 
   .auth-password-field {

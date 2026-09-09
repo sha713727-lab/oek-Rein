@@ -679,6 +679,12 @@ export function StorefrontEditor({
               <SoftArea label="About copy" name="aboutCopy" rows={4} defaultValue={content.aboutCopy} />
               <SoftArea label="Contact lead" name="contactLead" rows={3} defaultValue={content.contactLead} />
               <SoftInput
+                label="WhatsApp / shop phone"
+                name="supportPhone"
+                defaultValue={content.supportPhone}
+                hint="e.g. 03117003196"
+              />
+              <SoftInput
                 label="Footer statement lead"
                 name="footerStatementLead"
                 defaultValue={content.footerStatementLead}

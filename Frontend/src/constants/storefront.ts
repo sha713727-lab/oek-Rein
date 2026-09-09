@@ -27,6 +27,7 @@ import {
   NAV_ITEMS,
   PRODUCT_HIGHLIGHTS_IMAGE,
   SHOP_RANGE_CATEGORIES,
+  SUPPORT_PHONE_LOCAL,
 } from "@/constants/site";
 
 export type StorefrontTheme = {
@@ -100,6 +101,8 @@ export type StorefrontContent = {
   socialPinterest: string;
   aboutCopy: string;
   contactLead: string;
+  /** Shop WhatsApp / contact phone (local or E.164). */
+  supportPhone: string;
   authLoginSrc: string;
   authRegisterSrc: string;
   authAdminSrc: string;
@@ -169,6 +172,7 @@ export const DEFAULT_STOREFRONT_CONTENT: StorefrontContent = {
     "From serums and creams to cleansers and body treatments, Zermae is designed for people who want considered products, honest language, and a routine that stays simple.",
   contactLead:
     "We would love to hear from you — whether you have a question about an order, a formula, or your daily routine.",
+  supportPhone: SUPPORT_PHONE_LOCAL,
   authLoginSrc: AUTH_BANNERS.login.src,
   authRegisterSrc: AUTH_BANNERS.register.src,
   authAdminSrc: AUTH_BANNERS.adminLogin.src,
@@ -407,6 +411,7 @@ export function resolveStorefrontContent(raw: unknown): StorefrontContent {
     socialPinterest: asStoredText(record.socialPinterest, DEFAULT_STOREFRONT_CONTENT.socialPinterest),
     aboutCopy: asStoredText(record.aboutCopy, DEFAULT_STOREFRONT_CONTENT.aboutCopy),
     contactLead: asStoredText(record.contactLead, DEFAULT_STOREFRONT_CONTENT.contactLead),
+    supportPhone: asStoredText(record.supportPhone, DEFAULT_STOREFRONT_CONTENT.supportPhone),
     authLoginSrc: asStoredText(record.authLoginSrc, DEFAULT_STOREFRONT_CONTENT.authLoginSrc),
     authRegisterSrc: asStoredText(record.authRegisterSrc, DEFAULT_STOREFRONT_CONTENT.authRegisterSrc),
     authAdminSrc: asStoredText(record.authAdminSrc, DEFAULT_STOREFRONT_CONTENT.authAdminSrc),

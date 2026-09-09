@@ -42,6 +42,32 @@ export function toWhatsAppDigits(phone: string): string | null {
   return digits;
 }
 
+export function resolveSupportPhoneDigits(phone?: string | null): string {
+  return toWhatsAppDigits(phone ?? "") ?? SUPPORT_PHONE_DIGITS;
+}
+
+export function formatSupportPhoneDisplay(phone?: string | null): string {
+  const digits = resolveSupportPhoneDigits(phone);
+  if (digits.startsWith("92") && digits.length === 12) {
+    const local = `0${digits.slice(2)}`;
+    return `${local.slice(0, 4)} ${local.slice(4, 7)} ${local.slice(7)}`;
+  }
+  const trimmed = String(phone ?? "").trim();
+  return trimmed || SUPPORT_PHONE;
+}
+
+export function supportPhoneE164(phone?: string | null): string {
+  return `+${resolveSupportPhoneDigits(phone)}`;
+}
+
+export function supportWhatsAppUrlFromPhone(phone?: string | null, prefill?: string): string {
+  const base = `https://wa.me/${resolveSupportPhoneDigits(phone)}`;
+  if (!prefill?.trim()) {
+    return base;
+  }
+  return `${base}?text=${encodeURIComponent(prefill.trim())}`;
+}
+
 export const NAV_ITEMS = [
   { id: "navNew", label: "New Arrivals", path: "/collections/new" },
   { id: "navAll", label: "Shop All", path: "/collections/all" },

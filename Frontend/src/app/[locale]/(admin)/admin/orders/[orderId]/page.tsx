@@ -42,6 +42,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
     items: order.items,
     total: order.total,
     currency,
+    supportPhone: storefront.content.supportPhone,
   });
 
   return (

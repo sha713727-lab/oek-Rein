@@ -3,7 +3,7 @@ import type { ComponentType } from "react";
 
 import { IconFacebook, IconInstagram, IconPinterest, IconSparkle } from "@/components/icons/icons";
 import { brandName, footerSocialLabel, heroCtaHref, heroExploreLabel } from "@/constants/brand";
-import { FOOTER_NAV, FOOTER_SOCIAL, SUPPORT_PHONE, SUPPORT_WHATSAPP_URL } from "@/constants/site";
+import { FOOTER_NAV, FOOTER_SOCIAL, formatSupportPhoneDisplay, supportWhatsAppUrlFromPhone } from "@/constants/site";
 import { type StorefrontContent, visibleNavLinks } from "@/constants/storefront";
 import { NewsletterForm } from "@/features/newsletter/newsletter-form";
 
@@ -34,6 +34,8 @@ export function SiteFooter({ content }: { content: StorefrontContent }) {
     instagram: content.socialInstagram,
     pinterest: content.socialPinterest,
   };
+  const supportDisplay = formatSupportPhoneDisplay(content.supportPhone);
+  const supportWhatsApp = supportWhatsAppUrlFromPhone(content.supportPhone);
   return (
     <footer id="site-footer" className="site-footer">
       <div className="site-footer-inner">
@@ -107,8 +109,8 @@ export function SiteFooter({ content }: { content: StorefrontContent }) {
         </nav>
         <p className="site-footer-social-label">
           WhatsApp{" "}
-          <a href={SUPPORT_WHATSAPP_URL} className="site-footer-link" target="_blank" rel="noreferrer">
-            {SUPPORT_PHONE}
+          <a href={supportWhatsApp} className="site-footer-link" target="_blank" rel="noreferrer">
+            {supportDisplay}
           </a>
         </p>
       </div>
