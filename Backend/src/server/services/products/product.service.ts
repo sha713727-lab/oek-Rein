@@ -154,9 +154,47 @@ export class ProductService {
   }
 
   async getBySkus(skus: string[]): Promise<SerializedProduct[]> {
+    const catalog = new Map(BEST_SELLERS.map((slot) => [slot.sku.toUpperCase(), slot]));
     const items: SerializedProduct[] = [];
-    for (const sku of skus) {
-      const record = await productRepository.findBySku(sku);
+    for (const raw of skus) {
+      const sku = String(raw ?? "").trim().toUpperCase();
+      if (!sku) {
+        continue;
+      }
+      let record = await productRepository.findBySku(sku);
+      if (!record) {
+        const slot = catalog.get(sku);
+        if (slot) {
+          const existing = await productRepository.findBySkuIncludingDeleted(sku);
+          if (!existing) {
+            const slug = await productRepository.generateUniqueSlug(slot.title);
+            record = await productRepository.create({
+              title: slot.title,
+              slug,
+              sku: slot.sku,
+              category: slot.category,
+              price: slot.price,
+              originalPrice: null,
+              discount: 0,
+              discountType: DISCOUNT_TYPES.PERCENTAGE,
+              descriptionIntro: slot.description,
+              descriptionDetail: slot.description,
+              descriptionHighlights: [],
+              specComposition: "",
+              specCare: "",
+              specIncludes: slot.sku === "ZM-SHO-001" ? "Pair" : "Full",
+              returnPolicy: DEFAULT_RETURN_POLICY,
+              sizes: [],
+              tileColor: null,
+              bestSeller: true,
+              stock: 80,
+              status: PRODUCT_STATUS.PUBLISHED,
+              images: [{ url: slot.image, alt: slot.alt, order: 0 }],
+              colors: [],
+            });
+          }
+        }
+      }
       if (record && record.status === PRODUCT_STATUS.PUBLISHED) {
         items.push(serializeProduct(record));
       }
@@ -212,7 +250,7 @@ export class ProductService {
         descriptionHighlights: [],
         specComposition: "",
         specCare: "",
-        specIncludes: "50 ml",
+        specIncludes: slot.sku === "ZM-SHO-001" ? "Pair" : "Full",
         returnPolicy: DEFAULT_RETURN_POLICY,
         sizes: [],
         tileColor: null,

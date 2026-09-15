@@ -1,19 +1,35 @@
 import type { ComponentType } from "react";
 
-import { IconDrop, IconLeafMark } from "@/components/icons/icons";
+import {
+  IconBalance,
+  IconBridle,
+  IconHalter,
+  IconHorse,
+  IconHorseshoe,
+  IconLeather,
+  IconSaddle,
+  IconShield,
+  IconStitch,
+} from "@/components/icons/icons";
 import {
   COLLECTION_RITUALS,
   RITUAL_FEATURE_MARK,
   RITUAL_FEATURE_NOTES,
   RITUAL_FEATURE_TITLE,
+  type RitualIcon,
 } from "@/constants/site";
 import { CmsImage } from "@/features/media/cms-image";
 
-type RitualIcon = "leaf" | "drop";
-
 const RITUAL_ICONS: Record<RitualIcon, ComponentType<{ className?: string | undefined }>> = {
-  leaf: IconLeafMark,
-  drop: IconDrop,
+  leather: IconLeather,
+  horse: IconHorse,
+  saddle: IconSaddle,
+  stitch: IconStitch,
+  bridle: IconBridle,
+  halter: IconHalter,
+  horseshoe: IconHorseshoe,
+  balance: IconBalance,
+  shield: IconShield,
 };
 
 export function RitualFeature({
@@ -34,8 +50,8 @@ export function RitualFeature({
   };
   const left = ritual.notes[0];
   const right = ritual.notes[1];
-  const LeftIcon = RITUAL_ICONS[left.icon];
-  const RightIcon = RITUAL_ICONS[right.icon];
+  const LeftIcon = RITUAL_ICONS[left.icon] ?? IconLeather;
+  const RightIcon = RITUAL_ICONS[right.icon] ?? IconHorse;
 
   return (
     <section className={`ritual-feature ritual-feature--${tone}`} aria-labelledby="ritual-feature-title">

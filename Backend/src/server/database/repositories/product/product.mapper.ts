@@ -1,4 +1,5 @@
 import { DISCOUNT_TYPES, toFrontendCategory } from "@/constants/catalog";
+import { resolvePublicAssetSrc } from "@/lib/public-assets";
 import type { ProductColor, ProductImage, ProductRecord, SerializedProduct } from "@/types/product";
 
 export type ProductSqlRow = {
@@ -110,5 +111,13 @@ export function toProductRecord(
 }
 
 export function serializeProduct(product: ProductRecord): SerializedProduct {
-  return { ...product, _id: product.id, category: toFrontendCategory(product.category) };
+  return {
+    ...product,
+    _id: product.id,
+    category: toFrontendCategory(product.category),
+    images: product.images.map((image) => ({
+      ...image,
+      url: resolvePublicAssetSrc(image.url),
+    })),
+  };
 }

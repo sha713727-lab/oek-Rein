@@ -3,7 +3,7 @@
 import Link from "next/link";
 
 import { IconHeart, IconPlus } from "@/components/icons/icons";
-import { formatMoney, tileStyle } from "@/constants/storefront";
+import { HORSE_COAT, formatMoney, resolveHorseCoatColor, tileStyle } from "@/constants/storefront";
 import { AddToBagForm } from "@/features/cart/add-to-bag-form";
 import { CmsImage } from "@/features/media/cms-image";
 import { toggleWishlistAction } from "@/features/wishlist/actions";
@@ -12,9 +12,9 @@ import { cn } from "@/lib/cn";
 export type ProductCardTone = "blush" | "mint" | "lavender";
 
 const TONE_COLORS: Record<ProductCardTone, string> = {
-  blush: "#f0c5bf",
-  mint: "#d5e4cf",
-  lavender: "#efe4ee",
+  blush: HORSE_COAT.sorrel,
+  mint: HORSE_COAT.dappleGrey,
+  lavender: HORSE_COAT.blueRoan,
 };
 
 export type CatalogProduct = {
@@ -44,7 +44,7 @@ export function ProductCard({
   const hasSale = Boolean(product.originalPrice && product.originalPrice > product.price);
 
   return (
-    <article className="product-card" style={tileStyle(color || TONE_COLORS[tone])}>
+    <article className="product-card" style={tileStyle(resolveHorseCoatColor(color || TONE_COLORS[tone], TONE_COLORS[tone]))}>
       <div className="product-card-media-wrap">
         <div className="product-card-media-clip">
           <Link href={`/product/${product.id}`} className="product-card-media-link" aria-label={product.title}>

@@ -82,12 +82,20 @@ export function SiteHeader({
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [bagOpen, setBagOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const path = pathname.replace(/\/$/, "") || "/";
 
   useEffect(() => {
     const onBag = () => setBagOpen(true);
     window.addEventListener(BAG_EVENT, onBag);
     return () => window.removeEventListener(BAG_EVENT, onBag);
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
@@ -106,7 +114,11 @@ export function SiteHeader({
   const badgeCount = cartCount;
 
   return (
-    <header className="site-header site-header-transparent">
+    <header
+      className={cn("site-header", scrolled || open ? "site-header-scrolled" : "site-header-transparent")}
+      suppressHydrationWarning
+    >
+      {scrolled || open ? <div className="site-header-frost" aria-hidden="true" /> : null}
       <div className="site-header-shell">
         <div className="min-w-0 flex-1">
           <Logo theme={isDarkHeaderPage ? "dark" : "light"} size="nav" />

@@ -1,48 +1,42 @@
 import "./globals.css";
+import "./home.css";
 import "./product-highlights.css";
 import "./glow-stats.css";
 import "./features.css";
+import "./home-testimonials.css";
 import "./home-faq.css";
 import "./footer.css";
 import "./storefront.css";
 
-import { Cormorant_Garamond, Inter, Plus_Jakarta_Sans, Poppins } from "next/font/google";
+import { Fraunces, Manrope } from "next/font/google";
 import type { ReactNode } from "react";
 
 import { brandDescription, brandName } from "@/constants/brand";
 import { CookieBanner } from "@/features/consent/cookie-banner";
+import { CursorDot } from "@/features/motion/cursor-dot";
 import { ThemeStyle } from "@/features/theme/theme-style";
 import { getStorefront } from "@/lib/storefront";
 
-const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-plus-jakarta",
-  display: "swap",
-});
-
-const poppins = Poppins({
-  subsets: ["latin"],
+/**
+ * Display: Fraunces — hero, section, product/category titles.
+ * UI/body: Manrope — nav, buttons, prices, forms, product info.
+ */
+const fraunces = Fraunces({
+  subsets: ["latin", "latin-ext"],
   weight: ["400", "500", "600"],
-  variable: "--font-poppins",
+  variable: "--font-fraunces",
   display: "swap",
 });
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const cormorant = Cormorant_Garamond({
+const manrope = Manrope({
   subsets: ["latin", "latin-ext"],
   weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
-  variable: "--font-cormorant",
+  variable: "--font-manrope",
   display: "swap",
 });
 
 export const metadata = {
-  metadataBase: new URL(process.env.APP_URL ?? "https://zermae.com"),
+  metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
   title: {
     default: brandName,
     template: `%s · ${brandName}`,
@@ -65,12 +59,15 @@ export const metadata = {
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const storefront = await getStorefront();
   return (
-    <html lang="en" data-scroll-behavior="smooth">
-      <body
-        className={`${plusJakarta.variable} ${poppins.variable} ${inter.variable} ${cormorant.variable} min-h-screen bg-brand-bg antialiased`}
-      >
+    <html
+      lang="en"
+      data-scroll-behavior="smooth"
+      className={`${fraunces.variable} ${manrope.variable}`}
+    >
+      <body className={`${manrope.className} min-h-screen bg-brand-bg antialiased`}>
         <ThemeStyle theme={storefront.theme} />
         {children}
+        <CursorDot />
         <CookieBanner />
       </body>
     </html>

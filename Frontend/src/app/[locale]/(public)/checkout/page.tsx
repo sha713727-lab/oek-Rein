@@ -22,11 +22,15 @@ export default async function CheckoutPage() {
   ]);
   const addresses = user ? await addressService.list(user.id) : [];
   const map = new Map(products.map((product) => [product.id, product]));
-  const lines = cart.items.map((item) => {
-    const product = map.get(item.productId);
-    const price = Number(product?.effectivePrice ?? product?.price ?? 0);
+  const availableItems = cart.items.filter((item) => map.has(item.productId));
+  if (availableItems.length === 0) {
+    redirect("/cart");
+  }
+  const lines = availableItems.map((item) => {
+    const product = map.get(item.productId)!;
+    const price = Number(product.effectivePrice ?? product.price ?? 0);
     return {
-      title: String(product?.title ?? "Product"),
+      title: String(product.title),
       quantity: item.quantity,
       lineTotal: price * item.quantity,
     };
@@ -40,11 +44,11 @@ export default async function CheckoutPage() {
         <header className="section-intro checkout-intro">
           <span className="section-intro-eyebrow">Checkout</span>
           <h1 className="section-intro-title">Complete Your Order</h1>
-          <p className="section-intro-description">Enter your details to finalize your Zermae order.</p>
+          <p className="section-intro-description">Enter your details to finalize your Saddlera order.</p>
         </header>
         <div className="checkout-layout">
           <CheckoutForm
-            itemsJson={JSON.stringify(cart.items)}
+            itemsJson={JSON.stringify(availableItems)}
             defaultName={user?.name}
             defaultEmail={user?.email}
             addresses={addresses}

@@ -1,6 +1,7 @@
+import { PRODUCT_CARD_COATS, resolveHorseCoatColor } from "@/constants/storefront";
 import { type CatalogProduct, ProductCard } from "@/features/catalog/product-card";
 
-const FALLBACK_COLORS = ["#f0c5bf", "#d5e4cf", "#efe4ee"];
+const FALLBACK_COLORS = [...PRODUCT_CARD_COATS];
 
 export function ProductGrid({
   products,
@@ -22,7 +23,10 @@ export function ProductGrid({
           key={product.id}
           product={product}
           wished={wishlistIds.includes(product.id)}
-          color={product.tileColor || palette[index % palette.length] || "#f0c5bf"}
+          color={resolveHorseCoatColor(
+            product.tileColor || palette[index % palette.length],
+            PRODUCT_CARD_COATS[0]!,
+          )}
           currency={currency}
         />
       ))}

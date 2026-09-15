@@ -1,5 +1,7 @@
 import Image, { type ImageProps } from "next/image";
 
+import { resolvePublicAssetSrc } from "@/lib/public-assets";
+
 export function CmsImage({
   src,
   alt,
@@ -20,7 +22,7 @@ export function CmsImage({
   priority?: boolean;
 }) {
   const props: ImageProps = {
-    src,
+    src: resolvePublicAssetSrc(src),
     alt,
     unoptimized: true,
   };

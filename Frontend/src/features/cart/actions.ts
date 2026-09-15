@@ -132,19 +132,24 @@ export async function getMiniCartAction(): Promise<MiniCartSnapshot> {
   const [cart, commerce] = await Promise.all([readCart(), orderService.getCommerceSettings()]);
   const products = await productService.getByIds(cart.items.map((item) => item.productId));
   const map = new Map(products.map((product) => [product.id, product]));
-  const lines = cart.items.map((item) => {
-    const product = map.get(item.productId);
-    const price = Number(product?.effectivePrice ?? product?.price ?? 0);
-    return {
-      productId: item.productId,
-      title: String(product?.title ?? "Product"),
-      image: product?.images[0]?.url ?? null,
-      quantity: item.quantity,
-      size: item.size ?? null,
-      color: item.color ?? null,
-      lineTotal: price * item.quantity,
-    };
-  });
+  const lines = cart.items
+    .map((item) => {
+      const product = map.get(item.productId);
+      if (!product) {
+        return null;
+      }
+      const price = Number(product.effectivePrice ?? product.price ?? 0);
+      return {
+        productId: item.productId,
+        title: String(product.title),
+        image: product.images[0]?.url ?? null,
+        quantity: item.quantity,
+        size: item.size ?? null,
+        color: item.color ?? null,
+        lineTotal: price * item.quantity,
+      };
+    })
+    .filter((line): line is MiniCartLine => line !== null);
   const subtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
   const totals = calculateOrderTotals(subtotal, commerce);
   return {

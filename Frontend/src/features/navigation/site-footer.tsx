@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ComponentType } from "react";
 
-import { IconFacebook, IconInstagram, IconPinterest, IconSparkle } from "@/components/icons/icons";
+import { IconFacebook, IconInstagram, IconPinterest, IconHorseshoe } from "@/components/icons/icons";
 import { brandName, footerSocialLabel, heroCtaHref, heroExploreLabel } from "@/constants/brand";
 import { FOOTER_NAV, FOOTER_SOCIAL, formatSupportPhoneDisplay, supportWhatsAppUrlFromPhone } from "@/constants/site";
 import { type StorefrontContent, visibleNavLinks } from "@/constants/storefront";
@@ -50,14 +50,14 @@ export function SiteFooter({ content }: { content: StorefrontContent }) {
               </text>
             </svg>
           </span>
-          <IconSparkle className="site-footer-badge-star" />
+          <IconHorseshoe className="site-footer-badge-star" />
         </Link>
         <p className="site-footer-statement">
           <span>{content.footerStatementLead}</span>
           <span>{content.footerStatementEnd}</span>
         </p>
         <div className="footer-newsletter">
-          <p className="site-footer-social-label">Stay in the ritual</p>
+          <p className="site-footer-social-label">Ride with Saddlera</p>
           <NewsletterForm />
         </div>
         <div className="site-footer-social">

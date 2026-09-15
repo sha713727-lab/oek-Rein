@@ -5,6 +5,8 @@ import { logger } from "@/lib/logger";
 import { type ApiErrorBody, type ApiSuccessBody,ERROR_CODES } from "@/types/api";
 
 export const MAX_JSON_BYTES = 8_000_000;
+/** Base64 + JSON wrapper for the largest allowed upload (see UPLOAD_MAX_FILE_SIZE). */
+export const MAX_UPLOAD_JSON_BYTES = 64_000_000;
 
 export type RequestContext = {
   req: IncomingMessage;
@@ -47,13 +49,13 @@ export function parseCookies(cookieHeader: string | undefined): Record<string, s
   return out;
 }
 
-export async function readBody(req: IncomingMessage): Promise<string> {
+export async function readBody(req: IncomingMessage, maxBytes = MAX_JSON_BYTES): Promise<string> {
   const chunks: Buffer[] = [];
   let size = 0;
   for await (const chunk of req) {
     const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     size += buffer.length;
-    if (size > MAX_JSON_BYTES) {
+    if (size > maxBytes) {
       throw AppError.payloadTooLarge();
     }
     chunks.push(buffer);

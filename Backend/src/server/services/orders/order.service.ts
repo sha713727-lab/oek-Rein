@@ -1,5 +1,6 @@
 import { PRODUCT_STATUS } from "@/constants/catalog";
 import { calculateOrderTotals } from "@/constants/commerce";
+import { brandName } from "@/constants/brand";
 import { ORDER_STATUS, ORDER_STATUS_TRANSITIONS, type OrderStatus } from "@/constants/order-status";
 import { ADMIN_ROLES, type Role } from "@/constants/roles";
 import { formatMoney } from "@/constants/storefront";
@@ -146,12 +147,12 @@ export class OrderService {
     const supportOpts = { supportPhone: storefront.content.supportPhone };
     await sendMail({
       to: order.email,
-      subject: `Zermae order ${order.orderNumber}`,
+      subject: `${brandName} order ${order.orderNumber}`,
       text: orderEmailText(order, getEnv().APP_URL, supportOpts),
     });
     await sendMail({
       to: getEnv().SUPPORT_EMAIL,
-      subject: `New Zermae order ${order.orderNumber}`,
+      subject: `New ${brandName} order ${order.orderNumber}`,
       text: shopOrderAlertEmail(order, supportOpts),
     });
     await notifyOrderPlaced(order, supportOpts);

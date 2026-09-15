@@ -1,21 +1,23 @@
 import type { ComponentType } from "react";
 
-import { IconDrop, IconFlower, IconGlowFace, IconRabbit } from "@/components/icons/icons";
+import { IconBalance, IconHorse, IconLeather, IconStitch } from "@/components/icons/icons";
+import { brandName } from "@/constants/brand";
+import { PRODUCT_HIGHLIGHTS, PRODUCT_HIGHLIGHTS_ALT } from "@/constants/site";
 import {
-  PRODUCT_HIGHLIGHTS,
-  PRODUCT_HIGHLIGHTS_ALT,
-  PRODUCT_HIGHLIGHTS_MARK,
-  PRODUCT_HIGHLIGHTS_TITLE,
-} from "@/constants/site";
+  PRODUCT_HIGHLIGHTS_FLOAT_SLOTS,
+  type ProductHighlightsFloatId,
+} from "@/constants/storefront";
+import { HighlightCurves } from "@/features/catalog/highlight-curves";
+import { HighlightRibbons } from "@/features/catalog/highlight-ribbons";
 import { CmsImage } from "@/features/media/cms-image";
 
 type IconProps = { className?: string | undefined };
 
-const HIGHLIGHT_ICONS: Record<(typeof PRODUCT_HIGHLIGHTS)[number]["icon"], ComponentType<IconProps>> = {
-  drop: IconDrop,
-  rabbit: IconRabbit,
-  glow: IconGlowFace,
-  flower: IconFlower,
+const HIGHLIGHT_ICONS: Record<string, ComponentType<IconProps>> = {
+  leather: IconLeather,
+  stitch: IconStitch,
+  balance: IconBalance,
+  horse: IconHorse,
 };
 
 function HighlightArrow({ corner }: { corner: (typeof PRODUCT_HIGHLIGHTS)[number]["corner"] }) {
@@ -40,6 +42,21 @@ function HighlightArrow({ corner }: { corner: (typeof PRODUCT_HIGHLIGHTS)[number
   );
 }
 
+/** Hand-drawn flourish that sits under the section heading. */
+function HighlightSquiggle() {
+  return (
+    <svg className="product-highlights-squiggle" viewBox="0 0 148 34" fill="none" aria-hidden="true">
+      <path
+        d="M7 21c13-13 32-16 42-7 8 7-1 15-9 11-8-4 3-15 19-15 15 0 23 8 32 12 6 3 13 3 19-3"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+      <path d="M28 27c12-6 27-8 40-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" opacity=".7" />
+    </svg>
+  );
+}
+
 function HighlightBotanical({ className }: { className: string }) {
   return (
     <svg className={className} viewBox="0 0 260 200" fill="none" aria-hidden="true">
@@ -54,15 +71,39 @@ function HighlightBotanical({ className }: { className: string }) {
   );
 }
 
-export function ProductHighlights({ image }: { image: string }) {
+export function ProductHighlights({
+  image,
+  floats,
+}: {
+  image: string;
+  floats: Record<ProductHighlightsFloatId, string>;
+}) {
   return (
     <section className="product-highlights" aria-labelledby="product-highlights-title">
+      <HighlightCurves />
       <HighlightBotanical className="product-highlights-vine" />
       <div className="product-highlights-inner">
         <h2 id="product-highlights-title" className="product-highlights-title">
-          {PRODUCT_HIGHLIGHTS_TITLE} {PRODUCT_HIGHLIGHTS_MARK}
+          Why {brandName}? <span className="section-mark">Because the craftsmanship speaks for itself!</span>
         </h2>
+        <HighlightSquiggle />
+        <p className="product-highlights-lead">
+          Premium handcrafted Pakistani leather tack for North American riders — comfort from the first cinch to the last
+          cool-down, with quality you can feel in the arena and on the trail.
+        </p>
         <div className="product-highlights-board">
+          <HighlightRibbons />
+          {PRODUCT_HIGHLIGHTS_FLOAT_SLOTS.map((slot) => {
+            const src = floats[slot.id]?.trim();
+            if (!src) {
+              return null;
+            }
+            return (
+              <span key={slot.id} className={`product-highlights-float product-highlights-float--${slot.id}`}>
+                <CmsImage src={src} alt="" width={slot.size} height={slot.size} />
+              </span>
+            );
+          })}
           <div className="product-highlights-stage">
             <span className="product-highlights-glow" aria-hidden="true" />
             <div className="product-highlights-product">
@@ -70,16 +111,16 @@ export function ProductHighlights({ image }: { image: string }) {
                 <CmsImage
                   src={image}
                   alt={PRODUCT_HIGHLIGHTS_ALT}
-                  width={304}
-                  height={637}
-                  sizes="(max-width: 480px) 7rem, (max-width: 899px) 8.25rem, 18rem"
+                  width={420}
+                  height={880}
+                  sizes="(max-width: 480px) 48vw, (max-width: 899px) 42vw, 34rem"
                   className="product-highlights-cutout"
                 />
               ) : null}
             </div>
           </div>
           {PRODUCT_HIGHLIGHTS.map((item) => {
-            const Icon = HIGHLIGHT_ICONS[item.icon];
+            const Icon = HIGHLIGHT_ICONS[item.icon] ?? IconHorse;
             return (
               <article key={item.id} className={`product-highlights-card product-highlights-card--${item.corner}`}>
                 <span className="product-highlights-icon">

@@ -21,10 +21,10 @@ export default async function WishlistPage() {
         {empty ? (
           <div className="wishlist-empty">
             <span className="wishlist-eyebrow">Your Collection</span>
-            <h1 className="wishlist-title">Saved Formulas You Love</h1>
+            <h1 className="wishlist-title">Saved Gear You Love</h1>
             <p className="wishlist-description">
-              Keep the Zermae products you want to return to — serums, creams, cleansers and body care, saved in one calm
-              list.
+              Keep the Saddlera products you want to return to — saddles, bridles, halters, and leather care, saved in one calm
+              favorites list.
             </p>
             <div className="wishlist-actions">
               <Link href="/collections/all" className="luxury-button-solid">
@@ -39,7 +39,7 @@ export default async function WishlistPage() {
           <>
             <div className="wishlist-header">
               <span className="wishlist-eyebrow">Your Collection</span>
-              <h1 className="wishlist-title wishlist-title--compact">Saved Formulas You Love</h1>
+              <h1 className="wishlist-title wishlist-title--compact">Saved Gear You Love</h1>
               <p className="wishlist-description">
                 {products.length} {products.length === 1 ? "product" : "products"} saved to your wishlist.
               </p>

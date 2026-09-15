@@ -35,7 +35,7 @@ export function AdminLoginForm() {
         <div className="auth-form-header">
           <span className="auth-form-eyebrow">Admin Access</span>
           <h2 className="auth-form-title">Sign in</h2>
-          <p className="auth-form-subtitle">Sign in to manage formulas, orders, and storefront content</p>
+          <p className="auth-form-subtitle">Sign in to manage products, orders, and storefront content</p>
         </div>
         <form className="auth-form" action={loginFormAction}>
           <label className="auth-field">

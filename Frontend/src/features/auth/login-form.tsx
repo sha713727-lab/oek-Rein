@@ -18,7 +18,7 @@ export function LoginForm() {
       <div className="auth-form-header">
         <span className="auth-form-eyebrow">Member Access</span>
         <h2 className="auth-form-title">Welcome Back</h2>
-        <p className="auth-form-subtitle">Access your orders, wishlist, and considered skincare</p>
+        <p className="auth-form-subtitle">Access your orders, wishlist, and considered tack</p>
       </div>
       <form className="auth-form" action={action}>
         <label className="auth-field">
@@ -47,7 +47,7 @@ export function LoginForm() {
         <Link href="/collections/all" className="auth-link">
           Continue as Guest
         </Link>
-        <span className="auth-form-foot-copy">New to Zermae?</span>
+        <span className="auth-form-foot-copy">New to Saddlera?</span>
         <Link href="/register" className="auth-link auth-form-foot-end">
           Create an account
         </Link>

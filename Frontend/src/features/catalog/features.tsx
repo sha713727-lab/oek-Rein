@@ -1,24 +1,31 @@
 import type { ComponentType } from "react";
 
-import { IconFlask, IconLeafMark, IconShield, IconTruck } from "@/components/icons/icons";
+import { IconLeather, IconShield, IconStitch, IconTruck } from "@/components/icons/icons";
 import type { StorefrontContent } from "@/constants/storefront";
+import { RibbonCurve } from "@/features/catalog/ribbon-curve";
 
 type IconProps = { className?: string | undefined };
 
 const FEATURE_ICONS: Record<string, ComponentType<IconProps>> = {
-  flask: IconFlask,
-  leaf: IconLeafMark,
+  stitch: IconStitch,
+  leather: IconLeather,
   shield: IconShield,
   truck: IconTruck,
 };
 
 export function Features({ content }: { content: StorefrontContent }) {
   return (
-    <section className="features-section" aria-label="Why Zermae">
+    <section className="features-section" aria-labelledby="features-title">
+      <RibbonCurve />
       <div className="features-inner">
+        <header className="features-header">
+          <h2 id="features-title" className="features-heading">
+            Trusted by riders — <span className="section-mark">why people choose us!</span>
+          </h2>
+        </header>
         <ul className="features-grid">
           {content.features.map((feature) => {
-            const Icon = FEATURE_ICONS[feature.icon] ?? IconLeafMark;
+            const Icon = FEATURE_ICONS[feature.icon] ?? IconStitch;
             return (
               <li key={feature.title} className="feature-item">
                 <span className="feature-icon">

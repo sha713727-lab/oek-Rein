@@ -1,4 +1,4 @@
-import { IconFlower, IconLeafMark } from "@/components/icons/icons";
+import { IconHorseshoe, IconLeather, IconStitch } from "@/components/icons/icons";
 import {
   brandMark,
   brandStoryPortraitAlt,
@@ -23,12 +23,12 @@ function StoryBotanical({ className }: { className: string }) {
   );
 }
 
-function LeafCluster({ className }: { className: string }) {
+function StitchCluster({ className }: { className: string }) {
   return (
     <span className={className} aria-hidden="true">
-      <IconLeafMark />
-      <IconLeafMark />
-      <IconLeafMark />
+      <IconStitch />
+      <IconStitch />
+      <IconStitch />
     </span>
   );
 }
@@ -71,8 +71,8 @@ export function BrandStory({ content }: { content: StorefrontContent }) {
               ) : null}
             </span>
             {content.brandStoryLead}{" "}
-            <LeafCluster className="brand-story-leaves" /> {content.brandStoryMid}{" "}
-            <IconFlower className="brand-story-bloom" /> {content.brandStoryEnd}
+            <StitchCluster className="brand-story-leaves" /> {content.brandStoryMid}{" "}
+            <IconLeather className="brand-story-bloom" /> {content.brandStoryEnd}
           </p>
         </div>
         <figure className="brand-story-photo">
@@ -87,7 +87,7 @@ export function BrandStory({ content }: { content: StorefrontContent }) {
               />
             ) : null}
           </span>
-          <IconFlower className="brand-story-photo-bloom" />
+          <IconHorseshoe className="brand-story-photo-bloom" />
         </figure>
       </div>
     </section>

@@ -1,11 +1,11 @@
 {
-  "name": "Zermae",
-  "short_name": "Zermae",
-  "description": "Minimal, considered skincare for real routines.",
+  "name": "Saddlera",
+  "short_name": "Saddlera",
+  "description": "Premium handcrafted Pakistani leather equestrian brand for North America.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F5F2EE",
-  "theme_color": "#3F3734",
+  "background_color": "#F4F1EB",
+  "theme_color": "#204E4A",
   "icons": [
     {
       "src": "/favicon-192.png",

@@ -13,6 +13,7 @@ export function middleware(request: NextRequest): NextResponse {
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
+    "media-src 'self' blob:",
     "font-src 'self'",
     "connect-src 'self'",
     "frame-ancestors 'none'",

@@ -27,6 +27,7 @@ export function ImageUrlField({
   const [url, setUrl] = useState(defaultValue);
   const [preview, setPreview] = useState(defaultValue);
   const [cleared, setCleared] = useState(false);
+  const [hasNewFile, setHasNewFile] = useState(false);
   const [error, setError] = useState("");
   const [dragOver, setDragOver] = useState(false);
 
@@ -54,6 +55,7 @@ export function ImageUrlField({
     }
     setError("");
     setCleared(false);
+    setHasNewFile(true);
     // Clear persisted URL so publish uses the new file upload, not the previous path.
     setUrl("");
     setPreview((current) => {
@@ -69,6 +71,7 @@ export function ImageUrlField({
       inputRef.current.value = "";
     }
     setCleared(true);
+    setHasNewFile(false);
     setUrl("");
     setError("");
     setPreview((current) => {
@@ -92,7 +95,8 @@ export function ImageUrlField({
         ref={inputRef}
         className="admin-product-upload-input"
         type="file"
-        name={`${name}File`}
+        // Only name the field when a new file is queued so Publish does not multipart-encode empties.
+        name={hasNewFile ? `${name}File` : undefined}
         accept={ACCEPT}
         onChange={(event) => {
           const file = event.target.files?.[0];

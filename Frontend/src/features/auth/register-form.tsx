@@ -16,9 +16,9 @@ export function RegisterForm() {
   return (
     <div className="auth-form-panel">
       <div className="auth-form-header">
-        <span className="auth-form-eyebrow">Join Zermae</span>
+        <span className="auth-form-eyebrow">Join Saddlera</span>
         <h2 className="auth-form-title">Create Account</h2>
-        <p className="auth-form-subtitle">Save formulas, track orders, and keep your ritual simple</p>
+        <p className="auth-form-subtitle">Save favorites, track orders, and keep your gear list simple</p>
       </div>
       <form className="auth-form" action={action}>
         <label className="auth-field">

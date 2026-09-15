@@ -3,6 +3,7 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
 import bcrypt from "bcrypt";
 
 import { ADMIN_ROLES, type Role, ROLES } from "@/constants/roles";
+import { brandName } from "@/constants/brand";
 import { AppError } from "@/lib/app-error";
 import { hmacSha256Hex, sha256Hex, timingSafeHexEqual } from "@/lib/crypto";
 import { getEnv } from "@/lib/env";
@@ -159,7 +160,7 @@ export class AuthService {
     const resetPath = `/reset-password?token=${encodeURIComponent(token)}`;
     const sent = await sendMail({
       to: account.email,
-      subject: "Reset your Zermae password",
+      subject: `Reset your ${brandName} password`,
       text: `Use this link to choose a new password. It expires in one hour.\n\n${getEnv().APP_URL}${resetPath}`,
     });
     if (!sent && getEnv().NODE_ENV !== "production") {

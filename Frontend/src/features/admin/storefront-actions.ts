@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 
 import { ADMIN_ROLES } from "@/constants/roles";
-import { DEFAULT_STOREFRONT_CONTENT } from "@/constants/storefront";
+import { DEFAULT_STOREFRONT_CONTENT, PRODUCT_HIGHLIGHTS_FLOAT_SLOTS } from "@/constants/storefront";
 import { storefrontPublishFromForm } from "@/features/admin/parse-storefront-form";
 import { storefrontService } from "@/lib/api/storefront";
 import { revalidateStorefront } from "@/lib/revalidate-storefront";
@@ -38,14 +38,17 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
       redirect("/admin/login");
     }
     const collectionKeys = Object.keys(DEFAULT_STOREFRONT_CONTENT.collectionImages);
-    const categoryCount = Math.min(8, Math.max(0, Number(formData.get("categoryCount") ?? 0)));
+    const floatKeys = PRODUCT_HIGHLIGHTS_FLOAT_SLOTS.map((slot) => slot.id);
+    const categoryCount = Math.min(7, Math.max(0, Number(formData.get("categoryCount") ?? 0)));
     const categoryIndexes = Array.from({ length: categoryCount }, (_, index) => index);
     const [
       heroProductSrc,
+      heroVideoSrc,
       brandStoryPrimarySrc,
       brandStorySecondarySrc,
       brandStoryPortraitSrc,
       productHighlightsImage,
+      productHighlightsFloats,
       glowStatsImage,
       faqImage,
       authLoginSrc,
@@ -55,10 +58,12 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
       collectionImages,
     ] = await Promise.all([
       readImage(formData, "heroProductSrc"),
+      readImage(formData, "heroVideoSrc"),
       readImage(formData, "brandStoryPrimarySrc"),
       readImage(formData, "brandStorySecondarySrc"),
       readImage(formData, "brandStoryPortraitSrc"),
       readImage(formData, "productHighlightsImage"),
+      readImageMap(formData, "productHighlightsFloat", floatKeys),
       readImage(formData, "glowStatsImage"),
       readImage(formData, "faqImage"),
       readImage(formData, "authLoginSrc"),
@@ -69,10 +74,12 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
     ]);
     const published = storefrontPublishFromForm(formData, {
       heroProductSrc,
+      heroVideoSrc,
       brandStoryPrimarySrc,
       brandStorySecondarySrc,
       brandStoryPortraitSrc,
       productHighlightsImage,
+      productHighlightsFloats,
       glowStatsImage,
       faqImage,
       authLoginSrc,
@@ -84,10 +91,15 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
     // Force exact image paths from the form (including intentional clears) so resolve defaults
     // cannot resurrect stock FAQ / homepage art after Remove.
     published.content.heroProductSrc = heroProductSrc;
+    published.content.heroVideoSrc = heroVideoSrc || DEFAULT_STOREFRONT_CONTENT.heroVideoSrc;
     published.content.brandStoryPrimarySrc = brandStoryPrimarySrc;
     published.content.brandStorySecondarySrc = brandStorySecondarySrc;
     published.content.brandStoryPortraitSrc = brandStoryPortraitSrc;
     published.content.productHighlightsImage = productHighlightsImage;
+    published.content.productHighlightsFloats = {
+      ...published.content.productHighlightsFloats,
+      ...productHighlightsFloats,
+    } as typeof published.content.productHighlightsFloats;
     published.content.glowStatsImage = glowStatsImage;
     published.content.faqImage = faqImage;
     published.content.authLoginSrc = authLoginSrc;

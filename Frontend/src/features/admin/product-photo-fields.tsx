@@ -85,7 +85,7 @@ function PhotoSlot({
           name={`imageUrl${index + 1}`}
           value={url}
           onChange={(event) => setUrl(event.target.value)}
-          placeholder="/assets/images/lumieNightCream.png"
+          placeholder="/assets/images/western_floral_saddle.png"
         />
       </label>
     </div>

@@ -32,7 +32,7 @@ export function PromoCreateForm({ currency }: { currency: string }) {
             id="promo-code"
             name="code"
             className="admin-product-soft"
-            placeholder="GLOW10"
+            placeholder="RIDE10"
             autoComplete="off"
             spellCheck={false}
             required

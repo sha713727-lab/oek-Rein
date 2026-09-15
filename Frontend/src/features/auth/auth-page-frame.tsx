@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { Logo } from "@/components/ui/logo";
 import { brandName } from "@/constants/brand";
+import { resolvePublicAssetSrc } from "@/lib/public-assets";
 
 export function AuthPageFrame({
   image,
@@ -21,7 +22,7 @@ export function AuthPageFrame({
       <div className="auth-layout">
         <aside className="auth-brand-panel" aria-label={`${brandName} brand`}>
           {image ? (
-            <Image src={image} alt={imageAlt} fill className="auth-brand-image" sizes="50vw" priority />
+            <Image src={resolvePublicAssetSrc(image)} alt={imageAlt} fill className="auth-brand-image" sizes="50vw" priority />
           ) : null}
           <div className="auth-brand-overlay" aria-hidden="true" />
         </aside>

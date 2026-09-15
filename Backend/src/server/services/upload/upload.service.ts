@@ -10,6 +10,9 @@ const ALLOWED = new Map([
   ["image/jpeg", "jpg"],
   ["image/webp", "webp"],
   ["image/avif", "avif"],
+  ["video/mp4", "mp4"],
+  ["video/webm", "webm"],
+  ["video/quicktime", "mov"],
 ]);
 
 export class UploadService {
@@ -17,16 +20,16 @@ export class UploadService {
     const env = getEnv();
     const ext = ALLOWED.get(input.mimeType);
     if (!ext) {
-      throw AppError.validation([{ field: "mimeType", message: "Unsupported image type" }]);
+      throw AppError.validation([{ field: "mimeType", message: "Unsupported file type" }]);
     }
     let buffer: Buffer;
     try {
       buffer = Buffer.from(input.data, "base64");
     } catch {
-      throw AppError.validation([{ field: "data", message: "Invalid image payload" }]);
+      throw AppError.validation([{ field: "data", message: "Invalid file payload" }]);
     }
     if (buffer.length < 1) {
-      throw AppError.validation([{ field: "data", message: "Empty image" }]);
+      throw AppError.validation([{ field: "data", message: "Empty file" }]);
     }
     if (buffer.length > env.UPLOAD_MAX_FILE_SIZE) {
       throw AppError.payloadTooLarge();

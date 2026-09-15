@@ -10,6 +10,7 @@ import { formatMoney } from "@/constants/storefront";
 import { getMiniCartAction, type MiniCartSnapshot, removeFromCartAction } from "@/features/cart/actions";
 import { OrderTotals } from "@/features/checkout/order-totals";
 import { BAG_EVENT } from "@/lib/bag-events";
+import { resolvePublicAssetSrc } from "@/lib/public-assets";
 
 const EMPTY: MiniCartSnapshot = {
   lines: [],
@@ -98,7 +99,7 @@ export function MiniCart({
               <li key={`${line.productId}-${line.size ?? ""}-${line.color ?? ""}`} className="mini-cart-line">
                 <Link href={`/product/${line.productId}`} className="mini-cart-media" onClick={onClose}>
                   {line.image ? (
-                    <Image src={line.image} alt="" width={72} height={72} className="mini-cart-image" />
+                    <Image src={resolvePublicAssetSrc(line.image)} alt="" width={72} height={72} className="mini-cart-image" />
                   ) : (
                     <span className="mini-cart-fallback" aria-hidden="true" />
                   )}

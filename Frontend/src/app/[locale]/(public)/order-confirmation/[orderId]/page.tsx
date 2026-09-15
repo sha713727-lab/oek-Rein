@@ -27,7 +27,7 @@ export default async function OrderConfirmationPage({
   const supportDisplay = formatSupportPhoneDisplay(storefront.content.supportPhone);
   const whatsappHref = supportWhatsAppUrlFromPhone(
     storefront.content.supportPhone,
-    `Assalam o Alaikum Zermae, I just placed order ${order.orderNumber}. Please confirm.`,
+    `Assalam o Alaikum Saddlera, I just placed order ${order.orderNumber}. Please confirm.`,
   );
   return (
     <div className="order-confirmation-page">
@@ -61,7 +61,7 @@ export default async function OrderConfirmationPage({
         <div className="order-confirmation-assurance">
           <div className="order-confirmation-assurance-item">
             <IconTruck />
-            <span>Nationwide delivery within 3–5 working days</span>
+            <span>Ships to North America</span>
           </div>
           <div className="order-confirmation-assurance-item">
             <IconShield />
@@ -70,7 +70,7 @@ export default async function OrderConfirmationPage({
         </div>
         <div className="order-confirmation-actions no-print">
           <a href={whatsappHref} className="luxury-button-solid" target="_blank" rel="noreferrer">
-            WhatsApp Zermae
+            WhatsApp Saddlera
           </a>
           <Link href="/collections/all" className="luxury-button-outline">
             Continue Shopping

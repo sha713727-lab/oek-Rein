@@ -4,7 +4,6 @@ import { ADMIN_ROLES } from "@/constants/roles";
 import { ProductForm } from "@/features/admin/product-form";
 import { productService } from "@/lib/api/products";
 import { getSessionUser } from "@/lib/session";
-import { getStorefront } from "@/lib/storefront";
 
 export default async function AdminEditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser();
@@ -18,6 +17,5 @@ export default async function AdminEditProductPage({ params }: { params: Promise
   } catch {
     notFound();
   }
-  const storefront = await getStorefront();
-  return <ProductForm product={product} blush={storefront.theme.blush} mint={storefront.theme.mint} />;
+  return <ProductForm product={product} />;
 }

@@ -1,9 +1,16 @@
 export const PRODUCT_CATEGORIES = [
   "new-arrivals",
-  "serums",
-  "creams",
-  "cleansers",
-  "body-care",
+  "saddles",
+  "bridles",
+  "halters",
+  "care",
+  "engraved-saddles",
+  "western-saddles",
+  "crystal-rhinestone",
+  "studded-leather",
+  "custom-colors",
+  "personalized",
+  "complete-sets",
 ] as const;
 
 export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number];
@@ -31,19 +38,43 @@ export type DiscountType = (typeof DISCOUNT_TYPES)[keyof typeof DISCOUNT_TYPES];
 
 export const FRONTEND_TO_BACKEND_CATEGORY: Record<string, ProductCategory | null> = {
   new: "new-arrivals",
-  serums: "serums",
-  creams: "creams",
-  cleansers: "cleansers",
-  body: "body-care",
+  saddles: "saddles",
+  bridles: "bridles",
+  halters: "halters",
+  reins: "halters",
+  care: "care",
+  "engraved-saddles": "engraved-saddles",
+  "western-saddles": "western-saddles",
+  "crystal-rhinestone": "crystal-rhinestone",
+  "studded-leather": "studded-leather",
+  "custom-colors": "custom-colors",
+  personalized: "personalized",
+  "complete-sets": "complete-sets",
+  // Legacy Zermae slugs (existing DB rows / bookmarks)
+  serums: "saddles",
+  creams: "bridles",
+  cleansers: "halters",
+  body: "care",
   all: null,
 };
 
 export const BACKEND_TO_FRONTEND_CATEGORY: Record<string, string> = {
   "new-arrivals": "new",
-  serums: "serums",
-  creams: "creams",
-  cleansers: "cleansers",
-  "body-care": "body",
+  saddles: "saddles",
+  bridles: "bridles",
+  halters: "halters",
+  care: "care",
+  "engraved-saddles": "engraved-saddles",
+  "western-saddles": "western-saddles",
+  "crystal-rhinestone": "crystal-rhinestone",
+  "studded-leather": "studded-leather",
+  "custom-colors": "custom-colors",
+  personalized: "personalized",
+  "complete-sets": "complete-sets",
+  serums: "saddles",
+  creams: "bridles",
+  cleansers: "halters",
+  "body-care": "care",
 };
 
 export function normalizeCategoryFilter(category: string | undefined): ProductCategory | undefined {
@@ -66,12 +97,25 @@ export function toFrontendCategory(category: string): string {
 
 export const CATEGORY_LABELS: Record<string, string> = {
   new: "New Arrivals",
-  serums: "Serums",
-  creams: "Creams",
-  cleansers: "Cleansers",
-  body: "Body Care",
+  saddles: "Saddles",
+  bridles: "Bridles",
+  halters: "Reins",
+  reins: "Reins",
+  care: "Leather Care",
   "new-arrivals": "New Arrivals",
-  "body-care": "Body Care",
+  "engraved-saddles": "Engraved Saddles",
+  "western-saddles": "Western Saddles",
+  "crystal-rhinestone": "Crystal - Rhinestone",
+  "studded-leather": "Studded Leather",
+  "custom-colors": "Custom Colors",
+  personalized: "Personalized Name/Logo",
+  "complete-sets": "Complete Sets",
+  // Legacy labels
+  serums: "Saddles",
+  creams: "Bridles",
+  cleansers: "Reins",
+  body: "Leather Care",
+  "body-care": "Leather Care",
 };
 
 export function getCategoryPath(category: string): string {
@@ -80,13 +124,13 @@ export function getCategoryPath(category: string): string {
 }
 
 export const PRODUCT_SPECIFICATION_FIELDS = [
-  { key: "composition", label: "Ingredients" },
-  { key: "care", label: "How to use" },
+  { key: "composition", label: "Materials" },
+  { key: "care", label: "Care" },
   { key: "includes", label: "Size" },
 ] as const;
 
-export const PRODUCT_VOLUME_OPTIONS = ["15 ml", "30 ml", "50 ml", "100 ml", "200 ml"] as const;
+export const PRODUCT_VOLUME_OPTIONS = ["Cob", "Full", "Extra Full", "Pony", "Custom"] as const;
 
-export const DEFAULT_RETURN_POLICY = `Unopened products may be exchanged within 14 days of delivery.
-Nationwide delivery within 3–5 working days. Free shipping may apply above the published order threshold.
+export const DEFAULT_RETURN_POLICY = `Unused items may be exchanged within 14 days of delivery.
+Ships to North America. Free shipping may apply above the published order threshold.
 Payment is cash on delivery.`;

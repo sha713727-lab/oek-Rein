@@ -7,6 +7,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { IconClose, IconSearch } from "@/components/icons/icons";
 import { formatMoney } from "@/constants/storefront";
 import { type SearchHit, searchProductsAction } from "@/features/navigation/search-actions";
+import { resolvePublicAssetSrc } from "@/lib/public-assets";
 
 const MIN_QUERY = 2;
 const DEBOUNCE_MS = 280;
@@ -95,7 +96,7 @@ export function SearchModal({ open, onClose }: { open: boolean; onClose: () => v
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               className="search-modal-input"
-              placeholder="Search serums, creams, SKU..."
+              placeholder="Search saddles, bridles, SKU..."
               autoComplete="off"
               spellCheck={false}
             />
@@ -116,7 +117,7 @@ export function SearchModal({ open, onClose }: { open: boolean; onClose: () => v
                     <Link href={`/product/${product.id}`} className="search-modal-result" onClick={handleClose}>
                       <div className="search-modal-result-media">
                         {product.image ? (
-                          <Image src={product.image} alt="" width={56} height={72} className="search-modal-result-image" />
+                          <Image src={resolvePublicAssetSrc(product.image)} alt="" width={56} height={72} className="search-modal-result-image" />
                         ) : (
                           <span className="search-modal-result-fallback" aria-hidden="true" />
                         )}

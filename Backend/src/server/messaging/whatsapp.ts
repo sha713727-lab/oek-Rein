@@ -4,6 +4,7 @@ import {
   supportPhoneE164,
   toWhatsAppDigits,
 } from "@/constants/site";
+import { brandName } from "@/constants/brand";
 import { formatMoney } from "@/constants/storefront";
 import { getEnv } from "@/lib/env";
 import { logger } from "@/lib/logger";
@@ -18,7 +19,7 @@ function customerOrderMessage(order: OrderRecord, opts: SupportPhoneOpts = {}): 
   return [
     `Assalam o Alaikum ${order.customer},`,
     ``,
-    `Thank you for shopping with Zermae.`,
+    `Thank you for shopping with ${brandName}.`,
     `Your order ${order.orderNumber} is confirmed.`,
     ``,
     lines,
@@ -30,7 +31,7 @@ function customerOrderMessage(order: OrderRecord, opts: SupportPhoneOpts = {}): 
     `We will call or WhatsApp you on ${order.phone} if we need anything.`,
     `Questions? Message us on WhatsApp ${display} (${e164}).`,
     ``,
-    `— Zermae`,
+    `— ${brandName}`,
   ].join("\n");
 }
 
@@ -70,7 +71,7 @@ export function shopOrderAlertEmail(order: OrderRecord, opts: SupportPhoneOpts =
 function businessOrderMessage(order: OrderRecord): string {
   const lines = order.items.map((item) => `• ${item.name} × ${item.quantity}`).join("\n");
   return [
-    `🛒 New Zermae order`,
+    `🛒 New ${brandName} order`,
     `Order: ${order.orderNumber}`,
     `Customer: ${order.customer}`,
     `Phone: ${order.phone}`,
@@ -184,7 +185,7 @@ export function orderEmailText(order: OrderRecord, appUrl: string, opts: Support
   return [
     `Assalam o Alaikum ${order.customer},`,
     ``,
-    `Thank you for your Zermae order ${order.orderNumber}.`,
+    `Thank you for your ${brandName} order ${order.orderNumber}.`,
     ``,
     lines,
     ``,
@@ -198,6 +199,6 @@ export function orderEmailText(order: OrderRecord, appUrl: string, opts: Support
     `Track a guest order: ${appUrl.replace(/\/$/, "")}/orders/lookup`,
     `(use this email and order number)`,
     ``,
-    `— Zermae`,
+    `— ${brandName}`,
   ].join("\n");
 }

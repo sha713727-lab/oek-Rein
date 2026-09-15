@@ -9,14 +9,14 @@ export default async function ReturnsPage() {
     <LegalPage
       eyebrow="Policies"
       title="Returns & Exchange"
-      lead="Unopened products may be exchanged within 14 days of delivery."
+      lead="Unused saddles, bridles, and tack may be exchanged within 14 days of delivery."
     >
       {DEFAULT_RETURN_POLICY.split("\n").map((paragraph) => (
         <p key={paragraph}>{paragraph}</p>
       ))}
       <p>{getFreeShippingNote(storefront.commerce)}</p>
       <p>
-        Opened or used skincare cannot be returned for hygiene reasons. Contact us with your order reference before
+        Used, fitted, or leather-conditioned items cannot be returned. Contact us with your order reference before
         sending anything back.
       </p>
     </LegalPage>

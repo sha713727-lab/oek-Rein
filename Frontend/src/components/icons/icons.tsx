@@ -372,3 +372,118 @@ export function IconHeartLeaf({ className }: IconProps) {
     </svg>
   );
 }
+
+/** Horse head mark — brand/heritage accents. */
+export function IconHorse({ className }: IconProps) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4.5 16.5c1.2-3.2 3.4-5.4 6.2-6.2.6-2.4 2.2-4.3 4.8-5.3.4 1.5.2 3-.6 4.2 2.2.6 3.6 2.2 4.1 4.3"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M9.2 11.8c.8.4 1.4 1.2 1.6 2.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M7.8 17.8c1.6.8 3.4 1.1 5.2.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="14.2" cy="10.2" r="0.7" fill="currentColor" />
+    </svg>
+  );
+}
+
+/** Side-profile saddle silhouette. */
+export function IconSaddle({ className }: IconProps) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M5 15.5c1.2-2.8 3.2-4.2 6-4.2 1.4 0 2.4-.8 2.8-2 .3-.8 1.1-1.3 2-.9 1.6.7 2.7 2.4 3.2 4.6"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M7.5 15.8c.4 1.6 1.8 2.7 3.5 2.7h2.2c1.5 0 2.8-.9 3.3-2.3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M9.2 11.5V8.8M15.6 12.2v5.6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Classic horseshoe. */
+export function IconHorseshoe({ className }: IconProps) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M7.2 5.5c-2.4 1.4-3.7 4.2-3.2 7.2.5 3.2 2.8 5.5 5.2 5.8M16.8 5.5c2.4 1.4 3.7 4.2 3.2 7.2-.5 3.2-2.8 5.5-5.2 5.8"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path d="M8.2 7.2h1.6M14.2 7.2h1.6M7.4 10h1.6M14.8 10h1.6M7.6 13h1.6M14.6 13h1.6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Bridle / bit ring mark. */
+export function IconBridle({ className }: IconProps) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="14.5" r="4" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M12 4.5v6M8.5 7.2 12 10.5l3.5-3.3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M8.2 14.5h7.6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Halter / headstall ring. */
+export function IconHalter({ className }: IconProps) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M7 9.5c0-2.8 2.2-5 5-5s5 2.2 5 5v2.2c0 1.4-.6 2.6-1.6 3.4L12 19.2 8.6 15.1A4.5 4.5 0 0 1 7 11.7V9.5Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path d="M9.2 10.2h5.6M9.6 13h4.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Leather hide / material mark. */
+export function IconLeather({ className }: IconProps) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M6.5 7.5c2-2.8 5-4 8.2-3.2 2.4.6 4 2.4 4.3 4.8.4 3.2-1.2 6.2-3.8 7.8-2.4 1.5-5.4 1.4-7.6-.2C5.2 15 4.4 11.4 6.5 7.5Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path d="M9.2 10.5c1.4-.8 3-.8 4.4 0M10 13.8c1-.5 2.2-.5 3.2 0" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Hand-stitch / artisan craft mark. */
+export function IconStitch({ className }: IconProps) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M5 18.5 12.2 5.8l2.4 1.3L7.4 19.8Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M12.4 6.2 18.8 4.8l.6 2.4-5.2 3.1" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M8.2 14.2h2.2M9.4 16.4h2.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Balance / fit mark. */
+export function IconBalance({ className }: IconProps) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 4.5v15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M5.5 8.5h13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M7 8.5 4.8 14.2h4.4L7 8.5ZM17 8.5l-2.2 5.7h4.4L17 8.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M9.5 19.5h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+

@@ -9,10 +9,12 @@ import {
 
 export type StorefrontFormImages = {
   heroProductSrc: string;
+  heroVideoSrc: string;
   brandStoryPrimarySrc: string;
   brandStorySecondarySrc: string;
   brandStoryPortraitSrc: string;
   productHighlightsImage: string;
+  productHighlightsFloats: Record<string, string>;
   glowStatsImage: string;
   faqImage: string;
   authLoginSrc: string;
@@ -30,11 +32,11 @@ export type StorefrontPublishPayload = {
 
 export function storefrontPublishFromForm(formData: FormData, images: StorefrontFormImages): StorefrontPublishPayload {
   const collectionKeys = Object.keys(DEFAULT_STOREFRONT_CONTENT.collectionImages);
-  const categoryCount = Math.min(8, Math.max(0, Number(formData.get("categoryCount") ?? 0)));
+  const categoryCount = Math.min(7, Math.max(0, Number(formData.get("categoryCount") ?? 0)));
   const navCount = Math.min(12, Math.max(0, Number(formData.get("navCount") ?? 0)));
   const categoryIndexes = Array.from({ length: categoryCount }, (_, index) => index);
   const faqItems = DEFAULT_STOREFRONT_CONTENT.faqItems.map((item, index) => ({
-    id: String(formData.get(`faqId_${index}`) ?? item.id),
+    id: item.id,
     question: String(formData.get(`faqQuestion_${index}`) ?? item.question),
     answer: String(formData.get(`faqAnswer_${index}`) ?? item.answer),
   }));
@@ -63,17 +65,21 @@ export function storefrontPublishFromForm(formData: FormData, images: Storefront
     blush: formData.get("themeBlush"),
   });
   const heroHeadline = String(formData.get("heroHeadline") ?? "");
-  const shopCategories = categoryIndexes.map((index) => ({
-    id: String(formData.get(`categoryId_${index}`) ?? `cat-${index + 1}`),
-    title: String(formData.get(`categoryTitle_${index}`) ?? ""),
-    description: String(formData.get(`categoryDescription_${index}`) ?? ""),
-    href: String(formData.get(`categoryHref_${index}`) ?? "/collections/all"),
-    image: images.categoryImages[index] ?? "",
-    alt: String(formData.get(`categoryTitle_${index}`) ?? "Category"),
-    icon: String(formData.get(`categoryIcon_${index}`) ?? "sparkle"),
-    color: String(formData.get(`categoryColor_${index}`) ?? ""),
-    hidden: formData.get(`categoryHidden_${index}`) === "on",
-  }));
+  const shopCategories = categoryIndexes.map((index) => {
+    const id = String(formData.get(`categoryId_${index}`) ?? `cat-${index + 1}`);
+    const permanent = DEFAULT_STOREFRONT_CONTENT.shopCategories.find((item) => item.id === id);
+    return {
+      id,
+      title: String(formData.get(`categoryTitle_${index}`) ?? ""),
+      description: String(formData.get(`categoryDescription_${index}`) ?? ""),
+      href: permanent?.href ?? String(formData.get(`categoryHref_${index}`) ?? "/collections/all"),
+      image: images.categoryImages[index] ?? "",
+      alt: String(formData.get(`categoryTitle_${index}`) ?? "Category"),
+      icon: String(formData.get(`categoryIcon_${index}`) ?? "saddle"),
+      color: String(formData.get(`categoryColor_${index}`) ?? ""),
+      hidden: formData.get(`categoryHidden_${index}`) === "on",
+    };
+  });
   const navLinks = Array.from({ length: navCount }, (_, index) => ({
     id: String(formData.get(`navId_${index}`) ?? `nav-${index + 1}`),
     label: String(formData.get(`navLabel_${index}`) ?? ""),
@@ -95,11 +101,13 @@ export function storefrontPublishFromForm(formData: FormData, images: Storefront
       heroHeadline,
       heroSupport: formData.get("heroSupport"),
       heroProductSrc: images.heroProductSrc,
+      heroVideoSrc: images.heroVideoSrc,
       heroProductAlt: formData.get("heroProductAlt") || heroHeadline,
       brandStoryPrimarySrc: images.brandStoryPrimarySrc,
       brandStorySecondarySrc: images.brandStorySecondarySrc,
       brandStoryPortraitSrc: images.brandStoryPortraitSrc,
       productHighlightsImage: images.productHighlightsImage,
+      productHighlightsFloats: images.productHighlightsFloats,
       glowStatsImage: images.glowStatsImage,
       faqImage: images.faqImage,
       faqImageAlt: formData.get("faqImageAlt") || "Frequently asked questions",

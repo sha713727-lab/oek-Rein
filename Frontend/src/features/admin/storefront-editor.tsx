@@ -7,6 +7,9 @@ import { useFormStatus } from "react-dom";
 import { resolveCommerceSettings } from "@/constants/commerce";
 import {
   formatMoney,
+  HORSE_COAT,
+  PRODUCT_CARD_COATS,
+  PRODUCT_HIGHLIGHTS_FLOAT_SLOTS,
   resolveStorefrontContent,
   resolveStorefrontTheme,
   SHOP_CATEGORY_ICONS,
@@ -18,18 +21,26 @@ import { ColorField } from "@/features/admin/color-field";
 import { ImageUrlField } from "@/features/admin/image-url-field";
 import { updateCommerceSettingsAction } from "@/features/admin/storefront-actions";
 import { UnsavedGuard } from "@/features/admin/unsaved-guard";
+import { VideoUrlField } from "@/features/admin/video-url-field";
 import type { StorefrontState } from "@/lib/api/storefront";
 
 const COLLECTION_LABELS: Record<string, string> = {
   all: "Shop all",
   new: "New arrivals",
-  serums: "Serums",
-  creams: "Creams",
-  cleansers: "Cleansers",
-  body: "Body care",
+  saddles: "Saddles",
+  bridles: "Bridles",
+  reins: "Reins",
+  care: "Leather care",
+  "engraved-saddles": "Engraved saddles",
+  "western-saddles": "Western saddles",
+  "crystal-rhinestone": "Crystal rhinestone",
+  "studded-leather": "Studded leather",
+  "custom-colors": "Custom colors",
+  personalized: "Personalized",
+  "complete-sets": "Complete sets",
 };
 
-const FEATURE_ICONS = ["flask", "leaf", "shield", "truck"] as const;
+const FEATURE_ICONS = ["stitch", "leather", "shield", "truck"] as const;
 
 const TABS = [
   { id: "colors", label: "Colors" },
@@ -142,32 +153,10 @@ export function StorefrontEditor({
   ];
   const filledHomepage = homepageImages.filter(Boolean).length;
   const tilePresets = [
-    { label: "Pink", color: theme.blush },
-    { label: "Olive", color: theme.mint },
+    { label: "Sorrel", color: HORSE_COAT.sorrel },
+    { label: "Dapple Grey", color: HORSE_COAT.dappleGrey },
+    { label: "Blue Roan", color: HORSE_COAT.blueRoan },
   ];
-
-  function addCategory() {
-    setShopCategories((current) => {
-      if (current.length >= 8) {
-        return current;
-      }
-      const id = `category-${crypto.randomUUID().slice(0, 8)}`;
-      return [
-      ...current,
-      {
-        id,
-        title: "New category",
-        description: "",
-        href: "/collections/serums",
-        image: "",
-        alt: "New category",
-        icon: "sparkle",
-        color: theme.blush,
-        hidden: false,
-      },
-    ];
-    });
-  }
 
   function addNavLink() {
     setNavLinks((current) => {
@@ -179,7 +168,7 @@ export function StorefrontEditor({
       {
         id: `nav-${crypto.randomUUID().slice(0, 8)}`,
         label: "New link",
-        path: "/collections/serums",
+        path: "/collections/saddles",
         hidden: false,
       },
     ];
@@ -285,19 +274,19 @@ export function StorefrontEditor({
             <ColorField
               name="productCardColor1"
               label="Card 1"
-              defaultValue={content.productCardColors[0] ?? theme.blush}
+              defaultValue={content.productCardColors[0] ?? PRODUCT_CARD_COATS[0]!}
               presets={tilePresets}
             />
             <ColorField
               name="productCardColor2"
               label="Card 2"
-              defaultValue={content.productCardColors[1] ?? theme.mint}
+              defaultValue={content.productCardColors[1] ?? PRODUCT_CARD_COATS[1]!}
               presets={tilePresets}
             />
             <ColorField
               name="productCardColor3"
               label="Card 3"
-              defaultValue={content.productCardColors[2] ?? "#efe4ee"}
+              defaultValue={content.productCardColors[2] ?? PRODUCT_CARD_COATS[2]!}
               presets={tilePresets}
             />
           </div>
@@ -310,6 +299,12 @@ export function StorefrontEditor({
               Homepage hero
             </h2>
             <div className="admin-product-fields">
+              <VideoUrlField
+                name="heroVideoSrc"
+                label="Hero video"
+                defaultValue={content.heroVideoSrc}
+                hint="Transparent-background MP4 of the horse and rider. Replace to update the live homepage hero."
+              />
               <ImageUrlField name="heroProductSrc" label="Hero product" defaultValue={content.heroProductSrc} />
               <div className="admin-storefront-nested">
                 <SoftInput label="Hero headline" name="heroHeadline" defaultValue={content.heroHeadline} />
@@ -351,7 +346,21 @@ export function StorefrontEditor({
                 label="Product highlights"
                 defaultValue={content.productHighlightsImage}
               />
-              <ImageUrlField name="glowStatsImage" label="Glow stats" defaultValue={content.glowStatsImage} />
+              <div className="admin-product-field admin-product-field--full">
+                <p className="admin-product-label">Product highlights — floating accents</p>
+                <p className="admin-product-kicker admin-storefront-lead">
+                  These cut-outs drift around the center product. Remove a slot to hide that orbit.
+                </p>
+              </div>
+              {PRODUCT_HIGHLIGHTS_FLOAT_SLOTS.map((slot) => (
+                <ImageUrlField
+                  key={slot.id}
+                  name={`productHighlightsFloat_${slot.id}`}
+                  label={`Float — ${slot.label}`}
+                  defaultValue={content.productHighlightsFloats[slot.id] ?? ""}
+                />
+              ))}
+              <ImageUrlField name="glowStatsImage" label="Lifestyle banner" defaultValue={content.glowStatsImage} />
               <ImageUrlField
                 name="faqImage"
                 label="FAQ photo"
@@ -370,17 +379,10 @@ export function StorefrontEditor({
                   Shop by category
                 </h2>
                 <p className="admin-product-kicker admin-storefront-lead">
-                  Edit, hide, or delete homepage tiles. Hidden tiles stay in this list until you delete them.
+                  These seven permanent product lines stay on the homepage. Edit titles, copy, photos, or hide a tile —
+                  links stay fixed to each collection.
                 </p>
               </div>
-              <button
-                type="button"
-                className="admin-product-ghost"
-                onClick={addCategory}
-                disabled={shopCategories.length >= 8}
-              >
-                Add category
-              </button>
             </div>
             {shopCategories.length === 0 ? (
               <p className="admin-orders-empty">No homepage categories. Add one to show tiles on the live shop.</p>
@@ -389,6 +391,7 @@ export function StorefrontEditor({
               {shopCategories.map((item, index) => (
                 <div key={item.id} className={`admin-storefront-group${item.hidden ? " is-hidden" : ""}`}>
                   <input type="hidden" name={`categoryId_${index}`} value={item.id} />
+                  <input type="hidden" name={`categoryHref_${index}`} value={item.href} />
                   <div className="admin-storefront-head">
                     <label className="admin-storefront-hide">
                       <input
@@ -404,22 +407,10 @@ export function StorefrontEditor({
                       />
                       Hide
                     </label>
-                    <button
-                      type="button"
-                      className="admin-product-delete"
-                      onClick={() => setShopCategories((current) => current.filter((entry) => entry.id !== item.id))}
-                    >
-                      Delete
-                    </button>
+                    <p className="admin-product-kicker">Collection: {item.href}</p>
                   </div>
                   <div className="admin-product-fields">
                     <SoftInput label="Title" name={`categoryTitle_${index}`} defaultValue={item.title} />
-                    <SoftInput
-                      label="Link"
-                      name={`categoryHref_${index}`}
-                      defaultValue={item.href}
-                      hint="Must start with /"
-                    />
                     <div className="admin-product-field">
                       <label className="admin-product-label" htmlFor={`categoryIcon_${index}`}>
                         Icon
@@ -568,9 +559,9 @@ export function StorefrontEditor({
               <input type="hidden" name="bestSellerSku1" value={content.bestSellerSkus[0] ?? ""} />
               <input type="hidden" name="bestSellerSku2" value={content.bestSellerSkus[1] ?? ""} />
               <input type="hidden" name="bestSellerSku3" value={content.bestSellerSkus[2] ?? ""} />
-              <input type="hidden" name="bestSellerColor1" value={content.bestSellerColors[0] ?? theme.blush} />
-              <input type="hidden" name="bestSellerColor2" value={content.bestSellerColors[1] ?? theme.mint} />
-              <input type="hidden" name="bestSellerColor3" value={content.bestSellerColors[2] ?? theme.blush} />
+              <input type="hidden" name="bestSellerColor1" value={content.bestSellerColors[0] ?? PRODUCT_CARD_COATS[0]!} />
+              <input type="hidden" name="bestSellerColor2" value={content.bestSellerColors[1] ?? PRODUCT_CARD_COATS[1]!} />
+              <input type="hidden" name="bestSellerColor3" value={content.bestSellerColors[2] ?? PRODUCT_CARD_COATS[2]!} />
             </>
           ) : (
             <div className="admin-product-fields">
@@ -578,21 +569,21 @@ export function StorefrontEditor({
               <ColorField
                 name="bestSellerColor1"
                 label="Slot 1 backdrop"
-                defaultValue={content.bestSellerColors[0] ?? theme.blush}
+                defaultValue={content.bestSellerColors[0] ?? PRODUCT_CARD_COATS[0]!}
                 presets={tilePresets}
               />
               <SkuSelect label="Slot 2" name="bestSellerSku2" value={content.bestSellerSkus[1] ?? ""} catalog={catalog} />
               <ColorField
                 name="bestSellerColor2"
                 label="Slot 2 backdrop"
-                defaultValue={content.bestSellerColors[1] ?? theme.mint}
+                defaultValue={content.bestSellerColors[1] ?? PRODUCT_CARD_COATS[1]!}
                 presets={tilePresets}
               />
               <SkuSelect label="Slot 3" name="bestSellerSku3" value={content.bestSellerSkus[2] ?? ""} catalog={catalog} />
               <ColorField
                 name="bestSellerColor3"
                 label="Slot 3 backdrop"
-                defaultValue={content.bestSellerColors[2] ?? theme.blush}
+                defaultValue={content.bestSellerColors[2] ?? PRODUCT_CARD_COATS[2]!}
                 presets={tilePresets}
               />
             </div>
@@ -662,13 +653,20 @@ export function StorefrontEditor({
               Edit questions and answers here. Change the FAQ photo under Homepage → Homepage images.
             </p>
             <div className="admin-storefront-groups admin-storefront-groups--tight">
-              {content.faqItems.map((item, index) => (
-                <div key={item.id} className="admin-storefront-group">
-                  <input type="hidden" name={`faqId_${index}`} value={item.id} />
-                  <SoftInput label={`Question ${index + 1}`} name={`faqQuestion_${index}`} defaultValue={item.question} />
-                  <SoftArea label="Answer" name={`faqAnswer_${index}`} rows={4} defaultValue={item.answer} />
-                </div>
-              ))}
+              {Array.from({ length: Math.max(content.faqItems.length, 4) }, (_, index) => {
+                const item = content.faqItems[index] ?? {
+                  id: `faq-${index + 1}`,
+                  question: "",
+                  answer: "",
+                };
+                return (
+                  <div key={`${item.id}-${index}`} className="admin-storefront-group">
+                    <input type="hidden" name={`faqId_${index}`} value={item.id} />
+                    <SoftInput label={`Question ${index + 1}`} name={`faqQuestion_${index}`} defaultValue={item.question} />
+                    <SoftArea label="Answer" name={`faqAnswer_${index}`} rows={4} defaultValue={item.answer} />
+                  </div>
+                );
+              })}
             </div>
           </section>
           <section className="admin-product-card" aria-labelledby="storefront-pages-heading">

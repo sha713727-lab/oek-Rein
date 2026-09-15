@@ -11,13 +11,13 @@
   }
 
   .brand-label {
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     font-weight: 600;
     letter-spacing: 0.14em;
     text-transform: uppercase;
   }
 
-  /* Headings — Nourd */
+  /* Headings — Fraunces */
   .display-hero {
     @apply text-6xl md:text-7xl lg:text-[9rem] font-bold tracking-tight leading-[0.9] uppercase text-brand-primary;
     font-family: var(--font-heading);
@@ -90,12 +90,12 @@
   }
 
   .product-card-wishlist:hover {
-    color: var(--color-brand-blush);
+    color: var(--vd-sorrel);
     transform: scale(1.06);
   }
 
   .product-card-wishlist.is-active {
-    color: var(--color-brand-blush);
+    color: var(--vd-sorrel);
   }
 
   .product-card-wishlist.is-active svg path {
@@ -265,10 +265,10 @@
     }
   }
 
-  /* Buttons — Nourd */
+  /* Buttons — Manrope */
   .luxury-button-solid {
     @apply inline-flex items-center justify-center px-10 py-4 text-brand-white text-[11px] tracking-[0.3em] uppercase font-semibold transition-all duration-500 border rounded-none cursor-pointer;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     background-color: var(--color-brand-primary);
     border-color: var(--color-brand-primary);
   }
@@ -281,7 +281,7 @@
 
   .luxury-button-accent {
     @apply inline-flex items-center justify-center px-10 py-4 text-brand-white text-[11px] tracking-[0.3em] uppercase font-semibold transition-all duration-500 border rounded-none cursor-pointer;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     background-color: var(--color-brand-accent);
     border-color: var(--color-brand-accent);
   }
@@ -294,7 +294,7 @@
 
   .luxury-button-outline {
     @apply inline-flex items-center justify-center px-10 py-4 text-[11px] tracking-[0.3em] uppercase font-semibold transition-all duration-500 border rounded-none cursor-pointer bg-brand-white text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     border-color: var(--color-brand-primary);
   }
 
@@ -377,7 +377,7 @@
 
   .text-link {
     @apply text-[11px] tracking-[0.25em] uppercase font-medium border-b border-brand-primary pb-1 transition-all duration-300 text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .text-link:hover {
@@ -535,6 +535,14 @@
     -webkit-backdrop-filter: none;
   }
 
+  .site-header-scrolled {
+    border-bottom: 1px solid color-mix(in srgb, var(--vd-green) 8%, transparent);
+    background: color-mix(in srgb, var(--vd-cream) 58%, transparent);
+    box-shadow: 0 10px 28px rgba(32, 78, 74, 0.05);
+    backdrop-filter: blur(16px) saturate(1.12);
+    -webkit-backdrop-filter: blur(16px) saturate(1.12);
+  }
+
   .site-header-shell {
     @apply mx-auto flex max-w-[1600px] items-center justify-between px-5 md:px-8 xl:px-14;
     min-height: 5.5rem;
@@ -618,7 +626,7 @@
 
   .site-header-icon-badge {
     @apply pointer-events-none absolute -right-0.5 -top-0.5 flex h-[1.05rem] min-w-[1.05rem] items-center justify-center rounded-full px-[0.2rem] text-[0.58rem] font-semibold leading-none;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     letter-spacing: 0;
   }
 
@@ -721,7 +729,7 @@
     border: 0;
     background: transparent;
     outline: none;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     font-size: 0.95rem;
     font-weight: 400;
     letter-spacing: 0.02em;
@@ -774,7 +782,7 @@
     white-space: normal;
     overflow-wrap: anywhere;
     word-break: normal;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     font-size: 0.82rem;
     line-height: 1.6;
     letter-spacing: 0.04em;
@@ -840,7 +848,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-family: var(--font-brand);
+    font-family: var(--font-heading);
     font-size: 0.9rem;
     font-weight: 500;
     letter-spacing: 0.02em;
@@ -862,7 +870,7 @@
   .search-modal-result-price {
     flex: 0 0 auto;
     white-space: nowrap;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     font-size: 0.78rem;
     letter-spacing: 0.03em;
     color: rgba(31, 31, 31, 0.72);
@@ -956,7 +964,7 @@
   .lux-hero-btn-primary,
   .lux-hero-btn-secondary {
     @apply inline-flex min-h-[3.5rem] items-center justify-center rounded-full px-7 md:px-8;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     font-size: 0.92rem;
     font-weight: 500;
     line-height: 1;
@@ -1000,7 +1008,7 @@
     background:
       radial-gradient(circle at 12% 28%, rgba(240, 197, 191, 0.42), transparent 32%),
       radial-gradient(circle at 88% 18%, rgba(213, 228, 207, 0.55), transparent 34%),
-      linear-gradient(108deg, #f7ece8 0%, var(--color-brand-bg) 46%, #e7efe4 100%);
+      linear-gradient(108deg, #eef0d8 0%, var(--color-brand-bg) 46%, #d0d5d2 100%);
   }
 
   .home-hero-blob {
@@ -1369,42 +1377,42 @@
 
   .shop-range-card {
     @apply relative flex flex-col overflow-hidden;
-    --tile-color: var(--color-brand-blush);
+    --tile-color: var(--vd-sorrel);
     min-height: 32.5rem;
     border-radius: 1.6rem;
     padding: 1.05rem 1.05rem 1.3rem;
-    background: color-mix(in srgb, var(--tile-color) 72%, white);
+    background: color-mix(in srgb, var(--tile-color) 82%, var(--vd-cream));
     transition:
       transform 400ms ease,
       box-shadow 400ms ease;
   }
 
   .shop-range-card--mint {
-    --tile-color: var(--color-brand-mint);
+    --tile-color: var(--vd-dapple);
   }
 
   .shop-range-card-icon {
     @apply absolute right-4 top-4 z-20 flex items-center justify-center rounded-full;
     width: 2.05rem;
     height: 2.05rem;
-    background: rgba(255, 255, 255, 0.72);
-    color: var(--color-brand-primary);
+    background: var(--vd-ribbon);
+    color: var(--vd-ribbon-text);
   }
 
   .shop-range-card-visual {
-    @apply relative flex flex-1 items-end justify-center;
+    @apply relative flex flex-1 items-center justify-center;
     min-height: 16.5rem;
   }
 
   .shop-range-card-orb {
     position: absolute;
     left: 50%;
-    top: 42%;
+    top: 50%;
     width: 9.5rem;
     height: 9.5rem;
     border-radius: 50%;
     transform: translate(-50%, -50%);
-    background: color-mix(in srgb, var(--tile-color) 55%, white);
+    background: color-mix(in srgb, var(--tile-color) 48%, var(--vd-cream));
     transition: transform 500ms ease;
   }
 
@@ -1418,12 +1426,13 @@
   }
 
   .shop-range-card-product {
-    @apply relative z-10 h-[16.5rem] w-full;
+    @apply relative z-10 flex h-[16.5rem] w-full items-center justify-center;
   }
 
   .shop-range-card-image {
     object-fit: contain;
-    object-position: bottom center;
+    object-position: center center;
+    padding: 0.85rem 1rem 1.1rem;
     filter: drop-shadow(0 16px 18px rgba(63, 55, 52, 0.16));
     transition: transform 500ms ease;
   }
@@ -1437,7 +1446,7 @@
     font-size: 1.55rem;
     font-weight: 600;
     letter-spacing: -0.02em;
-    color: var(--color-brand-primary);
+    color: var(--vd-green);
   }
 
   .shop-range-card-rule {
@@ -1445,14 +1454,14 @@
     width: 2.4rem;
     height: 1px;
     margin: 0.55rem 0 0.7rem;
-    background: color-mix(in srgb, var(--color-brand-primary) 28%, transparent);
+    background: color-mix(in srgb, var(--vd-green) 28%, transparent);
   }
 
   .shop-range-card-desc {
     font-family: var(--font-body);
     font-size: 0.82rem;
     line-height: 1.55;
-    color: var(--color-text-sub);
+    color: var(--vd-body);
   }
 
   .shop-range-card-cta {
@@ -1461,11 +1470,15 @@
     font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 0.04em;
-    color: var(--color-brand-primary);
-    background: color-mix(in srgb, var(--tile-color) 88%, white);
+    color: var(--vd-ribbon-text);
+    background: var(--vd-ribbon);
     transition:
       background-color 300ms ease,
       transform 300ms ease;
+  }
+
+  .shop-range-card-cta:hover {
+    background: var(--vd-ribbon-deep);
   }
 
   .shop-range-card-cta-arrow {
@@ -1476,7 +1489,7 @@
 
   .shop-range-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 18px 36px rgba(63, 55, 52, 0.08);
+    box-shadow: 0 18px 36px rgba(32, 78, 74, 0.08);
   }
 
   .shop-range-card:hover .shop-range-card-image {
@@ -1689,11 +1702,11 @@
 
   .best-sellers-card {
     min-width: 0;
-    --tile-color: var(--color-brand-blush);
+    --tile-color: var(--vd-sorrel);
   }
 
   .best-sellers-card--mint {
-    --tile-color: var(--color-brand-mint);
+    --tile-color: var(--vd-dapple);
   }
 
   .best-sellers-media {
@@ -1704,7 +1717,7 @@
   .best-sellers-media-clip {
     @apply absolute inset-0 overflow-hidden;
     border-radius: 1.6rem;
-    background: color-mix(in srgb, var(--tile-color) 70%, white);
+    background: color-mix(in srgb, var(--tile-color) 82%, var(--vd-cream));
   }
 
   .best-sellers-media-link {
@@ -1725,8 +1738,8 @@
 
   .best-sellers-image {
     object-fit: contain;
-    object-position: center;
-    padding: 1.6rem;
+    object-position: center center;
+    padding: 1.35rem 1.5rem 1.6rem;
     filter: drop-shadow(0 18px 20px rgba(63, 55, 52, 0.14));
     transition: transform 500ms ease;
   }
@@ -1741,20 +1754,20 @@
 
   .best-sellers-card .product-card-wishlist {
     @apply rounded-full;
-    background: color-mix(in srgb, var(--color-brand-bg) 92%, white);
-    color: var(--color-brand-primary);
+    background: var(--vd-cream);
+    color: var(--vd-green);
     filter: none;
-    box-shadow: 0 4px 12px rgba(63, 55, 52, 0.1);
+    box-shadow: 0 4px 12px rgba(32, 78, 74, 0.1);
   }
 
   .best-sellers-card .product-card-wishlist:hover,
   .best-sellers-card .product-card-wishlist.is-active {
-    background: var(--color-brand-blush);
-    color: var(--color-brand-primary);
+    background: var(--vd-sorrel);
+    color: var(--vd-cream);
   }
 
   .best-sellers-card .product-card-wishlist.is-active {
-    color: #b85c5c;
+    color: var(--vd-cream);
   }
 
   .best-sellers-card .product-quick-add {
@@ -1772,14 +1785,14 @@
     @apply inline-flex h-11 w-11 items-center justify-center rounded-full;
     width: 2.75rem;
     height: 2.75rem;
-    background: #fff;
-    color: var(--color-brand-primary);
-    box-shadow: 0 8px 20px rgba(63, 55, 52, 0.14);
+    background: var(--vd-cream);
+    color: var(--vd-green);
+    box-shadow: 0 8px 20px rgba(32, 78, 74, 0.14);
   }
 
   .best-sellers-card .product-quick-add-btn:hover {
-    background: var(--color-brand-accent);
-    color: var(--color-brand-white);
+    background: var(--vd-ribbon);
+    color: var(--vd-ribbon-text);
   }
 
   @media (hover: hover) {
@@ -1834,13 +1847,13 @@
     font-size: 11.5px;
     font-weight: 600;
     letter-spacing: 0.16em;
-    fill: var(--color-brand-primary);
+    fill: var(--vd-green);
   }
 
   .best-sellers-view-star {
     width: 1.45rem;
     height: 1.45rem;
-    color: var(--color-brand-blush);
+    color: var(--vd-sorrel);
   }
 
   .best-sellers-name {
@@ -1849,7 +1862,7 @@
     font-size: 1.55rem;
     font-weight: 600;
     letter-spacing: -0.02em;
-    color: var(--color-brand-primary);
+    color: var(--vd-green);
   }
 
   .best-sellers-desc {
@@ -1857,15 +1870,15 @@
     font-family: var(--font-body);
     font-size: 0.88rem;
     line-height: 1.6;
-    color: var(--color-text-sub);
+    color: var(--vd-body);
   }
 
   .best-sellers-price {
     @apply mt-3;
-    font-family: var(--font-heading);
+    font-family: var(--font-ui);
     font-size: 1.35rem;
     font-weight: 700;
-    color: var(--color-brand-primary);
+    color: var(--vd-green);
   }
 
   .best-sellers-actions {
@@ -2502,7 +2515,7 @@
   .hero-btn-primary,
   .hero-btn-outline {
     @apply inline-flex items-center justify-center w-full sm:w-[15rem] min-h-[3rem] px-6 py-3.5 text-sm tracking-wide normal-case font-medium whitespace-nowrap transition-all duration-500 border rounded-none cursor-pointer;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .hero-btn-primary {
@@ -2589,7 +2602,7 @@
 
   .collection-hero-title {
     margin-bottom: 2rem;
-    font-family: var(--font-brand);
+    font-family: var(--font-heading);
     font-size: clamp(2.35rem, 5.8vw, 4.25rem);
     font-weight: 400;
     letter-spacing: 0.1em;
@@ -2723,7 +2736,7 @@
 
   .product-breadcrumb {
     @apply mb-8 flex items-center gap-2 overflow-x-auto whitespace-nowrap text-text-muted md:mb-10;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     font-size: clamp(0.58rem, 0.68vw, 0.64rem);
     font-weight: 400;
     letter-spacing: 0.18em;
@@ -2823,7 +2836,7 @@
 
   .product-title {
     @apply text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-heading);
     font-size: clamp(1.35rem, 2.2vw, 1.85rem);
     font-weight: 400;
     letter-spacing: 0.05em;
@@ -2841,7 +2854,7 @@
 
   .product-price {
     @apply pt-1 text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     font-size: clamp(1rem, 1.35vw, 1.15rem);
     font-weight: 500;
     letter-spacing: 0.06em;
@@ -2868,7 +2881,7 @@
 
   .product-option-label {
     @apply block text-text-muted;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     font-size: clamp(0.58rem, 0.68vw, 0.64rem);
     font-weight: 500;
     letter-spacing: 0.22em;
@@ -2877,7 +2890,7 @@
 
   .product-size-guide {
     @apply border-0 bg-transparent p-0 text-brand-primary/70 transition-colors hover:text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     font-size: clamp(0.56rem, 0.66vw, 0.62rem);
     font-weight: 400;
     letter-spacing: 0.16em;
@@ -2906,7 +2919,7 @@
 
   .product-size-btn {
     @apply min-h-[2.5rem] min-w-[2.75rem] border px-3 transition-colors duration-300;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     font-size: clamp(0.62rem, 0.72vw, 0.68rem);
     font-weight: 400;
     letter-spacing: 0.12em;
@@ -2941,7 +2954,7 @@
 
   .product-btn-cart {
     @apply w-full cursor-pointer border border-brand-primary bg-brand-primary py-3.5 text-brand-white uppercase transition-colors duration-300;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     font-size: clamp(0.62rem, 0.72vw, 0.68rem);
     font-weight: 500;
     letter-spacing: 0.28em;
@@ -2953,7 +2966,7 @@
 
   .product-btn-buy {
     @apply w-full cursor-pointer border border-brand-primary bg-transparent py-3.5 text-brand-primary uppercase transition-colors duration-300;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     font-size: clamp(0.62rem, 0.72vw, 0.68rem);
     font-weight: 500;
     letter-spacing: 0.28em;
@@ -2965,7 +2978,7 @@
 
   .product-wishlist-btn {
     @apply flex w-full items-center justify-center gap-2 py-2 text-text-muted uppercase transition-colors hover:text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     font-size: clamp(0.58rem, 0.68vw, 0.64rem);
     font-weight: 400;
     letter-spacing: 0.2em;
@@ -2977,7 +2990,7 @@
 
   .product-trust-item {
     @apply flex items-center gap-2 text-text-muted;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     font-size: clamp(0.56rem, 0.64vw, 0.62rem);
     font-weight: 400;
     letter-spacing: 0.14em;
@@ -3001,7 +3014,7 @@
 
   .product-tab-btn {
     @apply relative pb-3 whitespace-nowrap uppercase transition-colors duration-300;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     font-size: clamp(0.58rem, 0.68vw, 0.64rem);
     font-weight: 500;
     letter-spacing: 0.2em;
@@ -3069,7 +3082,7 @@
 
   .product-section-title {
     @apply mb-8 text-center uppercase text-brand-primary md:mb-10;
-    font-family: var(--font-brand);
+    font-family: var(--font-heading);
     font-size: clamp(1.2rem, 2vw, 1.65rem);
     font-weight: 400;
     letter-spacing: 0.14em;
@@ -3095,7 +3108,7 @@
 
   .product-feature-label {
     @apply mb-3 text-brand-primary/70;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     font-size: clamp(0.58rem, 0.68vw, 0.64rem);
     font-weight: 500;
     letter-spacing: 0.24em;
@@ -3104,7 +3117,7 @@
 
   .product-feature-title {
     @apply mb-4 uppercase text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-heading);
     font-size: clamp(1.45rem, 2.4vw, 2rem);
     font-weight: 400;
     letter-spacing: 0.08em;
@@ -3140,14 +3153,14 @@
 
   .product-accessory-name {
     @apply mb-1 text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-heading);
     font-size: 0.82rem;
     letter-spacing: 0.04em;
   }
 
   .product-accessory-price {
     @apply font-medium text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     font-size: 0.82rem;
   }
 
@@ -3167,7 +3180,7 @@
 
   .product-review-name {
     @apply uppercase text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     font-size: clamp(0.58rem, 0.68vw, 0.64rem);
     font-weight: 500;
     letter-spacing: 0.16em;
@@ -3271,7 +3284,7 @@
 
   .section-intro-eyebrow {
     @apply mb-4 block text-xs font-medium uppercase tracking-[0.32em] text-brand-accent md:text-sm;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .section-intro-title {
@@ -3282,7 +3295,7 @@
 
   .section-intro-description {
     @apply mx-auto w-full max-w-[36rem] text-base leading-relaxed text-text-sub md:text-lg;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .cart-page-intro {
@@ -3338,12 +3351,12 @@
 
   .cart-item-category {
     @apply mb-1 block text-[10px] font-medium uppercase tracking-[0.24em] text-brand-accent;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .cart-item-name {
     @apply mb-2 block text-base font-semibold leading-snug text-brand-primary transition-colors hover:text-brand-accent md:text-lg;
-    font-family: var(--font-brand);
+    font-family: var(--font-heading);
   }
 
   .cart-item-desc {
@@ -3353,7 +3366,7 @@
 
   .cart-item-meta {
     @apply flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-text-sub;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .cart-item-color {
@@ -3378,12 +3391,12 @@
 
   .cart-item-qty-value {
     @apply min-w-[1rem] text-center text-sm font-medium text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .cart-item-price {
     @apply text-lg font-semibold text-brand-primary md:text-xl;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .cart-item-actions {
@@ -3392,7 +3405,7 @@
 
   .cart-item-action {
     @apply text-xs uppercase tracking-[0.16em] text-text-muted transition-colors hover:text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .cart-item-action--wishlist {
@@ -3409,7 +3422,7 @@
 
   .order-summary-title {
     @apply mb-5 text-lg font-semibold text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-heading);
   }
 
   .order-summary-rows {
@@ -3418,7 +3431,7 @@
 
   .order-summary-row {
     @apply flex items-start justify-between gap-4 text-sm text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .order-summary-row--stacked .order-summary-note {
@@ -3432,7 +3445,7 @@
 
   .order-summary-total {
     @apply flex items-center justify-between py-5 text-base font-semibold text-brand-primary md:text-lg;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .order-summary-coupon {
@@ -3446,7 +3459,7 @@
 
   .order-summary-coupon-apply {
     @apply shrink-0 text-xs uppercase tracking-[0.18em] text-brand-accent transition-colors hover:text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .order-summary-checkout {
@@ -3455,7 +3468,7 @@
 
   .order-summary-continue {
     @apply block text-center text-xs uppercase tracking-[0.18em] text-text-muted transition-colors hover:text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .cart-empty {
@@ -3464,12 +3477,12 @@
 
   .cart-empty-title {
     @apply mb-6 w-full text-3xl font-semibold normal-case tracking-tight text-brand-primary md:text-4xl lg:text-[2.75rem] lg:leading-tight;
-    font-family: var(--font-brand);
+    font-family: var(--font-heading);
   }
 
   .cart-empty-description {
     @apply mx-auto w-full max-w-[36rem] text-base leading-relaxed text-text-sub md:text-lg;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .cart-empty-actions {
@@ -3491,7 +3504,7 @@
 
   .recently-viewed-title {
     @apply mb-8 text-center uppercase text-brand-primary md:mb-10;
-    font-family: var(--font-brand);
+    font-family: var(--font-heading);
     font-size: clamp(1.2rem, 2vw, 1.65rem);
     font-weight: 400;
     letter-spacing: 0.14em;
@@ -3525,7 +3538,7 @@
 
   .trust-badge-title {
     @apply mb-2 text-sm font-semibold uppercase tracking-[0.14em] text-brand-accent;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .trust-badge-desc {
@@ -3543,17 +3556,17 @@
 
   .wishlist-eyebrow {
     @apply mb-5 block w-full text-xs font-medium uppercase tracking-[0.32em] text-brand-accent md:text-sm;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .wishlist-title {
     @apply mb-6 w-full text-3xl font-semibold normal-case tracking-tight text-brand-primary md:text-4xl lg:text-[2.75rem] lg:leading-tight;
-    font-family: var(--font-brand);
+    font-family: var(--font-heading);
   }
 
   .wishlist-description {
     @apply mx-auto w-full max-w-[36rem] text-base leading-relaxed text-text-sub md:text-lg;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .wishlist-actions {
@@ -3583,7 +3596,7 @@
 
   .wishlist-complete-section .product-section-title {
     @apply mb-8 text-center uppercase text-brand-primary md:mb-10;
-    font-family: var(--font-brand);
+    font-family: var(--font-heading);
     font-size: clamp(1.2rem, 2vw, 1.65rem);
     font-weight: 400;
     letter-spacing: 0.14em;
@@ -3609,12 +3622,12 @@
 
   .shop-look-row-title {
     @apply mb-2 text-2xl font-semibold normal-case tracking-tight text-brand-primary md:text-3xl;
-    font-family: var(--font-brand);
+    font-family: var(--font-heading);
   }
 
   .shop-look-row-subtitle {
     @apply text-sm text-text-sub md:text-base;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .shop-look-row-grid {
@@ -3689,12 +3702,12 @@
 
   .wishlist-card-category {
     @apply text-[10px] font-medium uppercase tracking-[0.28em] text-brand-accent;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .wishlist-card-name {
     @apply text-sm font-medium leading-snug text-brand-white md:text-[0.92rem];
-    font-family: var(--font-brand);
+    font-family: var(--font-heading);
     letter-spacing: 0.02em;
   }
 
@@ -3704,13 +3717,13 @@
 
   .wishlist-card-price {
     @apply text-sm font-semibold text-brand-white;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     letter-spacing: 0.03em;
   }
 
   .wishlist-card-price-original {
     @apply text-xs font-medium text-white/55 line-through;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .wishlist-card-actions {
@@ -3719,7 +3732,7 @@
 
   .wishlist-card-action-btn {
     @apply inline-flex h-9 w-9 shrink-0 items-center justify-center border border-brand-border bg-brand-white text-brand-primary transition-colors duration-300;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     font-size: 1.35rem;
     font-weight: 300;
     line-height: 1;
@@ -3797,12 +3810,12 @@
 
   .auth-form-eyebrow {
     @apply mb-3 block text-[10px] font-medium uppercase tracking-[0.32em] text-brand-accent md:text-xs;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .auth-form-title {
     @apply mb-3 text-3xl font-semibold tracking-tight text-brand-primary md:text-4xl;
-    font-family: var(--font-brand);
+    font-family: var(--font-heading);
   }
 
   .auth-form-subtitle {
@@ -3850,7 +3863,7 @@
   .auth-link,
   .auth-switch-link {
     @apply text-xs uppercase tracking-[0.16em] text-brand-accent transition-colors hover:text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .auth-btn {
@@ -3872,7 +3885,7 @@
 
   .auth-divider span {
     @apply relative bg-brand-white px-4 text-[10px] uppercase tracking-[0.24em] text-text-muted;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .auth-google-btn {
@@ -3951,7 +3964,7 @@
 
   .info-page-contact-label {
     @apply text-[0.65rem] font-medium uppercase tracking-[0.16em] text-text-muted;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .info-page-contact-value {
@@ -3987,12 +4000,12 @@
 
   .site-header-profile-avatar {
     @apply inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-current/20 bg-brand-white/90 text-xs font-medium text-brand-primary shadow-sm;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .site-header-profile-initial {
     @apply text-xs font-medium text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .site-header-profile-image,
@@ -4002,7 +4015,7 @@
 
   .site-header-profile-name {
     @apply text-[10px] uppercase tracking-[0.16em];
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .site-header-profile-menu {
@@ -4011,7 +4024,7 @@
 
   .site-header-profile-menu-name {
     @apply text-sm font-medium text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .site-header-profile-menu-email {
@@ -4025,12 +4038,12 @@
 
   .site-header-profile-link {
     @apply py-1.5 text-left text-[10px] uppercase tracking-[0.14em] text-brand-primary transition-colors hover:text-brand-accent;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .site-header-profile-signout {
     @apply mt-3 w-full border-t border-brand-border pt-3 text-left text-[10px] uppercase tracking-[0.16em] text-text-muted transition-colors hover:text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .customer-dashboard {
@@ -4047,7 +4060,7 @@
 
   .customer-dashboard-sidebar-label {
     @apply mb-3 text-[10px] uppercase tracking-[0.18em] text-text-muted;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .customer-dashboard-nav {
@@ -4056,7 +4069,7 @@
 
   .customer-dashboard-nav-link {
     @apply whitespace-nowrap px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-text-muted transition-colors hover:text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .customer-dashboard-nav-link--active {
@@ -4074,12 +4087,12 @@
   .customer-dashboard-eyebrow,
   .customer-dashboard-section-eyebrow {
     @apply text-[10px] uppercase tracking-[0.18em] text-text-muted;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .customer-dashboard-title {
     @apply mt-2 text-2xl font-semibold text-brand-primary md:text-[1.85rem];
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .customer-dashboard-lead {
@@ -4109,12 +4122,12 @@
 
   .customer-dashboard-stat-value {
     @apply mt-3 text-2xl font-semibold text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .customer-dashboard-stat-label {
     @apply mt-1 text-[10px] uppercase tracking-[0.14em] text-text-muted;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .customer-dashboard-section {
@@ -4127,12 +4140,12 @@
 
   .customer-dashboard-section-title {
     @apply mt-1 text-xl font-semibold text-brand-primary md:text-2xl;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .customer-dashboard-section-link {
     @apply text-[10px] uppercase tracking-[0.14em] text-brand-primary transition-colors hover:text-brand-accent;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .customer-dashboard-orders {
@@ -4153,7 +4166,7 @@
 
   .customer-order-card-id {
     @apply text-sm font-medium text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .customer-order-card-date {
@@ -4163,7 +4176,7 @@
 
   .customer-order-status {
     @apply inline-flex rounded-full px-2.5 py-1 text-[10px] uppercase tracking-[0.12em];
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .customer-order-status--pending {
@@ -4201,12 +4214,12 @@
 
   .customer-order-card-total {
     @apply text-sm font-medium text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .customer-order-card-link {
     @apply border-0 bg-transparent p-0 text-[10px] uppercase tracking-[0.14em] text-brand-primary transition-colors hover:text-brand-accent;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
     cursor: pointer;
   }
 
@@ -4216,7 +4229,7 @@
 
   .order-item-list-label {
     @apply text-[10px] uppercase tracking-[0.14em] text-text-muted;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .order-item-list {
@@ -4237,7 +4250,7 @@
 
   .order-item-thumb-fallback {
     @apply flex h-full w-full items-center justify-center bg-brand-bg text-sm font-medium uppercase text-text-muted;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .order-item-body {
@@ -4247,7 +4260,7 @@
   .order-item-name,
   .admin-orders-item-name {
     @apply text-sm font-medium leading-snug text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .order-item-meta,
@@ -4259,7 +4272,7 @@
   .order-item-price,
   .admin-orders-item-price {
     @apply shrink-0 pt-0.5 text-sm text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .customer-dashboard-empty,
@@ -4299,7 +4312,7 @@
 
   .customer-settings-avatar-initial {
     @apply text-2xl font-medium text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .customer-settings-avatar-image {
@@ -4308,7 +4321,7 @@
 
   .customer-settings-avatar-overlay {
     @apply absolute inset-0 flex items-center justify-center rounded-full bg-brand-primary/55 px-2 text-center text-[9px] uppercase tracking-[0.12em] text-white opacity-0 transition-opacity duration-300;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .customer-settings-avatar-btn:hover:not(:disabled) .customer-settings-avatar-overlay,
@@ -4331,7 +4344,7 @@
 
   .customer-settings-field dt {
     @apply text-[10px] uppercase tracking-[0.14em] text-text-muted;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .customer-settings-field dd {
@@ -4383,7 +4396,7 @@
 
   .checkout-section-title {
     @apply mb-5 text-xs font-medium uppercase tracking-[0.22em] text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .checkout-fields {
@@ -4409,7 +4422,7 @@
 
   .checkout-label {
     @apply text-[10px] uppercase tracking-[0.18em] text-text-muted;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .checkout-input {
@@ -4423,7 +4436,7 @@
 
   .checkout-payment-option {
     @apply flex cursor-pointer items-center gap-3 border border-brand-border px-4 py-3 text-sm text-brand-primary transition-colors has-[:checked]:border-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .checkout-payment-option input {
@@ -4440,7 +4453,7 @@
 
   .checkout-summary-title {
     @apply mb-5 text-lg font-semibold text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .checkout-summary-items {
@@ -4461,12 +4474,12 @@
 
   .checkout-summary-qty {
     @apply absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center bg-brand-primary px-1 text-[10px] font-medium text-brand-white;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .checkout-summary-name {
     @apply text-sm font-medium leading-snug text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .checkout-summary-meta {
@@ -4476,7 +4489,7 @@
 
   .checkout-summary-price {
     @apply text-sm font-semibold text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .checkout-summary-rows {
@@ -4485,17 +4498,17 @@
 
   .checkout-summary-row {
     @apply flex items-center justify-between gap-4 text-sm text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .checkout-summary-total {
     @apply flex items-center justify-between py-5 text-base font-semibold text-brand-primary md:text-lg;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .checkout-back-link {
     @apply mt-4 block text-center text-xs uppercase tracking-[0.18em] text-text-muted transition-colors hover:text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .checkout-note {
@@ -4517,17 +4530,17 @@
 
   .order-confirmation-eyebrow {
     @apply mb-4 block text-xs font-medium uppercase tracking-[0.32em] text-brand-accent md:text-sm;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .order-confirmation-title {
     @apply mb-4 text-3xl font-semibold normal-case tracking-tight text-brand-primary md:text-4xl;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .order-confirmation-lead {
     @apply text-base leading-relaxed text-text-sub md:text-lg;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .order-confirmation-email {
@@ -4544,12 +4557,12 @@
 
   .order-confirmation-fallback-label {
     @apply mb-2 text-[10px] uppercase tracking-[0.22em] text-text-muted;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .order-confirmation-fallback-id {
     @apply mb-4 text-xl font-semibold text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .order-confirmation-fallback-text {
@@ -4567,12 +4580,12 @@
 
   .order-confirmation-meta-label {
     @apply text-[10px] uppercase tracking-[0.2em] text-text-muted;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .order-confirmation-meta-value {
     @apply text-sm font-medium text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .order-confirmation-items {
@@ -4593,7 +4606,7 @@
 
   .order-confirmation-item-name {
     @apply text-sm font-medium leading-snug text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .order-confirmation-item-meta {
@@ -4603,7 +4616,7 @@
 
   .order-confirmation-item-price {
     @apply text-sm font-semibold text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .order-confirmation-totals {
@@ -4612,7 +4625,7 @@
 
   .order-confirmation-total-row {
     @apply flex items-center justify-between gap-4 text-sm text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .order-confirmation-total-row--final {
@@ -4625,12 +4638,12 @@
 
   .order-confirmation-shipping-title {
     @apply mb-3 text-[10px] font-medium uppercase tracking-[0.22em] text-brand-accent;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .order-confirmation-shipping-name {
     @apply mb-1 text-sm font-semibold text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .order-confirmation-shipping-text {
@@ -4644,7 +4657,7 @@
 
   .order-confirmation-assurance-item {
     @apply flex items-center justify-center gap-2 text-xs uppercase tracking-[0.14em] text-text-muted sm:justify-start;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .order-confirmation-assurance-item svg {
@@ -4693,7 +4706,7 @@
 
   .admin-passcode-digit {
     @apply h-14 w-12 rounded-xl border border-brand-border bg-white text-center text-xl font-semibold tracking-[0.08em] text-brand-primary outline-none transition-colors;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-passcode-digit:focus {
@@ -4760,7 +4773,7 @@
 
   .admin-app-body h1 {
     @apply mb-6 text-[1.75rem] font-semibold tracking-[-0.03em] text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-heading);
     text-transform: none;
   }
 
@@ -4792,7 +4805,7 @@
 
   .admin-header-avatar {
     @apply inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-brand-border bg-brand-white text-sm font-medium text-brand-primary shadow-sm;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-header-profile-menu {
@@ -4801,7 +4814,7 @@
 
   .admin-header-profile-name {
     @apply text-sm font-medium text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-header-profile-email {
@@ -4811,7 +4824,7 @@
 
   .admin-header-signout {
     @apply mt-3 w-full border-t border-brand-border pt-3 text-left text-[10px] uppercase tracking-[0.16em] text-brand-primary transition-colors hover:text-brand-accent;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-shell-main {
@@ -4825,7 +4838,7 @@
 
   .admin-welcome-title {
     @apply text-2xl font-semibold text-brand-primary md:text-[1.75rem];
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-quick-actions {
@@ -4857,7 +4870,7 @@
 
   .admin-quick-action-title {
     @apply text-sm font-semibold text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-quick-action-desc {
@@ -4893,7 +4906,7 @@
 
   .admin-metric-value {
     @apply text-2xl font-semibold text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-metric-value--loading {
@@ -4902,7 +4915,7 @@
 
   .admin-metric-change {
     @apply text-xs font-medium;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-metric-change--up {
@@ -4923,7 +4936,7 @@
 
   .admin-section-title {
     @apply mb-4 text-base font-semibold text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-orders-table-wrap {
@@ -4936,7 +4949,7 @@
 
   .admin-orders-table th {
     @apply border-b border-brand-border pb-3 text-xs font-medium uppercase tracking-[0.12em] text-text-muted;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-orders-table td {
@@ -4950,12 +4963,12 @@
 
   .admin-orders-id {
     @apply font-medium;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-status-pill {
     @apply inline-flex rounded-full px-2.5 py-1 text-xs font-medium;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-status-pill--pending {
@@ -4983,7 +4996,7 @@
 
   .admin-table-action {
     @apply text-sm font-medium text-brand-accent transition-colors hover:text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-secondary-grid {
@@ -5023,12 +5036,12 @@
 
   .admin-secondary-value {
     @apply text-lg font-semibold text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-secondary-change {
     @apply text-xs font-medium;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-secondary-change--up {
@@ -5988,7 +6001,7 @@
 
   .admin-orders-id {
     @apply font-medium;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-orders-modal-head {
@@ -5997,7 +6010,7 @@
 
   .admin-orders-modal-id {
     @apply text-sm font-semibold text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-orders-details {
@@ -6027,13 +6040,13 @@
 
   .admin-orders-totals dd {
     @apply text-sm text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-orders-total-row dt,
   .admin-orders-total-row dd {
     @apply text-sm font-semibold text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-orders-track-shipping {
@@ -6066,7 +6079,7 @@
 
   .admin-orders-track-label {
     @apply text-sm text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-orders-track-step--upcoming .admin-orders-track-label {
@@ -6142,7 +6155,7 @@
 
   .admin-modal-title {
     @apply text-base font-semibold text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-modal-close {
@@ -6167,7 +6180,7 @@
 
   .admin-inventory-modal-name {
     @apply text-sm font-semibold text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-inventory-modal-meta {
@@ -6181,7 +6194,7 @@
 
   .admin-inventory-details dt {
     @apply text-[10px] uppercase tracking-[0.16em] text-text-muted;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-inventory-details dd {
@@ -6212,7 +6225,7 @@
 
   .admin-product-add-variant {
     @apply inline-flex items-center gap-2 border border-brand-border bg-brand-white px-4 py-2 text-[10px] uppercase tracking-[0.18em] text-brand-primary transition-colors hover:border-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-product-add-variant:disabled {
@@ -6246,7 +6259,7 @@
 
   .admin-product-variant-label {
     @apply text-xs font-medium uppercase tracking-[0.18em] text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-product-variant-remove {
@@ -6287,7 +6300,7 @@
 
   .admin-product-size-chip {
     @apply min-h-[2.35rem] min-w-[2.75rem] border border-brand-border bg-brand-white px-3 text-xs text-brand-primary transition-colors;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-product-size-chip--active {
@@ -6322,7 +6335,7 @@
 
   .admin-product-spec-chip-label {
     @apply text-sm font-semibold text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-product-spec-chip-desc {
@@ -6373,7 +6386,7 @@
   .admin-storefront-secondary-btn,
   .admin-storefront-preview-btn {
     @apply inline-flex items-center gap-2 border border-brand-border bg-brand-white px-4 py-2 text-sm text-brand-primary transition-colors hover:border-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-storefront-save-btn {
@@ -6434,7 +6447,7 @@
 
   .admin-storefront-card-title {
     @apply text-sm font-semibold text-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-storefront-card-meta {
@@ -6464,7 +6477,7 @@
 
   .admin-storefront-field-label {
     @apply text-xs font-medium uppercase tracking-[0.12em] text-text-muted;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-storefront-field-hint {
@@ -6491,7 +6504,7 @@
 
   .admin-storefront-upload-btn {
     @apply inline-flex w-fit cursor-pointer items-center border border-brand-border bg-brand-white px-3 py-2 text-xs text-brand-primary transition-colors hover:border-brand-primary;
-    font-family: var(--font-brand);
+    font-family: var(--font-ui);
   }
 
   .admin-storefront-meta-grid {
@@ -6534,7 +6547,7 @@
 
 .zermae-swal-title {
   padding: 0 !important;
-  font-family: var(--font-brand) !important;
+  font-family: var(--font-ui) !important;
   font-size: 1rem !important;
   font-weight: 600 !important;
   color: var(--color-brand-primary) !important;
@@ -6610,7 +6623,7 @@
 .zermae-swal-toast-title {
   margin: 0 !important;
   padding: 0 !important;
-  font-family: var(--font-brand) !important;
+  font-family: var(--font-ui) !important;
   font-size: 0.6875rem !important;
   font-weight: 500 !important;
   letter-spacing: 0.04em;

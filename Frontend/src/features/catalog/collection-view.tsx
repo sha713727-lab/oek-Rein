@@ -100,7 +100,7 @@ export async function CollectionView({
           <CatalogEmptyState
             eyebrow="Collection"
             title="No products in this collection"
-            copy="Formulas for this ritual are not listed yet. Browse the full shop or check new arrivals while we prepare more."
+            copy="Products for this collection are not listed yet. Browse the full shop or check new arrivals while we prepare more."
             primaryHref="/collections/all"
             primaryLabel="Shop All"
             secondaryHref="/collections/new"

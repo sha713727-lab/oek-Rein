@@ -23,18 +23,18 @@ export function customerOrderWhatsAppMessage(order: OrderWhatsAppInput): string 
   return [
     `Assalam o Alaikum ${order.customer},`,
     ``,
-    `Thank you for shopping with Zermae.`,
+    `Thank you for shopping with Saddlera.`,
     `Your order ${order.orderNumber} is confirmed.`,
     ``,
     lines,
     ``,
     `Total: ${money}`,
     `Payment: Cash on delivery`,
-    `Delivery: 3–5 working days`,
+    `Delivery: Ships to North America`,
     ``,
     `Questions? WhatsApp us on ${display} (${e164}).`,
     ``,
-    `— Zermae`,
+    `— Saddlera`,
   ].join("\n");
 }
 

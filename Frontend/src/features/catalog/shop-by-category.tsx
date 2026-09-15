@@ -3,39 +3,40 @@ import type { ComponentType } from "react";
 
 import {
   IconArrowRight,
-  IconDrop,
-  IconDropper,
-  IconFlask,
-  IconFlower,
-  IconHeartLeaf,
-  IconLeafMark,
-  IconRabbit,
-  IconSparkle,
+  IconBridle,
+  IconHalter,
+  IconHorse,
+  IconHorseshoe,
+  IconLeather,
+  IconSaddle,
+  IconShield,
+  IconStitch,
 } from "@/components/icons/icons";
 import {
   SHOP_RANGE_SIGNATURE,
   SHOP_RANGE_SUPPORT,
   SHOP_RANGE_TRUST,
 } from "@/constants/site";
-import { type StorefrontShopCategory, tileStyle } from "@/constants/storefront";
+import { PRODUCT_CARD_COATS, type StorefrontShopCategory, resolveHorseCoatColor, tileStyle } from "@/constants/storefront";
 import { CatalogEmptyState } from "@/features/catalog/catalog-empty-state";
 import { CmsImage } from "@/features/media/cms-image";
 
 type IconProps = { className?: string | undefined };
 
 const CARD_ICONS: Record<string, ComponentType<IconProps>> = {
-  flower: IconFlower,
-  drop: IconDrop,
-  dropper: IconDropper,
-  leaf: IconLeafMark,
-  sparkle: IconSparkle,
+  saddle: IconSaddle,
+  bridle: IconBridle,
+  halter: IconHalter,
+  leather: IconLeather,
+  horseshoe: IconHorseshoe,
+  stitch: IconStitch,
 };
 
-const TRUST_ICONS: Record<(typeof SHOP_RANGE_TRUST)[number]["icon"], ComponentType<IconProps>> = {
-  leaf: IconLeafMark,
-  rabbit: IconRabbit,
-  flask: IconFlask,
-  heart: IconHeartLeaf,
+const TRUST_ICONS: Record<string, ComponentType<IconProps>> = {
+  leather: IconLeather,
+  stitch: IconStitch,
+  shield: IconShield,
+  horse: IconHorse,
 };
 
 function RangeBotanical({ className }: { className: string }) {
@@ -64,12 +65,12 @@ export function ShopByCategory({ categories }: { categories: StorefrontShopCateg
           <p className="shop-range-eyebrow">
             <span className="shop-range-eyebrow-line" />
             <span className="shop-range-eyebrow-copy">
-              Explore <IconSparkle className="shop-range-eyebrow-mark" /> our range
+              Explore <IconHorseshoe className="shop-range-eyebrow-mark" /> our range
             </span>
             <span className="shop-range-eyebrow-line" />
           </p>
           <h2 id="shop-range-title" className="shop-range-title">
-            Shop by Category
+            Made with <span className="section-mark">love</span>, crafted with care!
           </h2>
           <p className="shop-range-support">{SHOP_RANGE_SUPPORT}</p>
         </header>
@@ -83,10 +84,11 @@ export function ShopByCategory({ categories }: { categories: StorefrontShopCateg
           />
         ) : (
           <div className="shop-range-track">
-            {categories.map((category) => {
-              const CardIcon = CARD_ICONS[category.icon] ?? IconSparkle;
+            {categories.map((category, index) => {
+              const CardIcon = CARD_ICONS[category.icon] ?? IconSaddle;
+              const coat = resolveHorseCoatColor(category.color, PRODUCT_CARD_COATS[index % PRODUCT_CARD_COATS.length]!);
               return (
-                <article key={category.id} className="shop-range-card" style={tileStyle(category.color)}>
+                <article key={category.id} className="shop-range-card" style={tileStyle(coat)}>
                   <span className="shop-range-card-icon">
                     <CardIcon />
                   </span>
@@ -121,7 +123,7 @@ export function ShopByCategory({ categories }: { categories: StorefrontShopCateg
         )}
         <ul className="shop-range-trust">
           {SHOP_RANGE_TRUST.map((item) => {
-            const TrustIcon = TRUST_ICONS[item.icon];
+            const TrustIcon = TRUST_ICONS[item.icon] ?? IconHorse;
             return (
               <li key={item.id} className="shop-range-trust-item">
                 <span className="shop-range-trust-icon">
@@ -136,7 +138,7 @@ export function ShopByCategory({ categories }: { categories: StorefrontShopCateg
           })}
         </ul>
         <p className="shop-range-signature">
-          <IconSparkle className="shop-range-signature-mark" />
+          <IconHorseshoe className="shop-range-signature-mark" />
           {SHOP_RANGE_SIGNATURE}
         </p>
       </div>

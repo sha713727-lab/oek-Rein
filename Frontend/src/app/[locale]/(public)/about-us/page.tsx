@@ -34,7 +34,7 @@ export default async function AboutPage() {
               <p>{storefront.content.aboutCopy}</p>
               <div className="info-page-actions">
                 <Link href="/collections/all" className="luxury-button-outline">
-                  Shop The Ritual
+                  Shop The Collection
                 </Link>
                 <Link href="/contact" className="luxury-button-solid">
                   Contact Us

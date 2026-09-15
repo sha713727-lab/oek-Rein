@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { resolveNavImages, visibleNavLinks } from "@/constants/storefront";
+import { SmoothScroll } from "@/features/motion/smooth-scroll";
 import { SiteFooter } from "@/features/navigation/site-footer";
 import { SiteHeader } from "@/features/navigation/site-header";
 import { readCart } from "@/lib/cart-cookie";
@@ -17,6 +18,7 @@ export default async function PublicLayout({ children }: { children: ReactNode }
   ]);
   return (
     <div className="flex min-h-screen flex-col">
+      <SmoothScroll />
       <SiteHeader
         isAuthenticated={Boolean(user)}
         cartCount={cart.items.reduce((sum, item) => sum + item.quantity, 0)}

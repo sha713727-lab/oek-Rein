@@ -1,4 +1,5 @@
 import { BEST_SELLERS } from "@/constants/site";
+import { PRODUCT_CARD_COATS, resolveHorseCoatColor } from "@/constants/storefront";
 import type { SerializedProduct } from "@/types/product";
 
 export type ResolvedBestSeller = {
@@ -23,7 +24,7 @@ export function resolveBestSellers(
     const slot = BEST_SELLERS[index] ?? BEST_SELLERS[0];
     const photo = matched.images[0];
     const intro = matched.description.intro.trim();
-    const fallback = slot?.tone === "mint" ? "#d5e4cf" : "#f0c5bf";
+    const fallback = PRODUCT_CARD_COATS[index % PRODUCT_CARD_COATS.length]!;
     return {
       key: matched.sku || slot?.id || matched.id,
       productId: matched.id,
@@ -33,7 +34,7 @@ export function resolveBestSellers(
       href: `/product/${matched.id}`,
       image: photo?.url ?? slot?.image ?? "",
       alt: photo?.alt || matched.title,
-      color: matched.tileColor || colors[index] || fallback,
+      color: resolveHorseCoatColor(matched.tileColor || colors[index] || fallback, fallback),
       wished: wishlistIds.includes(matched.id),
     };
   }).filter((item) => item.productId.length > 0 && item.image.length > 0);

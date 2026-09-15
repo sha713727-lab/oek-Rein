@@ -6,7 +6,7 @@ export type Locale = (typeof LOCALES)[number];
 
 export const DEFAULT_LOCALE: Locale = "en";
 
-export const SUPPORT_EMAIL = "support@zermae.com";
+export const SUPPORT_EMAIL = "support@example.com";
 /** Display form for customers */
 export const SUPPORT_PHONE = "0311 700 3196";
 /** Local Pakistan mobile (no spaces) */
@@ -71,76 +71,96 @@ export function supportWhatsAppUrlFromPhone(phone?: string | null, prefill?: str
 export const NAV_ITEMS = [
   { id: "navNew", label: "New Arrivals", path: "/collections/new" },
   { id: "navAll", label: "Shop All", path: "/collections/all" },
-  { id: "navSerums", label: "Serums", path: "/collections/serums" },
-  { id: "navCreams", label: "Creams", path: "/collections/creams" },
-  { id: "navCleansers", label: "Cleansers", path: "/collections/cleansers" },
-  { id: "navBody", label: "Body Care", path: "/collections/body" },
+  { id: "navSaddles", label: "Saddles", path: "/collections/saddles" },
+  { id: "navBridles", label: "Bridles", path: "/collections/bridles" },
+  { id: "navReins", label: "Reins", path: "/collections/reins" },
+  { id: "navCare", label: "Leather Care", path: "/collections/care" },
 ] as const;
 
 export const SHOP_RANGE_EYEBROW = "Explore our range";
 export const SHOP_RANGE_TITLE = "Shop by Category";
 export const SHOP_RANGE_SUPPORT =
-  "Discover skincare essentials, crafted with natural ingredients to nourish your skin and elevate your glow.";
-export const SHOP_RANGE_SIGNATURE = "Pure. Natural. Zermae.";
+  "Premium handcrafted Pakistani leather products — saddles, bridles, reins, and more made for North American riders.";
+export const SHOP_RANGE_SIGNATURE = "Crafted in Pakistan. Shipped to North America.";
 
 export const SHOP_RANGE_CATEGORIES = [
   {
-    id: "creams",
-    title: "Creams",
-    description: "Deep hydration and lasting nourishment for soft, healthy skin.",
-    href: "/collections/creams",
-    image: "/assets/images/aminoAcidGelCleanser.png",
-    alt: `${brandName} Lumie night cream`,
+    id: "engraved-saddles",
+    title: "Hand Crafted Leather Engraved Saddles",
+    description: "A master leather craftsman designs our unique and one-of-a-kind leather saddles.",
+    href: "/collections/engraved-saddles",
+    image: "/assets/images/western_floral_saddle.png",
+    alt: `${brandName} hand crafted leather engraved saddle`,
     tone: "blush",
-    icon: "flower",
+    icon: "saddle",
   },
   {
-    id: "cleansers",
-    title: "Cleansers",
-    description: "A gentle daily cleanse that leaves skin calm, fresh and comfortable.",
-    href: "/collections/cleansers",
-    image: "/assets/images/pdrnSerum.png",
-    alt: `${brandName} amino acid gel cleanser`,
+    id: "western-saddles",
+    title: "Western Saddles",
+    description: "Elegant, durable saddles made from the finest quality Pakistani leather.",
+    href: "/collections/western-saddles",
+    image: "/assets/images/premium_saddle.png",
+    alt: `${brandName} western saddle`,
     tone: "mint",
-    icon: "drop",
+    icon: "saddle",
   },
   {
-    id: "serums",
-    title: "Serums",
-    description: "Targeted care in a few considered drops for a clearer, brighter look.",
-    href: "/collections/serums",
-    image: "/assets/images/lumieNightCream.png",
-    alt: `${brandName} vitamin C radiance serum`,
+    id: "crystal-rhinestone",
+    title: "Crystal - Rhinestone",
+    description: "Beautifully designed pieces for everyday rides and the show ring.",
+    href: "/collections/crystal-rhinestone",
+    image: "/assets/images/western_floral_bridle.png",
+    alt: `${brandName} crystal rhinestone bridle`,
     tone: "blush",
-    icon: "dropper",
+    icon: "bridle",
   },
   {
-    id: "body",
-    title: "Body Care",
-    description: "Nourishing textures for skin beyond the face, made for real routines.",
-    href: "/collections/body",
-    image: "/assets/images/cocoVelvetBodyPolish.png",
-    alt: `${brandName} Coco Velvet body polish`,
+    id: "studded-leather",
+    title: "Studded Leather",
+    description: "Premium studded leather made for lasting beauty and classic longevity.",
+    href: "/collections/studded-leather",
+    image: "/assets/images/leather_bridle.png",
+    alt: `${brandName} studded leather bridle`,
+    tone: "blush",
+    icon: "bridle",
+  },
+  {
+    id: "custom-colors",
+    title: "Custom Colors",
+    description: "Choose custom colorways to match your horse, barn, and personal style.",
+    href: "/collections/custom-colors",
+    image: "/assets/images/western_floral_halter.png",
+    alt: `${brandName} custom color leather`,
     tone: "mint",
-    icon: "leaf",
+    icon: "leather",
   },
   {
-    id: "new",
-    title: "New Arrivals",
-    description: "Fresh formulas to begin or refine your Zermae ritual.",
-    href: "/collections/new",
-    image: "/assets/images/clgnCollagenPeelOffMask.png",
-    alt: `${brandName} collagen peel-off mask`,
+    id: "personalized",
+    title: "Personalized Name/Logo",
+    description: "Add your name or logo for one-of-a-kind saddles and tack.",
+    href: "/collections/personalized",
+    image: "/assets/images/saddle_hero.jpg",
+    alt: `${brandName} personalized leather`,
     tone: "blush",
-    icon: "sparkle",
+    icon: "stitch",
+  },
+  {
+    id: "complete-sets",
+    title: "Matching Bridle, Breast Collar, Reins & Saddle Pad — Complete Set",
+    description: "Coordinated matching sets — bridle, breast collar, reins, and saddle pad.",
+    href: "/collections/complete-sets",
+    image: "/assets/images/western_floral_new_arrivals.png",
+    alt: `${brandName} matching complete set`,
+    tone: "blush",
+    icon: "horseshoe",
   },
 ] as const;
 
 export const SHOP_RANGE_TRUST = [
-  { id: "natural", title: "Natural Ingredients", detail: "Botanical & Pure", icon: "leaf" },
-  { id: "cruelty", title: "Cruelty Free", detail: "Kind to Animals", icon: "rabbit" },
-  { id: "tested", title: "Clinically Tested", detail: "Safe & Effective", icon: "flask" },
-  { id: "sustain", title: "Sustainable", detail: "Eco-Conscious", icon: "heart" },
+  { id: "natural", title: "Pakistani Leather", detail: "Premium Full-Grain", icon: "leather" },
+  { id: "cruelty", title: "Handcrafted", detail: "Artisan Made", icon: "stitch" },
+  { id: "tested", title: "Built to Ride", detail: "Trail to Arena", icon: "shield" },
+  { id: "sustain", title: "For North America", detail: "US & Canada Ready", icon: "horse" },
 ] as const;
 
 export const BEST_SELLERS_CTA = "View All Products";
@@ -149,130 +169,190 @@ export const BEST_SELLERS_VIEW = "View Product";
 
 export const BEST_SELLERS = [
   {
-    id: "vitaminC",
-    title: "Vitamin C Radiance Serum",
-    description: "A daily drop to brighten, even tone and keep skin looking fresh.",
-    price: 7800,
-    href: "/collections/serums",
-    image: "/assets/images/lumieNightCream.png",
-    alt: `${brandName} vitamin C radiance serum`,
+    id: "saddle-pro",
+    title: "Western Floral Saddle",
+    description: "Hand-tooled Pakistani chestnut leather with silver conchos — comfort and show-ready presence for North America.",
+    price: 450000,
+    href: "/collections/saddles",
+    image: "/assets/images/western_floral_saddle.png",
+    alt: `${brandName} Western Floral Saddle`,
     tone: "blush",
-    sku: "ZM-VITC-001",
-    category: "serums",
-    keywords: ["vitamin c", "radiance"],
+    sku: "ZM-SAD-001",
+    category: "saddles",
+    keywords: ["saddle", "western", "floral"],
   },
   {
-    id: "pdrn",
-    title: "PDRN Serum",
-    description: "Skin renewal care for a firmer, more rested-looking complexion.",
-    price: 8200,
-    href: "/collections/serums",
-    image: "/assets/images/vitaminCRadianceSerum.png",
-    alt: `${brandName} PDRN serum`,
+    id: "bridle-elite",
+    title: "Western Floral Bridle",
+    description: "Tooled Pakistani leather with silver floral concho and matching coiled reins.",
+    price: 85000,
+    href: "/collections/bridles",
+    image: "/assets/images/western_floral_bridle.png",
+    alt: `${brandName} Western Floral Bridle`,
     tone: "mint",
-    sku: "ZM-PDRN-001",
-    category: "serums",
-    keywords: ["pdrn"],
+    sku: "ZM-BRI-001",
+    category: "bridles",
+    keywords: ["bridle", "western", "floral"],
   },
   {
-    id: "lumie",
-    title: "Lumie Night Cream",
-    description: "Comforting overnight cream that restores softness while you rest.",
-    price: 6200,
-    href: "/collections/creams",
-    image: "/assets/images/aminoAcidGelCleanser.png",
-    alt: `${brandName} Lumie night cream`,
+    id: "hourse-shoe",
+    title: "Hourse Shoe",
+    description: "Precision steel horseshoes with matching nails — stamped and ready for the forge.",
+    price: 12000,
+    href: "/collections/new",
+    image: "/assets/images/hourse_shoe.png",
+    alt: `${brandName} Hourse Shoe`,
     tone: "blush",
-    sku: "ZM-LUMIE-001",
-    category: "creams",
-    keywords: ["lumie", "night cream"],
+    sku: "ZM-SHO-001",
+    category: "new-arrivals",
+    keywords: ["horseshoe", "hourse shoe", "shoe", "nails"],
   },
 ] as const;
 
-export const PRODUCT_HIGHLIGHTS_TITLE = "Zermae Product";
+export const PRODUCT_HIGHLIGHTS_TITLE = "Saddlera Product";
 export const PRODUCT_HIGHLIGHTS_MARK = "Highlights";
-export const PRODUCT_HIGHLIGHTS_IMAGE = "/assets/images/pdrnSerum.png";
-export const PRODUCT_HIGHLIGHTS_ALT = `${brandName} amino acid gel cleanser`;
+export const PRODUCT_HIGHLIGHTS_IMAGE = "/assets/images/western_floral_saddle.png";
+export const PRODUCT_HIGHLIGHTS_ALT = `${brandName} western floral saddle`;
 
 export const PRODUCT_HIGHLIGHTS = [
   {
     id: "hydrating",
     corner: "tl",
-    title: "Hydrating",
-    description: "Keeps skin comfortable and moisturized through the day, for a fresh, dewy-looking finish.",
-    icon: "drop",
+    title: "Pakistani Leather",
+    description: "Full-grain leather finished in Pakistan for strength and a rich hand.",
+    icon: "leather",
   },
   {
     id: "cruelty",
     corner: "tr",
-    title: "Cruelty Free",
-    description: "Formulas made without animal testing, so every ritual stays kind from lab to skin.",
-    icon: "rabbit",
+    title: "Artisan Crafted",
+    description: "Hand-stitched by master saddlers — seams and edges finished with care.",
+    icon: "stitch",
   },
   {
     id: "aging",
     corner: "bl",
-    title: "Anti-Aging",
-    description: "Botanical care for a firmer, more rested-looking complexion as part of a daily routine.",
-    icon: "glow",
+    title: "Balanced Design",
+    description: "Built for rider and horse comfort from cinch to cool-down.",
+    icon: "balance",
   },
   {
     id: "soothing",
     corner: "br",
-    title: "Soothing",
-    description: "A calm, gentle texture that leaves skin feeling soft, balanced and at ease.",
-    icon: "flower",
+    title: "Made for North America",
+    description: "Style and durability for barns, trails, and arenas across the US and Canada.",
+    icon: "horse",
   },
 ] as const;
 
-export const GLOW_STATS_TITLE = "Glow Around the World";
+export const GLOW_STATS_TITLE = "Handcrafted in Pakistan. Trusted in North America.";
 export const GLOW_STATS_COPY =
-  "A growing community choosing considered skincare — honest formulas, calm routines, and a glow that travels.";
-export const GLOW_STATS_CTA = "Shop Now";
+  "Premium leather, meticulous stitching, and tack that arrives ready for real North American rides.";
+export const GLOW_STATS_CTA = "Shop now";
 export const GLOW_STATS_CTA_HREF = "/collections/all";
-export const GLOW_STATS_IMAGE = "/assets/images/lumieNightCream.png";
-export const GLOW_STATS_ALT = `${brandName} vitamin C radiance serum`;
+export const GLOW_STATS_IMAGE = "/assets/images/saddle_hero.jpg";
+export const GLOW_STATS_ALT = `${brandName} premium gear for your horse`;
+
+export const HOME_TESTIMONIALS_BADGE = "Customer reviews";
+export const HOME_TESTIMONIALS_HEADLINE = "Leather that rides as good as it looks";
+export const HOME_TESTIMONIALS_RIBBON = "Crafted in Pakistan. Loved in North America.";
+export const HOME_TESTIMONIALS_RATING = 4.9;
+export const HOME_TESTIMONIALS_COUNT = 152;
+
+export const HOME_TESTIMONIALS = [
+  {
+    id: "sara",
+    name: "Emily Carter",
+    when: "2 months ago",
+    rating: 5,
+    initials: "EC",
+    tone: "#a8c5c1",
+    body: "Ordered from Texas — the Western Floral saddle arrived beautifully packed. The Pakistani leather feels substantial and broke in beautifully.",
+  },
+  {
+    id: "hira",
+    name: "Jordan Blake",
+    when: "3 months ago",
+    rating: 5,
+    initials: "JB",
+    tone: "#859361",
+    body: "Bought the floral bridle for my mare in Ontario. Soft padding, clean stitching, and it looks sharp in the show ring.",
+  },
+  {
+    id: "aisha",
+    name: "Maya Lopez",
+    when: "5 months ago",
+    rating: 5,
+    initials: "ML",
+    tone: "#c8cc2e",
+    body: "Finally found handcrafted Pakistani leather that holds up on California trails. The halter is tough and still elegant.",
+  },
+  {
+    id: "noor",
+    name: "Chris Nguyen",
+    when: "1 month ago",
+    rating: 5,
+    initials: "CN",
+    tone: "#d0d5d2",
+    body: "Shipped to Alberta without drama. Saddle and leather care kit feel premium — real craftsmanship, not mass-market tack.",
+  },
+  {
+    id: "maha",
+    name: "Hannah Brooks",
+    when: "4 months ago",
+    rating: 4,
+    initials: "HB",
+    tone: "#e1e53f",
+    body: "The leather balm revived my older bridle. Love that Saddlera is artisan-made in Pakistan for riders here in the US.",
+  },
+] as const;
 
 export const FEATURES = [
   {
-    title: "Thoughtful Formulas",
-    description: "Serums, creams, cleansers and body care made for daily use",
-    icon: "flask",
+    title: "Pakistani Craft",
+    description: "Hand-stitched tack from master leather artisans",
+    icon: "stitch",
   },
   {
-    title: "Honest Language",
-    description: "Clear, cosmetic-grade descriptions without exaggerated claims",
-    icon: "leaf",
+    title: "Premium Leather",
+    description: "Full-grain leather chosen for strength and feel",
+    icon: "leather",
   },
   {
     title: "Secure Shopping",
-    description: "Safe and protected transactions",
+    description: "Safe checkout for US and Canadian orders",
     icon: "shield",
   },
   {
-    title: "Nationwide Delivery",
-    description: "Swift delivery across Pakistan",
+    title: "Ships to North America",
+    description: "Reliable delivery across the US and Canada",
     icon: "truck",
   },
 ] as const;
 
 export const HOME_FAQ_TITLE_BEFORE = "Your";
 export const HOME_FAQ_TITLE_AFTER = "Questions, Answered";
-export const HOME_FAQ_IMAGE = "/assets/images/vitaminCRadianceSerum.png";
-export const HOME_FAQ_IMAGE_ALT = `${brandName} PDRN serum`;
+export const HOME_FAQ_IMAGE = "/assets/images/saddlera_leather_care.png";
+export const HOME_FAQ_IMAGE_ALT = `${brandName} leather care kit`;
 
 export const HOME_FAQ = [
   {
-    id: "skin-types",
-    question: `Are ${brandName}'s products suitable for all skin types?`,
+    id: "saddle-fit",
+    question: `How do I know the saddle will fit my horse?`,
     answer:
-      "Zermae formulas are made for daily use across common skin needs. Read each product description, start with a patch test if your skin is reactive, and choose the texture that feels right for your routine.",
+      "Saddlera saddles are handcrafted with fit-minded construction for North American riding. We recommend working with a professional saddle fitter for first adjustments on your horse.",
   },
   {
-    id: "ingredients",
-    question: `What makes ${brandName}'s ingredients unique?`,
+    id: "leather-care",
+    question: `How should I care for my Saddlera leather goods?`,
     answer:
-      "We keep formulas considered and the language honest — botanical ingredients described in clear, cosmetic-grade terms, without inflated promises. Every product is meant to feel simple, calm and true to the skin.",
+      "Pakistani leather loves routine care. Use our leather balm every few weeks, store tack dry and cool, and wipe sweat and dirt after each ride.",
+  },
+  {
+    id: "shipping-na",
+    question: "Do you ship to North America?",
+    answer:
+      "Yes. Saddlera is made in Pakistan and ships to riders across the United States and Canada. Tracking details arrive after your order is confirmed.",
   },
   {
     id: "tracking",
@@ -283,9 +363,9 @@ export const HOME_FAQ = [
 ] as const;
 
 export const FOOTER_SOCIAL = [
-  { id: "facebook", label: "Facebook", href: "https://facebook.com/zermae", icon: "facebook" },
-  { id: "instagram", label: "Instagram", href: "https://instagram.com/zermae", icon: "instagram" },
-  { id: "pinterest", label: "Pinterest", href: "https://pinterest.com/zermae", icon: "pinterest" },
+  { id: "facebook", label: "Facebook", href: "https://facebook.com/saddlera", icon: "facebook" },
+  { id: "instagram", label: "Instagram", href: "https://instagram.com/saddlera", icon: "instagram" },
+  { id: "pinterest", label: "Pinterest", href: "https://pinterest.com/saddlera", icon: "pinterest" },
 ] as const;
 
 export const FOOTER_NAV = [
@@ -322,63 +402,130 @@ export const COLLECTION_HEROES: Record<
 > = {
   all: {
     first: "The",
-    second: "Ritual",
-    image: "/assets/images/pdrnSerum.png",
-    alt: `${brandName} amino acid gel cleanser`,
+    second: "Collection",
+    image: "/assets/images/western_floral_saddle.png",
+    alt: `${brandName} western floral saddle`,
     tone: "mint",
   },
   new: {
     first: "New",
     second: "Arrivals",
-    image: "/assets/images/clgnCollagenPeelOffMask.png",
-    alt: `${brandName} Coco Velvet body polish`,
+    image: "/assets/images/western_floral_new_arrivals.png",
+    alt: `${brandName} western floral new arrivals`,
     tone: "olive",
   },
-  serums: {
-    first: "Daily",
-    second: "Serums",
-    image: "/assets/images/lumieNightCream.png",
-    alt: `${brandName} vitamin C radiance serum`,
+  saddles: {
+    first: "Premium",
+    second: "Saddles",
+    image: "/assets/images/western_floral_saddle.png",
+    alt: `${brandName} western floral saddle`,
     tone: "olive",
   },
-  creams: {
-    first: "Comforting",
-    second: "Creams",
-    image: "/assets/images/aminoAcidGelCleanser.png",
-    alt: `${brandName} Lumie night cream`,
+  bridles: {
+    first: "Elegant",
+    second: "Bridles",
+    image: "/assets/images/western_floral_bridle.png",
+    alt: `${brandName} western floral bridle`,
     tone: "olive",
   },
-  cleansers: {
-    first: "Gentle",
-    second: "Cleansers",
-    image: "/assets/images/pdrnSerum.png",
-    alt: `${brandName} amino acid gel cleanser`,
+  halters: {
+    first: "Classic",
+    second: "Reins",
+    image: "/assets/images/western_floral_halter.png",
+    alt: `${brandName} reins and headstalls`,
     tone: "mint",
   },
-  body: {
-    first: "Body",
+  reins: {
+    first: "Classic",
+    second: "Reins",
+    image: "/assets/images/western_floral_halter.png",
+    alt: `${brandName} reins and headstalls`,
+    tone: "mint",
+  },
+  care: {
+    first: "Leather",
     second: "Care",
-    image: "/assets/images/cocoVelvetBodyPolish.png",
-    alt: `${brandName} Buff Me Bright body polish`,
+    image: "/assets/images/saddlera_leather_care.png",
+    alt: `${brandName} leather care kit`,
+    tone: "olive",
+  },
+  "engraved-saddles": {
+    first: "Engraved",
+    second: "Saddles",
+    image: "/assets/images/western_floral_saddle.png",
+    alt: `${brandName} hand crafted leather engraved saddle`,
+    tone: "olive",
+  },
+  "western-saddles": {
+    first: "Western",
+    second: "Saddles",
+    image: "/assets/images/premium_saddle.png",
+    alt: `${brandName} western saddle`,
+    tone: "olive",
+  },
+  "crystal-rhinestone": {
+    first: "Crystal",
+    second: "Rhinestone",
+    image: "/assets/images/western_floral_bridle.png",
+    alt: `${brandName} crystal rhinestone bridle`,
+    tone: "mint",
+  },
+  "studded-leather": {
+    first: "Studded",
+    second: "Leather",
+    image: "/assets/images/leather_bridle.png",
+    alt: `${brandName} studded leather`,
+    tone: "olive",
+  },
+  "custom-colors": {
+    first: "Custom",
+    second: "Colors",
+    image: "/assets/images/western_floral_halter.png",
+    alt: `${brandName} custom color leather`,
+    tone: "mint",
+  },
+  personalized: {
+    first: "Personalized",
+    second: "Leather",
+    image: "/assets/images/saddle_hero.jpg",
+    alt: `${brandName} personalized leather`,
+    tone: "olive",
+  },
+  "complete-sets": {
+    first: "Complete",
+    second: "Sets",
+    image: "/assets/images/western_floral_new_arrivals.png",
+    alt: `${brandName} matching complete set`,
     tone: "olive",
   },
 };
 
-export const RITUAL_FEATURE_TITLE = "Care Made For";
-export const RITUAL_FEATURE_MARK = "Skin";
+export const RITUAL_FEATURE_TITLE = "Gear Made For";
+export const RITUAL_FEATURE_MARK = "Riders";
+
+export type RitualIcon =
+  | "leather"
+  | "horse"
+  | "saddle"
+  | "stitch"
+  | "bridle"
+  | "halter"
+  | "horseshoe"
+  | "balance"
+  | "shield";
 
 export const RITUAL_FEATURE_NOTES = [
   {
     id: "pure",
-    title: "Pure Ingredients",
-    description: "Botanical formulas chosen for daily comfort, described in clear cosmetic-grade language.",
-    icon: "leaf",
+    title: "Pakistani Leather",
+    description: "Premium full-grain leather handcrafted for daily comfort and lasting durability.",
+    icon: "leather",
   },
   {
     id: "simple",
-    title: "Simple Steps",
-    description: "A calm routine you can keep — cleanse, treat and nourish without extra noise.",
-    icon: "drop",
+    title: "North America Ready",
+    description: "Equestrian gear shaped for barns, trails, and arenas across the US and Canada.",
+    icon: "horse",
   },
 ] as const;
 
@@ -387,10 +534,7 @@ export const COLLECTION_RITUALS: Record<
   {
     title: string;
     mark: string;
-    notes: readonly [
-      { title: string; description: string; icon: "leaf" | "drop" },
-      { title: string; description: string; icon: "leaf" | "drop" },
-    ];
+    notes: readonly [{ title: string; description: string; icon: RitualIcon }, { title: string; description: string; icon: RitualIcon }];
   }
 > = {
   all: {
@@ -399,94 +543,167 @@ export const COLLECTION_RITUALS: Record<
     notes: RITUAL_FEATURE_NOTES,
   },
   new: {
-    title: "Fresh Formulas For",
+    title: "Fresh Gear For",
     mark: "Now",
     notes: [
       {
-        title: "New Rituals",
-        description: "Recently added care for skin that wants a considered start, not a crowded shelf.",
-        icon: "leaf",
+        title: "New Additions",
+        description: "Fresh handcrafted pieces for North American barns and trails.",
+        icon: "horseshoe",
       },
       {
         title: "Daily Comfort",
-        description: "Textures made to feel calm in use, from the first cleanse to the last drop.",
-        icon: "drop",
+        description: "Pakistani leather gear made to feel right from the first ride.",
+        icon: "leather",
       },
     ],
   },
-  serums: {
-    title: "Drops Made For",
-    mark: "Glow",
+  saddles: {
+    title: "Saddles Made For",
+    mark: "Balance",
     notes: [
       {
-        title: "Targeted Care",
-        description: "A few considered drops to brighten, even tone and keep skin looking fresh.",
-        icon: "drop",
+        title: "Targeted Comfort",
+        description: "Engineered to keep both horse and rider comfortable all day.",
+        icon: "saddle",
       },
       {
-        title: "Light Texture",
-        description: "Serums that sit comfortably under cream, made for real morning and night routines.",
-        icon: "leaf",
+        title: "Master Craft",
+        description: "Hand-stitched in Pakistan with detail that shows in every ride.",
+        icon: "stitch",
       },
     ],
   },
-  creams: {
-    title: "Comfort For",
-    mark: "Night",
+  bridles: {
+    title: "Bridles For",
+    mark: "Control",
     notes: [
       {
-        title: "Lasting Softness",
-        description: "Nourishing textures that restore comfort while skin rests, without heavy residue.",
-        icon: "leaf",
+        title: "Soft Padding",
+        description: "Nourishing padded leather to ensure comfort for your horse.",
+        icon: "bridle",
       },
       {
-        title: "Calm Finish",
-        description: "Creams chosen to leave skin feeling cared for, balanced and at ease.",
-        icon: "drop",
+        title: "Elegant Finish",
+        description: "Classic styling for a perfect look in the arena.",
+        icon: "leather",
       },
     ],
   },
-  cleansers: {
-    title: "A Gentle",
-    mark: "Cleanse",
+  halters: {
+    title: "Reins Made For",
+    mark: "Feel",
     notes: [
       {
-        title: "Kind To Skin",
-        description: "A daily wash that leaves skin calm, fresh and comfortable — never stripped.",
-        icon: "drop",
+        title: "Secure Hands",
+        description: "Balanced reins that feel soft and confident in hand.",
+        icon: "halter",
       },
       {
-        title: "Clean Start",
-        description: "The first step of the ritual, made to prepare skin for serum and cream.",
-        icon: "leaf",
+        title: "Durable Hardware",
+        description: "Brass and stainless steel fittings built to last.",
+        icon: "shield",
       },
     ],
   },
-  body: {
+  reins: {
+    title: "Reins Made For",
+    mark: "Feel",
+    notes: [
+      {
+        title: "Secure Hands",
+        description: "Balanced reins that feel soft and confident in hand.",
+        icon: "halter",
+      },
+      {
+        title: "Durable Hardware",
+        description: "Brass and stainless steel fittings built to last.",
+        icon: "shield",
+      },
+    ],
+  },
+  care: {
     title: "Care Beyond",
-    mark: "Face",
+    mark: "Riding",
     notes: [
       {
-        title: "Nourishing Body",
-        description: "Textures for skin beyond the face, made for real routines after bath or shower.",
-        icon: "leaf",
+        title: "Nourishing Balm",
+        description: "Keep your leather soft and protected from the elements.",
+        icon: "leather",
       },
       {
-        title: "Soft Glow",
-        description: "Body care that keeps skin comfortable, polished and quietly cared for.",
-        icon: "drop",
+        title: "Soft Brushes",
+        description: "Gently remove dirt without scratching your premium gear.",
+        icon: "stitch",
       },
     ],
   },
+  "engraved-saddles": {
+    title: "Engraved For",
+    mark: "Show",
+    notes: [
+      { title: "Hand Tooling", description: "One-of-a-kind engraved leather shaped by master craftsmen.", icon: "saddle" },
+      { title: "Artisan Detail", description: "Deep floral and geometric tooling that lasts for years.", icon: "stitch" },
+    ],
+  },
+  "western-saddles": {
+    title: "Western Saddles For",
+    mark: "Trails",
+    notes: [
+      { title: "Trail Ready", description: "Balanced western seats built for long rides and real work.", icon: "saddle" },
+      { title: "Premium Leather", description: "Full-grain Pakistani leather with lasting structure.", icon: "leather" },
+    ],
+  },
+  "crystal-rhinestone": {
+    title: "Crystal Pieces For",
+    mark: "Sparkle",
+    notes: [
+      { title: "Show Shine", description: "Rhinestone accents that catch the light in the ring.", icon: "bridle" },
+      { title: "Daily Softness", description: "Still comfortable enough for everyday schooling.", icon: "leather" },
+    ],
+  },
+  "studded-leather": {
+    title: "Studded Leather For",
+    mark: "Presence",
+    notes: [
+      { title: "Bold Hardware", description: "Studded finishes with classic western character.", icon: "bridle" },
+      { title: "Built to Last", description: "Premium leather and fittings for long-term wear.", icon: "shield" },
+    ],
+  },
+  "custom-colors": {
+    title: "Custom Colors For",
+    mark: "You",
+    notes: [
+      { title: "Your Palette", description: "Colorways that match barn colors, brands, and personal style.", icon: "leather" },
+      { title: "Same Craft", description: "Custom color, same Pakistani leather quality.", icon: "stitch" },
+    ],
+  },
+  personalized: {
+    title: "Personalized For",
+    mark: "Identity",
+    notes: [
+      { title: "Name and Logo", description: "Stamp your name or mark into premium leather.", icon: "stitch" },
+      { title: "One of One", description: "Made-to-order details that belong only to you.", icon: "saddle" },
+    ],
+  },
+  "complete-sets": {
+    title: "Complete Sets For",
+    mark: "Match",
+    notes: [
+      { title: "Full Match", description: "Bridle, breast collar, reins, and pad designed to go together.", icon: "horseshoe" },
+      { title: "Ready to Ride", description: "Coordinated leather sets without mixing mismatched pieces.", icon: "leather" },
+    ],
+  },
+
 };
 
 export const AUTH_BANNERS = {
-  login: { src: "/assets/images/pdrnSerum.png", alt: `${brandName} amino acid gel cleanser` },
-  register: { src: "/assets/images/lumieNightCream.png", alt: `${brandName} vitamin C radiance serum` },
-  adminLogin: { src: "/assets/images/vitaminCRadianceSerum.png", alt: `${brandName} PDRN serum` },
+  login: { src: "/assets/images/western_floral_saddle.png", alt: `${brandName} western floral saddle` },
+  register: { src: "/assets/images/western_floral_bridle.png", alt: `${brandName} western floral bridle` },
+  adminLogin: { src: "/assets/images/western_floral_halter.png", alt: `${brandName} western floral halter` },
 } as const;
 
 export const INFO_STILLS = {
-  about: { src: "/assets/images/pdrnSerum.png", alt: `${brandName} amino acid gel cleanser` },
-  contact: { src: "/assets/images/aminoAcidGelCleanser.png", alt: `${brandName} Lumie night cream` },
+  about: { src: "/assets/images/saddle_hero.jpg", alt: `${brandName} saddle hero` },
+  contact: { src: "/assets/images/saddlera_leather_care.png", alt: `${brandName} leather care kit` },
 } as const;

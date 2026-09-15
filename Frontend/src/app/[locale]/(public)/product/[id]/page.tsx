@@ -58,7 +58,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               id: product.id,
               title: product.title,
               sku: product.sku,
-              category: CATEGORY_LABELS[category] ?? "Zermae",
+              category: CATEGORY_LABELS[category] ?? "Saddlera",
               intro: product.description.intro,
               volume: product.specifications.includes,
               price: product.effectivePrice,
@@ -98,7 +98,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               />
             </div>
             <div className="product-feature-copy">
-              <p className="product-feature-label">In The Ritual</p>
+              <p className="product-feature-label">In The Collection</p>
               <h2 className="product-feature-title">
                 {titlePrimary}
                 {titleAccent ? (
@@ -122,7 +122,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         {related.length > 0 ? (
           <section className="product-carousel-section product-carousel-section--last">
             <h2 className="product-section-title">
-              Complete <span className="product-section-title-accent">The Ritual</span>
+              Complete <span className="product-section-title-accent">The Look</span>
             </h2>
             <ProductGrid products={related} wishlistIds={wishlist.ids} currency={storefront.commerce.currency} tileColors={storefront.content.productCardColors} />
           </section>

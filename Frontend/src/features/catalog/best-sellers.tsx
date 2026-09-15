@@ -21,9 +21,14 @@ export function BestSellers({ items, currency = "PKR" }: { items: ResolvedBestSe
       <div className="best-sellers-wash" aria-hidden="true" />
       <div className="best-sellers-blob best-sellers-blob--mint" aria-hidden="true" />
       <div className="best-sellers-inner">
-        <h2 id="best-sellers-title" className="best-sellers-title">
-          Our Best Sellers
-        </h2>
+        <header className="best-sellers-header">
+          <h2 id="best-sellers-title" className="best-sellers-title">
+            <span className="section-mark">Rider favorites</span> for every ride!
+          </h2>
+          <p className="best-sellers-support">
+            Discover the tack our community reaches for again and again — ready for the barn and the arena.
+          </p>
+        </header>
         {empty ? (
           <CatalogEmptyState
             eyebrow="Bestsellers"

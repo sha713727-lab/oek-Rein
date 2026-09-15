@@ -12,6 +12,7 @@ import { toggleWishlistAction } from "@/features/wishlist/actions";
 import { orderService } from "@/lib/api/orders";
 import { productService } from "@/lib/api/products";
 import { readCart } from "@/lib/cart-cookie";
+import { resolvePublicAssetSrc } from "@/lib/public-assets";
 
 export default async function CartPage() {
   const cart = await readCart();
@@ -20,11 +21,16 @@ export default async function CartPage() {
     orderService.getCommerceSettings(),
   ]);
   const map = new Map(products.map((product) => [product.id, product]));
-  const lines = cart.items.map((item) => {
-    const product = map.get(item.productId);
-    const price = Number(product?.effectivePrice ?? product?.price ?? 0);
-    return { ...item, product, lineTotal: price * item.quantity };
-  });
+  const lines = cart.items
+    .map((item) => {
+      const product = map.get(item.productId);
+      if (!product) {
+        return null;
+      }
+      const price = Number(product.effectivePrice ?? product.price ?? 0);
+      return { ...item, product, lineTotal: price * item.quantity };
+    })
+    .filter((line): line is NonNullable<typeof line> => line !== null);
   const subtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
   const totals = calculateOrderTotals(subtotal, commerce);
   const empty = lines.length === 0;
@@ -37,7 +43,7 @@ export default async function CartPage() {
             <span className="section-intro-eyebrow">Shopping Bag</span>
             <h1 className="cart-empty-title">Your Bag Is Empty</h1>
             <p className="cart-empty-description">
-              Discover Zermae serums, creams, cleansers and body care, then add your favorites to begin checkout.
+              Discover handcrafted Pakistani leather saddles, bridles, halters, and care — made for North American riders — then add your favorites to begin checkout.
             </p>
             <div className="cart-empty-actions">
               <Link href="/collections/all" className="luxury-button-solid">
@@ -52,20 +58,20 @@ export default async function CartPage() {
           <>
             <header className="section-intro cart-page-intro">
               <span className="section-intro-eyebrow">Shopping Bag</span>
-              <h1 className="section-intro-title">Your Selected Care</h1>
-              <p className="section-intro-description">Review your ritual before checkout.</p>
+              <h1 className="section-intro-title">Your Selected Tack</h1>
+              <p className="section-intro-description">Review your bag before checkout.</p>
             </header>
             <div className="cart-layout">
               <div className="cart-items-list">
                 {lines.map((line) => {
                   const title = String(line.product?.title ?? "Product");
-                  const image = ((line.product?.images as Array<{ url: string }> | undefined) ?? [])[0]?.url;
+                  const image = line.product?.images?.[0]?.url;
                   const category = String(line.product?.category ?? "all");
                   return (
                     <article key={`${line.productId}-${line.size ?? ""}-${line.color ?? ""}`} className="cart-item-card">
                       <Link href={`/product/${line.productId}`} className="cart-item-media">
                         {image ? (
-                          <Image src={image} alt={title} fill className="cart-item-image" sizes="160px" />
+                          <Image src={resolvePublicAssetSrc(image)} alt={title} fill className="cart-item-image" sizes="160px" />
                         ) : null}
                       </Link>
                       <div className="cart-item-body">

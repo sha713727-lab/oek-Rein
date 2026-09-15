@@ -10,6 +10,7 @@ import { verifyHmac } from "@/server/auth/hmac";
 import { loadApiRoutes, type LoadedRoute, matchRoute } from "@/server/http/load-routes";
 import {
   header,
+  MAX_UPLOAD_JSON_BYTES,
   parseCookies,
   readBody,
   type RequestContext,
@@ -51,7 +52,12 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
   try {
     assertAllowedOrigin(origin, header(req.headers, "referer"), ["POST", "PUT", "PATCH", "DELETE"].includes(req.method ?? ""));
 
-    const rawBody = await readBody(req);
+    /* Hero/storefront videos are posted as base64 JSON and exceed the default 8MB JSON cap. */
+    const uploadBody =
+      apiPath === "/admin/uploads" || apiPath === "/admin/uploads/"
+        ? MAX_UPLOAD_JSON_BYTES
+        : undefined;
+    const rawBody = await readBody(req, uploadBody);
     let body: unknown = {};
     if (rawBody.length > 0) {
       try {

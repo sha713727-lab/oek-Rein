@@ -160,7 +160,7 @@ export function ProductBuyBox({ product, currency = "PKR" }: { product: ProductB
       <div className="product-trust-row">
         <div className="product-trust-item">
           <IconTruck />
-          Delivery across Pakistan
+          Ships to North America
         </div>
         <div className="product-trust-item">
           <IconShield />

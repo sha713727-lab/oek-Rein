@@ -12,7 +12,7 @@ import {
   PRODUCT_STATUS,
   PRODUCT_VOLUME_OPTIONS,
 } from "@/constants/catalog";
-import { DEFAULT_STOREFRONT_THEME } from "@/constants/storefront";
+import { HORSE_COAT } from "@/constants/storefront";
 import { deleteProductAction, saveProductAction } from "@/features/admin/catalog-actions";
 import { ColorField } from "@/features/admin/color-field";
 import { createImageSlot, type ProductImageSlot,ProductImageUploader } from "@/features/admin/product-image-uploader";
@@ -59,8 +59,8 @@ function Field({
 
 export function ProductForm({
   product,
-  blush = DEFAULT_STOREFRONT_THEME.blush,
-  mint = DEFAULT_STOREFRONT_THEME.mint,
+  blush = HORSE_COAT.sorrel,
+  mint = HORSE_COAT.dappleGrey,
 }: {
   product?: SerializedProduct;
   blush?: string;
@@ -221,7 +221,7 @@ export function ProductForm({
                 className="admin-product-soft"
                 name="title"
                 defaultValue={product?.title ?? ""}
-                placeholder="Lumie Night Cream"
+                placeholder="Western Floral Saddle"
                 aria-invalid={Boolean(errors.title)}
                 aria-describedby={errors.title ? "title-error" : undefined}
                 onBlur={(event) => {
@@ -242,7 +242,7 @@ export function ProductForm({
                 name="detail"
                 rows={5}
                 defaultValue={product?.description.detail || product?.description.intro || ""}
-                placeholder="A rich night cream for overnight replenishment."
+                placeholder="Hand-tooled western floral saddle in premium leather for everyday riding."
                 aria-invalid={Boolean(errors.detail)}
                 aria-describedby={errors.detail ? "detail-error" : undefined}
                 onBlur={(event) => {
@@ -315,8 +315,9 @@ export function ProductForm({
               label="Card backdrop"
               defaultValue={product?.tileColor || blush}
               presets={[
-                { label: "Pink", color: blush },
-                { label: "Olive", color: mint },
+                { label: "Sorrel", color: blush },
+                { label: "Dapple Grey", color: mint },
+                { label: "Blue Roan", color: HORSE_COAT.blueRoan },
               ]}
             />
           </section>
