@@ -950,7 +950,8 @@ html.home-motion-ready .home-flow .home-reveal {
     margin-inline: -1.15rem;
     padding-inline: 1.15rem;
     scrollbar-width: none;
-    touch-action: pan-x;
+    /* Both axes: the browser locks to the gesture and lets vertical reach the page. */
+    touch-action: pan-x pan-y;
   }
 
   .shop-range-rail-viewport::-webkit-scrollbar {

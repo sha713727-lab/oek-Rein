@@ -24,6 +24,7 @@ export function BestSellers({ items, currency = "PKR" }: { items: ResolvedBestSe
     origin: 0,
     moved: false,
     axis: null as null | "x" | "y",
+    pointerId: -1,
   });
 
   const maxIndex = Math.max(0, products.length - 1);
@@ -85,9 +86,8 @@ export function BestSellers({ items, currency = "PKR" }: { items: ResolvedBestSe
         origin: index * cardStep(),
         moved: false,
         axis: null,
+        pointerId: event.pointerId,
       };
-      viewport.classList.add("is-dragging");
-      viewport.setPointerCapture(event.pointerId);
       const track = trackRef.current;
       if (track) {
         track.style.transition = "none";
@@ -107,10 +107,12 @@ export function BestSellers({ items, currency = "PKR" }: { items: ResolvedBestSe
         }
         drag.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
         if (drag.axis === "y") {
+          // Vertical intent belongs to the page — never capture it.
           drag.active = false;
-          viewport.classList.remove("is-dragging");
           return;
         }
+        viewport.classList.add("is-dragging");
+        viewport.setPointerCapture(drag.pointerId);
       }
       if (drag.axis !== "x") {
         return;
