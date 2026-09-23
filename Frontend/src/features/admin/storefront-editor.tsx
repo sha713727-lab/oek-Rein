@@ -8,6 +8,7 @@ import { resolveCommerceSettings } from "@/constants/commerce";
 import {
   formatMoney,
   HORSE_COAT,
+  MEGA_MENU_IDS,
   PRODUCT_CARD_COATS,
   PRODUCT_HIGHLIGHTS_FLOAT_SLOTS,
   resolveStorefrontContent,
@@ -19,6 +20,7 @@ import {
 import { IconStorefront } from "@/features/admin/admin-nav-icons";
 import { ColorField } from "@/features/admin/color-field";
 import { ImageUrlField } from "@/features/admin/image-url-field";
+import { MediaUrlField } from "@/features/admin/media-url-field";
 import { updateCommerceSettingsAction } from "@/features/admin/storefront-actions";
 import { UnsavedGuard } from "@/features/admin/unsaved-guard";
 import { VideoUrlField } from "@/features/admin/video-url-field";
@@ -38,6 +40,12 @@ const COLLECTION_LABELS: Record<string, string> = {
   "custom-colors": "Custom colors",
   personalized: "Personalized",
   "complete-sets": "Complete sets",
+};
+
+const MEGA_MENU_LABELS: Record<(typeof MEGA_MENU_IDS)[number], string> = {
+  navShop: "Shop mega-menu",
+  navCustom: "Custom mega-menu",
+  navDisciplines: "Disciplines mega-menu",
 };
 
 const FEATURE_ICONS = ["stitch", "leather", "shield", "truck"] as const;
@@ -303,7 +311,7 @@ export function StorefrontEditor({
                 name="heroVideoSrc"
                 label="Hero video"
                 defaultValue={content.heroVideoSrc}
-                hint="Transparent-background MP4 of the horse and rider. Replace to update the live homepage hero."
+                hint="Transparent-background MP4 or MOV of the horse and rider. Replace to update the live homepage hero."
               />
               <ImageUrlField name="heroProductSrc" label="Hero product" defaultValue={content.heroProductSrc} />
               <div className="admin-storefront-nested">
@@ -360,13 +368,170 @@ export function StorefrontEditor({
                   defaultValue={content.productHighlightsFloats[slot.id] ?? ""}
                 />
               ))}
-              <ImageUrlField name="glowStatsImage" label="Lifestyle banner" defaultValue={content.glowStatsImage} />
+              <ImageUrlField
+                name="glowStatsImage"
+                label="Closing CTA banner"
+                defaultValue={content.glowStatsImage}
+                hint="Background photo for “Handcrafted in Pakistan. Trusted in North America.” at the bottom of the homepage. Publish to update."
+              />
               <ImageUrlField
                 name="faqImage"
                 label="FAQ photo"
                 defaultValue={content.faqImage}
                 hint="Shown beside the FAQ list on the homepage. Remove clears it on the live shop after Publish."
               />
+            </div>
+          </section>
+
+          <section className="admin-product-card" aria-labelledby="storefront-custom-tack-heading">
+            <h2 id="storefront-custom-tack-heading" className="admin-product-card-title">
+              Made for your ride
+            </h2>
+            <p className="admin-product-kicker admin-storefront-lead">
+              Forest custom-tack showcase — headline, copy, saddle image, option rail, and CTA.
+            </p>
+            <div className="admin-product-fields">
+              <SoftInput label="Title" name="customTackTitle" defaultValue={content.customTack.title} />
+              <SoftInput
+                label="Title accent"
+                name="customTackTitleAccent"
+                defaultValue={content.customTack.titleAccent}
+              />
+              <SoftArea label="Lead" name="customTackLead" rows={3} defaultValue={content.customTack.lead} />
+              <ImageUrlField name="customTackImage" label="Saddle image" defaultValue={content.customTack.image} />
+              <SoftInput label="CTA label" name="customTackCtaLabel" defaultValue={content.customTack.ctaLabel} />
+              <SoftInput label="CTA path" name="customTackCtaHref" defaultValue={content.customTack.ctaHref} />
+            </div>
+            <div className="admin-storefront-groups">
+              {content.customTack.options.map((option, index) => (
+                <div key={option.id} className="admin-storefront-group">
+                  <input type="hidden" name={`customTackOptionId_${index}`} value={option.id} />
+                  <p className="admin-product-label">Option {index + 1}</p>
+                  <div className="admin-product-fields">
+                    <SoftInput
+                      label="Title"
+                      name={`customTackOptionTitle_${index}`}
+                      defaultValue={option.title}
+                    />
+                    <SoftArea
+                      label="Description"
+                      name={`customTackOptionDescription_${index}`}
+                      rows={2}
+                      defaultValue={option.description}
+                    />
+                    <SoftInput label="Path" name={`customTackOptionHref_${index}`} defaultValue={option.href} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="admin-product-card" aria-labelledby="storefront-disciplines-heading">
+            <h2 id="storefront-disciplines-heading" className="admin-product-card-title">
+              Crafted for every ride
+            </h2>
+            <p className="admin-product-kicker admin-storefront-lead">
+              Disciplines section headline, cards, and explore CTA.
+            </p>
+            <div className="admin-product-fields">
+              <SoftInput label="Title" name="disciplinesTitle" defaultValue={content.disciplinesSection.title} />
+              <SoftInput
+                label="Title mark"
+                name="disciplinesTitleMark"
+                defaultValue={content.disciplinesSection.titleMark}
+              />
+              <SoftArea
+                label="Support"
+                name="disciplinesSupport"
+                rows={2}
+                defaultValue={content.disciplinesSection.support}
+              />
+              <SoftInput
+                label="CTA label"
+                name="disciplinesCtaLabel"
+                defaultValue={content.disciplinesSection.ctaLabel}
+              />
+              <SoftInput
+                label="CTA path"
+                name="disciplinesCtaHref"
+                defaultValue={content.disciplinesSection.ctaHref}
+              />
+            </div>
+            <div className="admin-storefront-groups">
+              {content.disciplinesSection.items.map((item, index) => (
+                <div key={item.id} className="admin-storefront-group">
+                  <input type="hidden" name={`disciplineItemId_${index}`} value={item.id} />
+                  <p className="admin-product-label">Discipline {index + 1}</p>
+                  <div className="admin-product-fields">
+                    <SoftInput label="Title" name={`disciplineItemTitle_${index}`} defaultValue={item.title} />
+                    <SoftArea
+                      label="Description"
+                      name={`disciplineItemDescription_${index}`}
+                      rows={2}
+                      defaultValue={item.description}
+                    />
+                    <SoftInput label="Path" name={`disciplineItemHref_${index}`} defaultValue={item.href} />
+                    <SoftInput label="Card CTA" name={`disciplineItemCta_${index}`} defaultValue={item.cta} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="admin-product-card" aria-labelledby="storefront-rider-gallery-heading">
+            <h2 id="storefront-rider-gallery-heading" className="admin-product-card-title">
+              Seen in the saddle
+            </h2>
+            <p className="admin-product-kicker admin-storefront-lead">
+              Gallery tiles — photo or video per slot, plus label, path, and tone.
+            </p>
+            <div className="admin-product-fields">
+              <SoftInput label="Title" name="riderGalleryTitle" defaultValue={content.riderGallery.title} />
+              <SoftInput
+                label="Title mark"
+                name="riderGalleryTitleMark"
+                defaultValue={content.riderGallery.titleMark}
+              />
+              <SoftArea label="Lead" name="riderGalleryLead" rows={2} defaultValue={content.riderGallery.lead} />
+              <SoftInput
+                label="CTA label"
+                name="riderGalleryCtaLabel"
+                defaultValue={content.riderGallery.ctaLabel}
+              />
+              <SoftInput label="CTA path" name="riderGalleryCtaHref" defaultValue={content.riderGallery.ctaHref} />
+            </div>
+            <div className="admin-storefront-groups">
+              {content.riderGallery.items.map((item, index) => (
+                <div key={item.id} className="admin-storefront-group">
+                  <input type="hidden" name={`riderGalleryItemId_${index}`} value={item.id} />
+                  <p className="admin-product-label">Tile {index + 1}</p>
+                  <div className="admin-product-fields">
+                    <MediaUrlField
+                      name={`riderGalleryItemSrc_${index}`}
+                      label="Media"
+                      defaultValue={item.src}
+                    />
+                    <SoftInput label="Label" name={`riderGalleryItemLabel_${index}`} defaultValue={item.label} />
+                    <SoftInput label="Alt text" name={`riderGalleryItemAlt_${index}`} defaultValue={item.alt} />
+                    <SoftInput label="Path" name={`riderGalleryItemHref_${index}`} defaultValue={item.href} />
+                    <div className="admin-product-field">
+                      <label className="admin-product-label" htmlFor={`riderGalleryItemTone_${index}`}>
+                        Tone
+                      </label>
+                      <select
+                        id={`riderGalleryItemTone_${index}`}
+                        name={`riderGalleryItemTone_${index}`}
+                        className="admin-product-soft"
+                        defaultValue={item.tone}
+                      >
+                        <option value="warm">Warm</option>
+                        <option value="mint">Mint</option>
+                        <option value="photo">Photo</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
         </div>
@@ -544,6 +709,56 @@ export function StorefrontEditor({
               </div>
             )}
           </section>
+
+          {MEGA_MENU_IDS.map((menuId) => {
+            const mega = content.megaMenus[menuId];
+            return (
+              <section
+                key={menuId}
+                className="admin-product-card"
+                aria-labelledby={`storefront-mega-${menuId}-heading`}
+              >
+                <h2 id={`storefront-mega-${menuId}-heading`} className="admin-product-card-title">
+                  {MEGA_MENU_LABELS[menuId]}
+                </h2>
+                <p className="admin-product-kicker admin-storefront-lead">
+                  Desktop hover panel — headline plus four featured image cards.
+                </p>
+                <div className="admin-product-fields">
+                  <SoftInput
+                    label="Headline"
+                    name={`megaHeadline_${menuId}`}
+                    defaultValue={mega.headline}
+                  />
+                </div>
+                <div className="admin-storefront-groups">
+                  {mega.cards.map((card, index) => (
+                    <div key={card.id} className="admin-storefront-group">
+                      <input type="hidden" name={`megaCardId_${menuId}_${index}`} value={card.id} />
+                      <p className="admin-product-label">Card {index + 1}</p>
+                      <div className="admin-product-fields">
+                        <ImageUrlField
+                          name={`megaCardImage_${menuId}_${index}`}
+                          label="Image"
+                          defaultValue={card.image}
+                        />
+                        <SoftInput
+                          label="Label"
+                          name={`megaCardLabel_${menuId}_${index}`}
+                          defaultValue={card.label}
+                        />
+                        <SoftInput
+                          label="Path"
+                          name={`megaCardHref_${menuId}_${index}`}
+                          defaultValue={card.href}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
         </div>
 
         <section className="admin-product-card" hidden={tab !== "bestsellers"} aria-labelledby="storefront-sellers-heading">

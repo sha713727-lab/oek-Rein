@@ -1,12 +1,9 @@
 .product-highlights {
   position: relative;
-  /* Above neighbors so curve wash can paint into their edges. */
   z-index: 2;
-  padding: calc(var(--curve-depth) + clamp(2rem, 4vw, 3.25rem)) 0
-    calc(var(--curve-depth) + clamp(2.25rem, 4.5vw, 3.5rem));
+  padding: 0;
   overflow: visible;
-  /* Cream lives on .highlight-curve-wash so clip can bulge into neighbors. */
-  background: transparent;
+  background: var(--vd-cream, #f4f1eb);
 }
 
 .product-highlights-vine {
@@ -19,8 +16,8 @@
   margin-left: auto;
   margin-right: auto;
   max-width: 1180px;
-  padding-left: clamp(0.75rem, 3vw, 1.5rem);
-  padding-right: clamp(0.75rem, 3vw, 1.5rem);
+  padding: clamp(2rem, 4vw, 3.25rem) clamp(0.75rem, 3vw, 1.5rem)
+    clamp(2.25rem, 4.5vw, 3.5rem);
 }
 
 .product-highlights-title {

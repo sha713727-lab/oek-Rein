@@ -1,25 +1,172 @@
 "use client";
 
-import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { IconHeart, IconPlus, IconStarBurst } from "@/components/icons/icons";
-import { BEST_SELLERS_CTA, BEST_SELLERS_CTA_HREF, BEST_SELLERS_VIEW } from "@/constants/site";
-import { formatMoney, tileStyle } from "@/constants/storefront";
-import { AddToBagForm } from "@/features/cart/add-to-bag-form";
+import { BEST_SELLERS_CTA, BEST_SELLERS_CTA_HREF } from "@/constants/site";
 import { CatalogEmptyState } from "@/features/catalog/catalog-empty-state";
+import { ProductCard } from "@/features/catalog/product-card";
 import type { ResolvedBestSeller } from "@/features/catalog/resolve-best-sellers";
-import { CmsImage } from "@/features/media/cms-image";
-import { toggleWishlistAction } from "@/features/wishlist/actions";
-import { cn } from "@/lib/cn";
+import { PillCta } from "@/features/motion/pill-cta";
 
-const VIEW_COPY = Array.from({ length: 3 }, () => `${BEST_SELLERS_VIEW.toUpperCase()} •`).join(" ");
+const BEST_SELLERS_LIMIT = 3;
 
+/** M09 — outer peek rail around ProductCard (card internals untouched). */
 export function BestSellers({ items, currency = "PKR" }: { items: ResolvedBestSeller[]; currency?: string }) {
-  const empty = items.length === 0;
+  const products = items.slice(0, BEST_SELLERS_LIMIT);
+  const empty = products.length === 0;
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [index, setIndex] = useState(0);
+  const dragRef = useRef({
+    active: false,
+    startX: 0,
+    startY: 0,
+    origin: 0,
+    moved: false,
+    axis: null as null | "x" | "y",
+  });
+
+  const maxIndex = Math.max(0, products.length - 1);
+
+  const cardStep = useCallback(() => {
+    const track = trackRef.current;
+    const card = track?.querySelector<HTMLElement>(".vd-card-entrance");
+    if (!card || !track) {
+      return 320;
+    }
+    const style = window.getComputedStyle(track);
+    const gap = Number.parseFloat(style.columnGap || style.gap || "24") || 24;
+    return card.getBoundingClientRect().width + gap;
+  }, []);
+
+  const applyTransform = useCallback(
+    (next: number, animate = true) => {
+      const clamped = Math.max(0, Math.min(maxIndex, next));
+      const track = trackRef.current;
+      if (!track) {
+        return clamped;
+      }
+      const x = -clamped * cardStep();
+      track.style.transition = animate ? "transform 400ms ease" : "none";
+      track.style.transform = `translate3d(${x}px, 0, 0)`;
+      return clamped;
+    },
+    [cardStep, maxIndex],
+  );
+
+  const goTo = useCallback(
+    (next: number, animate = true) => {
+      setIndex(applyTransform(next, animate));
+    },
+    [applyTransform],
+  );
+
+  useEffect(() => {
+    applyTransform(index, false);
+    const onResize = () => applyTransform(index, false);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [applyTransform, index, products.length]);
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport || empty) {
+      return;
+    }
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.button !== 0) {
+        return;
+      }
+      dragRef.current = {
+        active: true,
+        startX: event.clientX,
+        startY: event.clientY,
+        origin: index * cardStep(),
+        moved: false,
+        axis: null,
+      };
+      viewport.classList.add("is-dragging");
+      viewport.setPointerCapture(event.pointerId);
+      const track = trackRef.current;
+      if (track) {
+        track.style.transition = "none";
+      }
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      const drag = dragRef.current;
+      if (!drag.active) {
+        return;
+      }
+      const dx = event.clientX - drag.startX;
+      const dy = event.clientY - drag.startY;
+      if (!drag.axis) {
+        if (Math.abs(dx) < 6 && Math.abs(dy) < 6) {
+          return;
+        }
+        drag.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+        if (drag.axis === "y") {
+          drag.active = false;
+          viewport.classList.remove("is-dragging");
+          return;
+        }
+      }
+      if (drag.axis !== "x") {
+        return;
+      }
+      event.preventDefault();
+      drag.moved = Math.abs(dx) > 8;
+      const track = trackRef.current;
+      if (track) {
+        track.style.transform = `translate3d(${-(drag.origin - dx)}px, 0, 0)`;
+      }
+    };
+
+    const onPointerUp = (event: PointerEvent) => {
+      const drag = dragRef.current;
+      if (!drag.active && drag.axis !== "x") {
+        viewport.classList.remove("is-dragging");
+        return;
+      }
+      drag.active = false;
+      viewport.classList.remove("is-dragging");
+      const dx = event.clientX - drag.startX;
+      const threshold = window.matchMedia("(max-width: 767px)").matches ? 40 : 20;
+      let next = index;
+      if (drag.moved && Math.abs(dx) > threshold) {
+        next = dx < 0 ? index + 1 : index - 1;
+      }
+      goTo(next, true);
+
+      if (drag.moved) {
+        const blockClick = (e: Event) => {
+          e.preventDefault();
+          e.stopPropagation();
+          viewport.removeEventListener("click", blockClick, true);
+        };
+        viewport.addEventListener("click", blockClick, true);
+      }
+    };
+
+    viewport.addEventListener("pointerdown", onPointerDown);
+    viewport.addEventListener("pointermove", onPointerMove);
+    viewport.addEventListener("pointerup", onPointerUp);
+    viewport.addEventListener("pointercancel", onPointerUp);
+
+    return () => {
+      viewport.removeEventListener("pointerdown", onPointerDown);
+      viewport.removeEventListener("pointermove", onPointerMove);
+      viewport.removeEventListener("pointerup", onPointerUp);
+      viewport.removeEventListener("pointercancel", onPointerUp);
+    };
+  }, [cardStep, empty, goTo, index]);
+
   return (
     <section className="best-sellers" aria-labelledby="best-sellers-title">
-      <div className="best-sellers-wash" aria-hidden="true" />
-      <div className="best-sellers-blob best-sellers-blob--mint" aria-hidden="true" />
+      <div className="best-sellers-wash vd-parallax-a" aria-hidden="true" />
+      <div className="best-sellers-blob best-sellers-blob--mint vd-parallax-b" aria-hidden="true" />
+      <div className="best-sellers-blob best-sellers-blob--blush vd-parallax-c" aria-hidden="true" />
       <div className="best-sellers-inner">
         <header className="best-sellers-header">
           <h2 id="best-sellers-title" className="best-sellers-title">
@@ -41,65 +188,62 @@ export function BestSellers({ items, currency = "PKR" }: { items: ResolvedBestSe
           />
         ) : (
           <>
-            <div className="best-sellers-grid">
-              {items.map((item) => (
-                <article key={item.key} className="best-sellers-card" style={tileStyle(item.color)}>
-                  <div className="best-sellers-media">
-                    <div className="best-sellers-media-clip">
-                      <Link href={item.href} className="best-sellers-media-link" aria-label={item.title}>
-                        <span className="best-sellers-orb" aria-hidden="true" />
-                        <CmsImage
-                          src={item.image}
-                          alt={item.alt}
-                          fill
-                          sizes="(min-width: 1024px) 28vw, 90vw"
-                          className="best-sellers-image"
-                        />
-                        <span className="best-sellers-view">
-                          <span className="best-sellers-view-ring">
-                            <svg viewBox="0 0 200 200" aria-hidden="true">
-                              <defs>
-                                <path
-                                  id={`bestSellerViewPath-${item.key}`}
-                                  d="M100,100 m-74,0 a74,74 0 1,1 148,0 a74,74 0 1,1 -148,0"
-                                />
-                              </defs>
-                              <text className="best-sellers-view-type">
-                                <textPath href={`#bestSellerViewPath-${item.key}`}>{VIEW_COPY}</textPath>
-                              </text>
-                            </svg>
-                          </span>
-                          <IconStarBurst className="best-sellers-view-star" />
-                        </span>
-                      </Link>
-                      <form action={toggleWishlistAction} className="best-sellers-heart-form">
-                        <input type="hidden" name="productId" value={item.productId} />
-                        <button
-                          type="submit"
-                          className={cn("product-card-wishlist", item.wished && "is-active")}
-                          aria-label={item.wished ? `Remove ${item.title} from wishlist` : `Add ${item.title} to wishlist`}
-                          aria-pressed={item.wished}
-                        >
-                          <IconHeart />
-                        </button>
-                      </form>
+            <div className="best-sellers-rail">
+              <div className="best-sellers-rail-controls">
+                <button
+                  type="button"
+                  className="best-sellers-rail-btn"
+                  aria-label="Previous products"
+                  disabled={index <= 0}
+                  onClick={() => goTo(index - 1)}
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  className="best-sellers-rail-btn"
+                  aria-label="Next products"
+                  disabled={index >= maxIndex}
+                  onClick={() => goTo(index + 1)}
+                >
+                  ›
+                </button>
+              </div>
+              <div
+                ref={viewportRef}
+                className="best-sellers-rail-viewport"
+                data-cursor-drag
+                role="region"
+                aria-roledescription="carousel"
+                aria-label="Best sellers"
+              >
+                <div
+                  ref={trackRef}
+                  className={`best-sellers-rail-track${products.length <= 3 ? " is-centered" : ""}`}
+                >
+                  {products.map((item) => (
+                    <div key={item.key} className="vd-card-entrance">
+                      <ProductCard
+                        wished={item.wished}
+                        currency={currency}
+                        ctaLabel="Shop"
+                        product={{
+                          id: item.productId,
+                          title: item.title,
+                          description: item.description,
+                          price: item.price,
+                          images: item.image ? [item.image] : [],
+                        }}
+                      />
                     </div>
-                    <AddToBagForm productId={item.productId} className="product-quick-add">
-                      <button type="submit" className="product-quick-add-btn" aria-label={`Add ${item.title} to bag`}>
-                        <IconPlus />
-                      </button>
-                    </AddToBagForm>
-                  </div>
-                  <h3 className="best-sellers-name">{item.title}</h3>
-                  <p className="best-sellers-desc">{item.description}</p>
-                  <p className="best-sellers-price">{formatMoney(item.price, currency)}</p>
-                </article>
-              ))}
+                  ))}
+                </div>
+              </div>
             </div>
             <div className="best-sellers-actions">
-              <Link href={BEST_SELLERS_CTA_HREF} className="best-sellers-cta">
+              <PillCta href={BEST_SELLERS_CTA_HREF} className="best-sellers-cta">
                 {BEST_SELLERS_CTA}
-              </Link>
+              </PillCta>
             </div>
           </>
         )}

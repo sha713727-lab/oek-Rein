@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
+import { brandName } from "@/constants/brand";
 import { registerAction } from "@/features/auth/actions";
 import { PasswordField } from "@/features/auth/password-field";
 
@@ -16,7 +17,7 @@ export function RegisterForm() {
   return (
     <div className="auth-form-panel">
       <div className="auth-form-header">
-        <span className="auth-form-eyebrow">Join Saddlera</span>
+        <span className="auth-form-eyebrow">Join {brandName}</span>
         <h2 className="auth-form-title">Create Account</h2>
         <p className="auth-form-subtitle">Save favorites, track orders, and keep your gear list simple</p>
       </div>

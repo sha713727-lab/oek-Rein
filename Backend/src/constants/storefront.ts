@@ -1,4 +1,5 @@
 import {
+  brandName,
   brandStoryEnd,
   brandStoryLead,
   brandStoryMid,
@@ -23,7 +24,6 @@ import {
   HOME_FAQ,
   HOME_FAQ_IMAGE,
   HOME_FAQ_IMAGE_ALT,
-  NAV_ITEMS,
   PRODUCT_HIGHLIGHTS_IMAGE,
   SHOP_RANGE_CATEGORIES,
   SUPPORT_PHONE_LOCAL,
@@ -63,6 +63,75 @@ export type StorefrontNavLink = {
   hidden: boolean;
 };
 
+export const MEGA_MENU_IDS = ["navShop", "navCustom", "navDisciplines"] as const;
+export type MegaMenuId = (typeof MEGA_MENU_IDS)[number];
+
+export type StorefrontMegaCard = {
+  id: string;
+  label: string;
+  href: string;
+  image: string;
+};
+
+export type StorefrontMegaMenu = {
+  headline: string;
+  cards: StorefrontMegaCard[];
+};
+
+export type StorefrontCustomTackOption = {
+  id: string;
+  title: string;
+  description: string;
+  href: string;
+};
+
+export type StorefrontCustomTack = {
+  title: string;
+  titleAccent: string;
+  lead: string;
+  image: string;
+  ctaLabel: string;
+  ctaHref: string;
+  options: StorefrontCustomTackOption[];
+};
+
+export type StorefrontDisciplineItem = {
+  id: string;
+  title: string;
+  description: string;
+  href: string;
+  cta: string;
+};
+
+export type StorefrontDisciplinesSection = {
+  title: string;
+  titleMark: string;
+  support: string;
+  ctaLabel: string;
+  ctaHref: string;
+  items: StorefrontDisciplineItem[];
+};
+
+export type StorefrontRiderGalleryTone = "warm" | "mint" | "photo";
+
+export type StorefrontRiderGalleryItem = {
+  id: string;
+  src: string;
+  alt: string;
+  label: string;
+  href: string;
+  tone: StorefrontRiderGalleryTone;
+};
+
+export type StorefrontRiderGallery = {
+  title: string;
+  titleMark: string;
+  lead: string;
+  ctaLabel: string;
+  ctaHref: string;
+  items: StorefrontRiderGalleryItem[];
+};
+
 export type StorefrontShopCategory = {
   id: string;
   title: string;
@@ -93,7 +162,7 @@ export type StorefrontContent = {
   heroSupport: string;
   heroProductSrc: string;
   heroProductAlt: string;
-  /** Homepage hero cutout video (MP4/WEBM). */
+  /** Homepage hero cutout video (MP4/MOV/WEBM). */
   heroVideoSrc: string;
   brandStoryPrimarySrc: string;
   brandStorySecondarySrc: string;
@@ -131,6 +200,10 @@ export type StorefrontContent = {
   productCardColors: string[];
   navLinks: StorefrontNavLink[];
   shopCategories: StorefrontShopCategory[];
+  megaMenus: Record<MegaMenuId, StorefrontMegaMenu>;
+  customTack: StorefrontCustomTack;
+  disciplinesSection: StorefrontDisciplinesSection;
+  riderGallery: StorefrontRiderGallery;
 };
 
 export const DEFAULT_STOREFRONT_THEME: StorefrontTheme = {
@@ -187,12 +260,17 @@ function resolveCategoryCardColor(value: string, fallback: string): string {
   return resolveHorseCoatColor(value, fallback);
 }
 
-export const DEFAULT_NAV_LINKS: StorefrontNavLink[] = NAV_ITEMS.map((item) => ({
-  id: item.id,
-  label: item.label,
-  path: item.path,
-  hidden: false,
-}));
+/** Aligned with Frontend MAIN_NAV ids so CMS overlays match the live header. */
+export const DEFAULT_NAV_LINKS: StorefrontNavLink[] = [
+  { id: "navShop", label: "Shop", path: "/collections/all", hidden: false },
+  { id: "navCustom", label: "Custom", path: "/custom", hidden: false },
+  { id: "navDisciplines", label: "Disciplines", path: "/disciplines", hidden: false },
+  { id: "navBestSellers", label: "Best Sellers", path: "/best-sellers", hidden: false },
+  { id: "navCraftsmanship", label: "Craftsmanship", path: "/craftsmanship", hidden: false },
+  { id: "navAbout", label: "About", path: "/about-us", hidden: false },
+];
+
+const LEGACY_NAV_IDS = new Set(["navNew", "navAll", "navSaddles", "navBridles", "navReins", "navCare", "navHalters"]);
 
 export const DEFAULT_SHOP_CATEGORIES: StorefrontShopCategory[] = SHOP_RANGE_CATEGORIES.map((item, index) => ({
   id: item.id,
@@ -205,6 +283,241 @@ export const DEFAULT_SHOP_CATEGORIES: StorefrontShopCategory[] = SHOP_RANGE_CATE
   color: categoryCardColor(index),
   hidden: false,
 }));
+
+const MEGA_IMAGE_BY_KEY: Record<string, string> = {
+  ...Object.fromEntries(DEFAULT_SHOP_CATEGORIES.map((item) => [item.id, item.image])),
+  ...Object.fromEntries(Object.entries(COLLECTION_HEROES).map(([key, value]) => [key, value.image])),
+  all: "/assets/images/western_floral_saddle.png",
+  bridles: "/assets/images/western_floral_bridle.png",
+  reins: "/assets/images/western_floral_halter.png",
+  saddles: "/assets/images/western_floral_saddle.png",
+  "tack-accessories": "/assets/images/western_floral_bridle.png",
+};
+
+function megaImageForKey(imageKey: string): string {
+  return MEGA_IMAGE_BY_KEY[imageKey] || "/assets/images/western_floral_saddle.png";
+}
+
+export const DEFAULT_MEGA_MENUS: Record<MegaMenuId, StorefrontMegaMenu> = {
+  navShop: {
+    headline: "Handcrafted tack for every ride",
+    cards: [
+      {
+        id: "mega-shop-saddles",
+        label: "Handcrafted Saddles",
+        href: "/collections/engraved-saddles",
+        image: megaImageForKey("engraved-saddles"),
+      },
+      {
+        id: "mega-shop-tack",
+        label: "Tack & Accessories",
+        href: "/tack",
+        image: megaImageForKey("tack-accessories"),
+      },
+      {
+        id: "mega-shop-sets",
+        label: "Matching Sets",
+        href: "/collections/complete-sets",
+        image: megaImageForKey("complete-sets"),
+      },
+      {
+        id: "mega-shop-all",
+        label: "Shop All",
+        href: "/collections/all",
+        image: megaImageForKey("all"),
+      },
+    ],
+  },
+  navCustom: {
+    headline: "Make it yours — color, engraving, and leather",
+    cards: [
+      {
+        id: "mega-custom-colors",
+        label: "Custom Colors",
+        href: "/custom/colors",
+        image: megaImageForKey("crystal-rhinestone"),
+      },
+      {
+        id: "mega-custom-engraving",
+        label: "Custom Engraving",
+        href: "/custom/engraving",
+        image: megaImageForKey("engraved-saddles"),
+      },
+      {
+        id: "mega-custom-personal",
+        label: "Personalized Name & Logo",
+        href: "/custom/personalization",
+        image: megaImageForKey("studded-leather"),
+      },
+      {
+        id: "mega-custom-sets",
+        label: "Custom Matching Sets",
+        href: "/collections/complete-sets",
+        image: megaImageForKey("complete-sets"),
+      },
+    ],
+  },
+  navDisciplines: {
+    headline: "Built for the way you ride",
+    cards: [
+      {
+        id: "mega-disc-schools",
+        label: "Riding Schools",
+        href: "/disciplines/riding-schools",
+        image: megaImageForKey("western-saddles"),
+      },
+      {
+        id: "mega-disc-polo",
+        label: "Polo",
+        href: "/disciplines/polo",
+        image: megaImageForKey("bridles"),
+      },
+      {
+        id: "mega-disc-tent",
+        label: "Tent Pegging",
+        href: "/disciplines/tent-pegging",
+        image: megaImageForKey("reins"),
+      },
+      {
+        id: "mega-disc-racing",
+        label: "Racing",
+        href: "/disciplines/racing",
+        image: megaImageForKey("saddles"),
+      },
+    ],
+  },
+};
+
+export const DEFAULT_CUSTOM_TACK: StorefrontCustomTack = {
+  title: "Made for your ride.",
+  titleAccent: "Made your way.",
+  lead: "Choose your leather, colors, hardware, personalization and details. Our craftsmen create your tack to match your vision.",
+  image: "/assets/images/premium_saddle.png",
+  ctaLabel: "Start Customizing",
+  ctaHref: "/custom",
+  options: [
+    {
+      id: "colors",
+      title: "Custom Colors",
+      description: "Choose a leather color that reflects your style.",
+      href: "/custom/colors",
+    },
+    {
+      id: "engraving",
+      title: "Custom Engraving",
+      description: "Add personalized leather engraving and detailing.",
+      href: "/custom/engraving",
+    },
+    {
+      id: "name-logo",
+      title: "Name & Logo",
+      description: "Personalize your tack with a name, initials or logo.",
+      href: "/custom/personalization",
+    },
+    {
+      id: "matching",
+      title: "Matching Sets",
+      description: "Create a coordinated bridle, breast collar, reins and saddle pad.",
+      href: "/collections/complete-sets",
+    },
+  ],
+};
+
+export const DEFAULT_DISCIPLINES_SECTION: StorefrontDisciplinesSection = {
+  title: "Crafted for",
+  titleMark: "every ride",
+  support: "Purpose-focused tack for riders, schools and equestrian disciplines.",
+  ctaLabel: "Explore Disciplines",
+  ctaHref: "/disciplines",
+  items: [
+    {
+      id: "riding-schools",
+      title: "Riding Schools",
+      description: "Durable handcrafted tack for training environments and riding programs.",
+      href: "/disciplines/riding-schools",
+      cta: "Shop for Riding Schools",
+    },
+    {
+      id: "polo",
+      title: "Polo",
+      description: "Tack designed around the demands of fast-paced polo riding.",
+      href: "/disciplines/polo",
+      cta: "Shop Polo",
+    },
+    {
+      id: "tent-pegging",
+      title: "Tent Pegging",
+      description: "Specialized tack for traditional tent pegging and competitive riding.",
+      href: "/disciplines/tent-pegging",
+      cta: "Shop Tent Pegging",
+    },
+    {
+      id: "racing",
+      title: "Racing",
+      description: "Purpose-focused equipment for racing environments.",
+      href: "/disciplines/racing",
+      cta: "Shop Racing",
+    },
+  ],
+};
+
+export const DEFAULT_RIDER_GALLERY: StorefrontRiderGallery = {
+  title: "Seen in the",
+  titleMark: "saddle",
+  lead: `Real craftsmanship in the arena and on the trail — explore the pieces that define the ${brandName} look.`,
+  ctaLabel: "Shop the collection",
+  ctaHref: "/collections/all",
+  items: [
+    {
+      id: "saddle",
+      src: "/assets/images/western_floral_saddle.png",
+      alt: `${brandName} western floral saddle`,
+      label: "Western Floral Saddle",
+      href: "/collections/saddles",
+      tone: "warm",
+    },
+    {
+      id: "bridle",
+      src: "/assets/images/western_floral_bridle.png",
+      alt: `${brandName} western floral bridle`,
+      label: "Western Floral Bridle",
+      href: "/collections/bridles",
+      tone: "mint",
+    },
+    {
+      id: "lifestyle",
+      src: "/assets/images/saddle_hero.jpg",
+      alt: `${brandName} saddle in the field`,
+      label: "Built for the ride",
+      href: "/craftsmanship",
+      tone: "photo",
+    },
+    {
+      id: "halter",
+      src: "/assets/images/western_floral_halter.png",
+      alt: `${brandName} western floral halter`,
+      label: "Western Floral Halter",
+      href: "/collections/reins",
+      tone: "mint",
+    },
+    {
+      id: "sets",
+      src: "/assets/images/western_floral_new_arrivals.png",
+      alt: `${brandName} matching tack set`,
+      label: "Matching Sets",
+      href: "/collections/complete-sets",
+      tone: "warm",
+    },
+    {
+      id: "care",
+      src: "/assets/images/saddlera_leather_care.png",
+      alt: `${brandName} leather care`,
+      label: "Leather Care",
+      href: "/collections/all",
+      tone: "warm",
+    },
+  ],
+};
 
 export const DEFAULT_STOREFRONT_CONTENT: StorefrontContent = {
   heroHeadline,
@@ -237,7 +550,7 @@ export const DEFAULT_STOREFRONT_CONTENT: StorefrontContent = {
   socialInstagram: FOOTER_SOCIAL.find((item) => item.id === "instagram")?.href ?? "https://instagram.com/saddlera",
   socialPinterest: FOOTER_SOCIAL.find((item) => item.id === "pinterest")?.href ?? "https://pinterest.com/saddlera",
   aboutCopy:
-    "Saddlera is a premium handcrafted Pakistani leather equestrian brand for North America. From saddles and bridles to halters and leather care, every piece is built for riders who want honest materials, careful stitching, and gear that lasts.",
+    `${brandName} is a premium handcrafted Pakistani leather equestrian brand for North America. From saddles and bridles to halters and leather care, every piece is built for riders who want honest materials, careful stitching, and gear that lasts.`,
   contactLead:
     "Questions about an order, a fit, or shipping to the US or Canada? We are here to help.",
   supportPhone: SUPPORT_PHONE_LOCAL,
@@ -256,6 +569,10 @@ export const DEFAULT_STOREFRONT_CONTENT: StorefrontContent = {
   heroStageColor: DEFAULT_STOREFRONT_THEME.mint,
   productCardColors: [...PRODUCT_CARD_COATS],
   navLinks: DEFAULT_NAV_LINKS,
+  megaMenus: DEFAULT_MEGA_MENUS,
+  customTack: DEFAULT_CUSTOM_TACK,
+  disciplinesSection: DEFAULT_DISCIPLINES_SECTION,
+  riderGallery: DEFAULT_RIDER_GALLERY,
 };
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -278,6 +595,13 @@ function asStoredText(value: unknown, fallback: string): string {
     return fallback;
   }
   return String(value).trim();
+}
+
+function asBrandText(value: unknown, fallback: string): string {
+  return asStoredText(value, fallback)
+    .replace(/zermaé/gi, brandName)
+    .replace(/zermae/gi, brandName)
+    .replace(/saddlera/gi, brandName);
 }
 
 function asAssetSrc(value: unknown, fallback: string): string {
@@ -356,7 +680,113 @@ function asNavLinks(value: unknown): StorefrontNavLink[] {
   if (links.length === 0) {
     return DEFAULT_NAV_LINKS;
   }
+
+  // Legacy collection-style ids never match MAIN_NAV / admin mega — migrate to defaults.
+  const hasModernId = links.some((link) => DEFAULT_NAV_LINKS.some((item) => item.id === link.id));
+  const onlyLegacy = links.every((link) => LEGACY_NAV_IDS.has(link.id));
+  if (!hasModernId || onlyLegacy) {
+    return DEFAULT_NAV_LINKS;
+  }
+
   return links;
+}
+
+function asMegaMenus(value: unknown): Record<MegaMenuId, StorefrontMegaMenu> {
+  const record = asRecord(value);
+  const next = { ...DEFAULT_MEGA_MENUS };
+  for (const id of MEGA_MENU_IDS) {
+    const fallback = DEFAULT_MEGA_MENUS[id];
+    const section = asRecord(record[id]);
+    const incomingCards = Array.isArray(section.cards) ? section.cards.map((item) => asRecord(item)) : [];
+    next[id] = {
+      headline: asStoredText(section.headline, fallback.headline),
+      cards: fallback.cards.map((card, index) => {
+        const raw = incomingCards[index] ?? {};
+        return {
+          id: asStoredText(raw.id, card.id) || card.id,
+          label: asStoredText(raw.label, card.label),
+          href: asPath(raw.href, card.href),
+          image: resolvePublicAssetSrc(asStoredText(raw.image, card.image) || card.image),
+        };
+      }),
+    };
+  }
+  return next;
+}
+
+function asCustomTack(value: unknown): StorefrontCustomTack {
+  const record = asRecord(value);
+  const fallback = DEFAULT_CUSTOM_TACK;
+  const incoming = Array.isArray(record.options) ? record.options.map((item) => asRecord(item)) : [];
+  return {
+    title: asStoredText(record.title, fallback.title),
+    titleAccent: asStoredText(record.titleAccent, fallback.titleAccent),
+    lead: asStoredText(record.lead, fallback.lead),
+    image: resolvePublicAssetSrc(asStoredText(record.image, fallback.image) || fallback.image),
+    ctaLabel: asStoredText(record.ctaLabel, fallback.ctaLabel),
+    ctaHref: asPath(record.ctaHref, fallback.ctaHref),
+    options: fallback.options.map((option, index) => {
+      const raw = incoming[index] ?? {};
+      return {
+        id: asStoredText(raw.id, option.id) || option.id,
+        title: asStoredText(raw.title, option.title),
+        description: asStoredText(raw.description, option.description),
+        href: asPath(raw.href, option.href),
+      };
+    }),
+  };
+}
+
+function asDisciplinesSection(value: unknown): StorefrontDisciplinesSection {
+  const record = asRecord(value);
+  const fallback = DEFAULT_DISCIPLINES_SECTION;
+  const incoming = Array.isArray(record.items) ? record.items.map((item) => asRecord(item)) : [];
+  return {
+    title: asStoredText(record.title, fallback.title),
+    titleMark: asStoredText(record.titleMark, fallback.titleMark),
+    support: asStoredText(record.support, fallback.support),
+    ctaLabel: asStoredText(record.ctaLabel, fallback.ctaLabel),
+    ctaHref: asPath(record.ctaHref, fallback.ctaHref),
+    items: fallback.items.map((item, index) => {
+      const raw = incoming[index] ?? {};
+      return {
+        id: asStoredText(raw.id, item.id) || item.id,
+        title: asStoredText(raw.title, item.title),
+        description: asStoredText(raw.description, item.description),
+        href: asPath(raw.href, item.href),
+        cta: asStoredText(raw.cta, item.cta),
+      };
+    }),
+  };
+}
+
+function asRiderTone(value: unknown, fallback: StorefrontRiderGalleryTone): StorefrontRiderGalleryTone {
+  const text = String(value ?? "").trim();
+  return text === "warm" || text === "mint" || text === "photo" ? text : fallback;
+}
+
+function asRiderGallery(value: unknown): StorefrontRiderGallery {
+  const record = asRecord(value);
+  const fallback = DEFAULT_RIDER_GALLERY;
+  const incoming = Array.isArray(record.items) ? record.items.map((item) => asRecord(item)) : [];
+  return {
+    title: asStoredText(record.title, fallback.title),
+    titleMark: asStoredText(record.titleMark, fallback.titleMark),
+    lead: asStoredText(record.lead, fallback.lead),
+    ctaLabel: asStoredText(record.ctaLabel, fallback.ctaLabel),
+    ctaHref: asPath(record.ctaHref, fallback.ctaHref),
+    items: fallback.items.map((item, index) => {
+      const raw = incoming[index] ?? {};
+      return {
+        id: asStoredText(raw.id, item.id) || item.id,
+        src: resolvePublicAssetSrc(asStoredText(raw.src, item.src) || item.src),
+        alt: asStoredText(raw.alt, item.alt),
+        label: asStoredText(raw.label, item.label),
+        href: asPath(raw.href, item.href),
+        tone: asRiderTone(raw.tone, item.tone),
+      };
+    }),
+  };
 }
 
 function asShopCategories(
@@ -444,8 +874,8 @@ function asFaqItems(value: unknown): StorefrontFaqItem[] {
       seen.add(id);
       return {
         id,
-        question: asStoredText(record.question, fallback[index]?.question ?? ""),
-        answer: asStoredText(record.answer, fallback[index]?.answer ?? ""),
+        question: asBrandText(record.question, fallback[index]?.question ?? ""),
+        answer: asBrandText(record.answer, fallback[index]?.answer ?? ""),
       };
     })
     .filter((item) => item.question && item.answer)
@@ -533,12 +963,12 @@ export function resolveStorefrontContent(raw: unknown): StorefrontContent {
     faqImageAlt: asStoredText(record.faqImageAlt, DEFAULT_STOREFRONT_CONTENT.faqImageAlt),
     faqItems: asFaqItems(record.faqItems),
     features: asFeatures(record.features),
-    footerStatementLead: asStoredText(record.footerStatementLead, DEFAULT_STOREFRONT_CONTENT.footerStatementLead),
-    footerStatementEnd: asStoredText(record.footerStatementEnd, DEFAULT_STOREFRONT_CONTENT.footerStatementEnd),
+    footerStatementLead: asBrandText(record.footerStatementLead, DEFAULT_STOREFRONT_CONTENT.footerStatementLead),
+    footerStatementEnd: asBrandText(record.footerStatementEnd, DEFAULT_STOREFRONT_CONTENT.footerStatementEnd),
     socialFacebook: asStoredText(record.socialFacebook, DEFAULT_STOREFRONT_CONTENT.socialFacebook),
     socialInstagram: asStoredText(record.socialInstagram, DEFAULT_STOREFRONT_CONTENT.socialInstagram),
     socialPinterest: asStoredText(record.socialPinterest, DEFAULT_STOREFRONT_CONTENT.socialPinterest),
-    aboutCopy: asStoredText(record.aboutCopy, DEFAULT_STOREFRONT_CONTENT.aboutCopy),
+    aboutCopy: asBrandText(record.aboutCopy, DEFAULT_STOREFRONT_CONTENT.aboutCopy),
     contactLead: asStoredText(record.contactLead, DEFAULT_STOREFRONT_CONTENT.contactLead),
     supportPhone: asStoredText(record.supportPhone, DEFAULT_STOREFRONT_CONTENT.supportPhone),
     authLoginSrc: asAssetSrc(record.authLoginSrc, DEFAULT_STOREFRONT_CONTENT.authLoginSrc),
@@ -548,6 +978,10 @@ export function resolveStorefrontContent(raw: unknown): StorefrontContent {
     shopCardColors,
     shopCategories,
     navLinks: asNavLinks(record.navLinks),
+    megaMenus: asMegaMenus(record.megaMenus),
+    customTack: asCustomTack(record.customTack),
+    disciplinesSection: asDisciplinesSection(record.disciplinesSection),
+    riderGallery: asRiderGallery(record.riderGallery),
     collectionImages: asImageMap(record.collectionImages, DEFAULT_STOREFRONT_CONTENT.collectionImages),
     collectionTitles: asCollectionTitles(record.collectionTitles),
     bestSellerSkus: skus.length > 0 ? skus : DEFAULT_STOREFRONT_CONTENT.bestSellerSkus,

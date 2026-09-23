@@ -142,14 +142,14 @@
     @apply relative z-[1] block bg-brand-white px-3.5 py-3 text-left;
   }
 
-  .product-card-name {
-    font-family: var(--font-nav);
-    font-size: clamp(0.78rem, 0.9vw, 0.84rem);
-    font-weight: 500;
-    line-height: 1.45;
-    letter-spacing: 0.03em;
-    color: var(--color-brand-primary);
-  }
+.product-card-name {
+  font-family: var(--font-heading);
+  font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--color-brand-primary);
+}
 
   .product-card-pricing {
     @apply mt-2 flex flex-wrap items-center gap-x-2 gap-y-1;
@@ -586,6 +586,14 @@
     gap: clamp(1rem, 1.8vw, 2rem);
   }
 
+  .site-header-nav--start {
+    @apply flex-none justify-start;
+  }
+
+  .site-header-shell--voldog .site-header-nav {
+    flex: none;
+  }
+
   .site-header-link {
     @apply relative py-2 uppercase transition-colors duration-300;
     font-family: var(--font-nav);
@@ -604,16 +612,21 @@
     color: var(--color-brand-primary);
   }
 
-  .site-header-link.site-header-light:hover,
+  /* Header hover underlines / lifts owned by [data-saddlera-header] in home-design.css */
   .site-header-icons.site-header-light .site-header-icon-btn:hover,
   .site-header-mobile-toggle.site-header-light:hover {
     color: rgba(255, 255, 255, 0.72);
   }
 
-  .site-header-link.site-header-dark:hover,
   .site-header-icons.site-header-dark .site-header-icon-btn:hover,
   .site-header-mobile-toggle.site-header-dark:hover {
     color: color-mix(in srgb, var(--color-brand-accent) 78%, var(--color-brand-primary));
+  }
+
+  [data-saddlera-header] .site-header-link.site-header-light,
+  [data-saddlera-header] .site-header-link.site-header-dark {
+    /* Keep text color stable; accent via underline token only */
+    transition: none;
   }
 
   .site-header-icons {
@@ -1370,138 +1383,197 @@
   }
 
   .shop-range-track {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(14.5rem, 1fr));
-    gap: 1.15rem;
+    --shop-range-gap: 1rem;
+    --shop-range-cols: 1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: stretch;
+    gap: var(--shop-range-gap);
   }
 
+  /* VOLDOG category cards — soft gray surface, hover glow + Shop Now pill CTA */
   .shop-range-card {
-    @apply relative flex flex-col overflow-hidden;
-    --tile-color: var(--vd-sorrel);
-    min-height: 32.5rem;
-    border-radius: 1.6rem;
-    padding: 1.05rem 1.05rem 1.3rem;
-    background: color-mix(in srgb, var(--tile-color) 82%, var(--vd-cream));
-    transition:
-      transform 400ms ease,
-      box-shadow 400ms ease;
+    --shop-card-ease: cubic-bezier(0.2, 0.75, 0.5, 1);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 calc((100% - (var(--shop-range-cols) - 1) * var(--shop-range-gap)) / var(--shop-range-cols));
+    min-width: 0;
+    min-height: clamp(26rem, 58vw, 34rem);
+    padding: clamp(1.35rem, 2.2vw, 2rem) clamp(1.25rem, 2vw, 1.75rem) clamp(1.25rem, 2vw, 1.65rem);
+    border-radius: clamp(1.75rem, 2.5vw, 2.5rem);
+    background: var(--home-soft, #f2f3f4);
+    overflow: hidden;
   }
 
-  .shop-range-card--mint {
-    --tile-color: var(--vd-dapple);
-  }
-
-  .shop-range-card-icon {
-    @apply absolute right-4 top-4 z-20 flex items-center justify-center rounded-full;
-    width: 2.05rem;
-    height: 2.05rem;
-    background: var(--vd-ribbon);
-    color: var(--vd-ribbon-text);
-  }
-
-  .shop-range-card-visual {
-    @apply relative flex flex-1 items-center justify-center;
-    min-height: 16.5rem;
-  }
-
-  .shop-range-card-orb {
+  .shop-range-card-hit {
     position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 9.5rem;
-    height: 9.5rem;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    background: color-mix(in srgb, var(--tile-color) 48%, var(--vd-cream));
-    transition: transform 500ms ease;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
   }
 
-  .shop-range-card-vine {
-    position: absolute;
-    right: 6%;
-    top: 10%;
-    width: 6.5rem;
-    color: rgba(255, 255, 255, 0.7);
+  .shop-range-card-media {
+    position: relative;
+    z-index: 0;
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 14rem;
+    overflow: hidden;
     pointer-events: none;
   }
 
+  .shop-range-card-glow {
+    position: absolute;
+    left: 50%;
+    top: 48%;
+    z-index: 0;
+    width: min(72%, 15rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--home-accent, #e1e53f) 78%, white) 0%,
+      color-mix(in srgb, var(--home-accent, #e1e53f) 32%, transparent) 55%,
+      transparent 72%
+    );
+    transform: translate(-50%, -50%) scale(0.72);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 400ms var(--shop-card-ease),
+      transform 400ms var(--shop-card-ease);
+  }
+
   .shop-range-card-product {
-    @apply relative z-10 flex h-[16.5rem] w-full items-center justify-center;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: min(18rem, 46vw);
+    max-height: 20rem;
   }
 
   .shop-range-card-image {
     object-fit: contain;
     object-position: center center;
-    padding: 0.85rem 1rem 1.1rem;
-    filter: drop-shadow(0 16px 18px rgba(63, 55, 52, 0.16));
-    transition: transform 500ms ease;
+    padding: 0.5rem 0.75rem;
+    filter: drop-shadow(0 18px 22px rgba(32, 78, 74, 0.14));
+    transition: transform 400ms var(--shop-card-ease);
+    transform-origin: center center;
   }
 
-  .shop-range-card-copy {
-    @apply relative z-10 mt-4 flex flex-col items-start;
-  }
-
-  .shop-range-card-title {
-    font-family: var(--font-heading);
-    font-size: 1.55rem;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    color: var(--vd-green);
-  }
-
-  .shop-range-card-rule {
-    display: block;
-    width: 2.4rem;
-    height: 1px;
-    margin: 0.55rem 0 0.7rem;
-    background: color-mix(in srgb, var(--vd-green) 28%, transparent);
-  }
-
-  .shop-range-card-desc {
+  .shop-range-card-empty {
+    display: grid;
+    place-items: center;
+    height: 100%;
     font-family: var(--font-body);
-    font-size: 0.82rem;
-    line-height: 1.55;
+    font-size: 0.85rem;
     color: var(--vd-body);
   }
 
-  .shop-range-card-cta {
-    @apply mt-4 inline-flex items-center gap-1.5 rounded-full px-4 py-2;
-    font-family: var(--font-nav);
-    font-size: 0.72rem;
+  .shop-range-card-copy {
+    position: relative;
+    z-index: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+    margin-top: auto;
+    padding-top: 1rem;
+    pointer-events: none;
+  }
+
+  .shop-range-card-title {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: clamp(1.35rem, 2.2vw, 1.7rem);
     font-weight: 600;
-    letter-spacing: 0.04em;
-    color: var(--vd-ribbon-text);
-    background: var(--vd-ribbon);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    overflow-wrap: break-word;
+    color: var(--vd-green);
+  }
+
+  .shop-range-card-meta {
+    display: -webkit-box;
+    margin: 0;
+    max-width: 100%;
+    overflow: hidden;
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    font-weight: 400;
+    line-height: 1.45;
+    color: var(--vd-body);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  /* Same Shop Now pill (vd-pill-cta) — full-width in card, revealed on hover */
+  .shop-range-card .shop-range-card-cta.vd-pill-cta {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    width: 100%;
+    min-height: 3.35rem;
+    margin-top: 1rem;
+    justify-content: space-between;
+    padding: 0.55rem 0.55rem 0.55rem 1.25rem;
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
     transition:
-      background-color 300ms ease,
-      transform 300ms ease;
+      opacity 400ms var(--shop-card-ease),
+      transform 400ms var(--shop-card-ease),
+      color var(--motion-ui) var(--motion-out),
+      box-shadow var(--motion-ui) var(--motion-out);
   }
 
-  .shop-range-card-cta:hover {
-    background: var(--vd-ribbon-deep);
+  .shop-range-card .shop-range-card-cta.vd-pill-cta:hover,
+  .shop-range-card .shop-range-card-cta.vd-pill-cta:focus-visible {
+    transform: translateY(-1px);
   }
 
-  .shop-range-card-cta-arrow {
-    width: 0.85rem;
-    height: 0.85rem;
-    transition: transform 300ms ease;
+  @media (hover: hover) and (pointer: fine) {
+    .shop-range-card:hover .shop-range-card-glow,
+    .shop-range-card:focus-within .shop-range-card-glow {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .shop-range-card:hover .shop-range-card-image,
+    .shop-range-card:focus-within .shop-range-card-image {
+      transform: scale(1.05);
+    }
+
+    .shop-range-card:hover .shop-range-card-cta.vd-pill-cta,
+    .shop-range-card:focus-within .shop-range-card-cta.vd-pill-cta {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .shop-range-card:hover .shop-range-card-cta.vd-pill-cta:hover,
+    .shop-range-card:focus-within .shop-range-card-cta.vd-pill-cta:hover,
+    .shop-range-card .shop-range-card-cta.vd-pill-cta:focus-visible {
+      transform: translateY(-1px);
+    }
   }
 
-  .shop-range-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 18px 36px rgba(32, 78, 74, 0.08);
-  }
+  @media (pointer: coarse) {
+    .shop-range-card-glow {
+      opacity: 0.55;
+      transform: translate(-50%, -50%) scale(0.92);
+    }
 
-  .shop-range-card:hover .shop-range-card-image {
-    transform: translateY(-6px);
-  }
-
-  .shop-range-card:hover .shop-range-card-orb {
-    transform: translate(-50%, -50%) scale(1.06);
-  }
-
-  .shop-range-card:hover .shop-range-card-cta-arrow {
-    transform: translateX(4px);
+    .shop-range-card .shop-range-card-cta.vd-pill-cta {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
   }
 
   .shop-range-trust {
@@ -1598,25 +1670,97 @@
     color: var(--color-brand-primary);
   }
 
-  @media (max-width: 1199px) {
+  @media (min-width: 640px) {
     .shop-range-track {
-      display: flex;
-      gap: 1rem;
-      overflow-x: auto;
-      padding-bottom: 0.75rem;
-      scroll-snap-type: x mandatory;
-      scrollbar-width: none;
+      --shop-range-cols: 2;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .shop-range-track {
+      --shop-range-gap: 1.15rem;
+      --shop-range-cols: 3;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .shop-range-track {
+      --shop-range-cols: 4;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .shop-range {
+      padding: 3.75rem 0 3.25rem;
+      margin-top: -0.75rem;
     }
 
-    .shop-range-track::-webkit-scrollbar {
-      display: none;
+    .shop-range-inner {
+      padding-inline: 1.15rem;
+    }
+
+    .shop-range-header {
+      margin-bottom: 1.75rem;
+    }
+
+    .shop-range-blob--mint,
+    .shop-range-blob--blush,
+    .shop-range-vine {
+      opacity: 0.55;
     }
 
     .shop-range-card {
-      flex: 0 0 min(18.75rem, 78vw);
-      scroll-snap-align: start;
+      min-height: 0;
+      padding: 1.15rem 1.1rem 1.2rem;
+      border-radius: 1.5rem;
     }
 
+    .shop-range-card-media {
+      min-height: 11.5rem;
+    }
+
+    .shop-range-card-product {
+      height: min(14rem, 58vw);
+      max-height: 15rem;
+    }
+
+    .shop-range-card-title {
+      font-size: 1.3rem;
+    }
+
+    .shop-range-card .shop-range-card-cta.vd-pill-cta {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+      min-height: 3.1rem;
+      margin-top: 0.85rem;
+    }
+
+    .shop-range-card-glow {
+      opacity: 0.45;
+      transform: translate(-50%, -50%) scale(0.9);
+    }
+
+    .shop-range-trust {
+      grid-template-columns: 1fr;
+      gap: 0.85rem;
+      margin-top: 2rem;
+      padding: 1rem;
+    }
+
+    .shop-range-trust-item {
+      justify-content: flex-start;
+      padding: 0.25rem 0.35rem;
+    }
+  }
+
+  @media (max-width: 639px) {
+    .shop-range-card-product {
+      height: min(13.5rem, 62vw);
+    }
+  }
+
+  @media (max-width: 1199px) {
     .shop-range-trust {
       border-radius: 1.35rem;
       padding: 1.15rem 0.75rem;
@@ -1624,18 +1768,30 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .shop-range-card,
     .shop-range-card-image,
-    .shop-range-card-orb,
-    .shop-range-card-cta-arrow {
+    .shop-range-card-glow,
+    .shop-range-card .shop-range-card-cta.vd-pill-cta {
       transition: none;
     }
 
-    .shop-range-card:hover,
     .shop-range-card:hover .shop-range-card-image,
-    .shop-range-card:hover .shop-range-card-orb,
-    .shop-range-card:hover .shop-range-card-cta-arrow {
+    .shop-range-card:focus-within .shop-range-card-image {
       transform: none;
+    }
+
+    .shop-range-card-glow,
+    .shop-range-card:hover .shop-range-card-glow,
+    .shop-range-card:focus-within .shop-range-card-glow {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .shop-range-card .shop-range-card-cta.vd-pill-cta,
+    .shop-range-card:hover .shop-range-card-cta.vd-pill-cta,
+    .shop-range-card:focus-within .shop-range-card-cta.vd-pill-cta {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
     }
   }
 
@@ -1672,6 +1828,15 @@
     background: color-mix(in srgb, var(--color-brand-mint) 52%, transparent);
   }
 
+  .best-sellers-blob--blush {
+    left: -8%;
+    top: 12%;
+    width: min(22rem, 38vw);
+    height: min(18rem, 30vw);
+    border-radius: 48% 52% 42% 58%;
+    background: color-mix(in srgb, var(--color-brand-blush) 48%, transparent);
+  }
+
   .best-sellers-inner {
     @apply relative z-10 mx-auto max-w-[1600px] px-6 md:px-10 xl:px-14;
   }
@@ -1690,7 +1855,7 @@
   .best-sellers-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 2.25rem;
+    gap: 1.5rem;
   }
 
   @media (min-width: 768px) {
@@ -1700,13 +1865,36 @@
     }
   }
 
-  .best-sellers-card {
-    min-width: 0;
-    --tile-color: var(--vd-sorrel);
+  .best-sellers-grid > .product-card {
+    width: 100%;
+    min-height: clamp(24rem, 48vw, 32rem);
   }
 
-  .best-sellers-card--mint {
-    --tile-color: var(--vd-dapple);
+  @media (max-width: 767px) {
+    .best-sellers {
+      padding: 4rem 0 5.5rem;
+    }
+
+    .best-sellers-inner {
+      padding-inline: 1.15rem;
+    }
+
+    .best-sellers-title {
+      margin-bottom: 1.5rem;
+      font-size: clamp(1.85rem, 8vw, 2.6rem);
+    }
+
+    .best-sellers-grid {
+      gap: 1.15rem;
+    }
+
+    .best-sellers-grid > .product-card {
+      min-height: 0;
+    }
+
+    .best-sellers-actions {
+      margin-top: 2rem;
+    }
   }
 
   .best-sellers-media {
@@ -1716,8 +1904,8 @@
 
   .best-sellers-media-clip {
     @apply absolute inset-0 overflow-hidden;
-    border-radius: 1.6rem;
-    background: color-mix(in srgb, var(--tile-color) 82%, var(--vd-cream));
+    border-radius: var(--home-radius-card, clamp(1.25rem, 2vw, 2.25rem));
+    background: color-mix(in srgb, var(--tile-color) 78%, var(--vd-cream));
   }
 
   .best-sellers-media-link {
@@ -1733,7 +1921,7 @@
     border-radius: 50%;
     transform: translate(-50%, -50%);
     background: rgba(255, 255, 255, 0.38);
-    transition: transform 500ms ease;
+    transition: transform 400ms cubic-bezier(0.2, 0.75, 0.5, 1);
   }
 
   .best-sellers-image {
@@ -1741,7 +1929,8 @@
     object-position: center center;
     padding: 1.35rem 1.5rem 1.6rem;
     filter: drop-shadow(0 18px 20px rgba(63, 55, 52, 0.14));
-    transition: transform 500ms ease;
+    transition: transform 400ms cubic-bezier(0.2, 0.75, 0.5, 1);
+    transform-origin: center center;
   }
 
   .best-sellers-heart-form {
@@ -1818,16 +2007,28 @@
     pointer-events: none;
   }
 
-  .best-sellers-card:hover .best-sellers-view {
-    opacity: 1;
+  @media (hover: hover) and (pointer: fine) {
+    .best-sellers-card:hover .best-sellers-view,
+    .best-sellers-card:focus-within .best-sellers-view {
+      opacity: 1;
+    }
+
+    .best-sellers-card:hover .best-sellers-image,
+    .best-sellers-card:focus-within .best-sellers-image {
+      transform: scale(1.05);
+    }
+
+    .best-sellers-card:hover .best-sellers-orb,
+    .best-sellers-card:focus-within .best-sellers-orb {
+      transform: translate(-50%, -50%) scale(1.06);
+    }
   }
 
-  .best-sellers-card:hover .best-sellers-image {
-    transform: translateY(-6px);
-  }
-
-  .best-sellers-card:hover .best-sellers-orb {
-    transform: translate(-50%, -50%) scale(1.06);
+  @media (pointer: coarse) {
+    .best-sellers-card .product-quick-add {
+      opacity: 1;
+      pointer-events: auto;
+    }
   }
 
   .best-sellers-view-ring {
@@ -1885,7 +2086,8 @@
     @apply mt-12 flex justify-center md:mt-16;
   }
 
-  .best-sellers-cta {
+  /* Section CTA uses shared .vd-pill-cta — avoid legacy mint fill fight */
+  .best-sellers-cta:not(.vd-pill-cta) {
     @apply inline-flex items-center justify-center rounded-full px-8 py-3;
     background-color: color-mix(in srgb, var(--color-brand-mint) 88%, var(--color-brand-accent));
     color: var(--color-brand-primary);
@@ -1894,14 +2096,6 @@
     font-weight: 600;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    transition:
-      background-color 300ms ease,
-      transform 300ms ease;
-  }
-
-  .best-sellers-cta:hover {
-    background-color: var(--color-brand-accent);
-    transform: translateY(-1px);
   }
 
   @media (prefers-reduced-motion: reduce) {

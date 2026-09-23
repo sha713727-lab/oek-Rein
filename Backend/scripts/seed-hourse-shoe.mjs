@@ -1,8 +1,10 @@
 import { randomUUID } from "crypto";
 import pg from "pg";
 
+import { databaseUrl } from "./db-url.mjs";
+
 const pool = new pg.Pool({
-  connectionString: "postgresql://postgres:zermae_dev_2026@127.0.0.1:5432/zermae",
+  connectionString: databaseUrl(),
 });
 
 const PRODUCTS = [

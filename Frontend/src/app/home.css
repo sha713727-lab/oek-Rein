@@ -1,12 +1,12 @@
 /*
- * Homepage styling modelled on voldogfood.com.
- * Product cards (.best-sellers-card*) and category cards (.shop-range-card*)
- * keep their original design, so nothing here targets their internals.
+ * Homepage layout + hero. Card chrome lives in zermae.css / storefront.css
+ * (VOLDOG structure, Saddlera tile colors). Do not fight GSAP hero transforms here.
  */
 
 .home-flow {
   position: relative;
-  isolation: isolate;
+  /* Keep children able to mix-blend with each other (hero ↔ ribbon). */
+  isolation: auto;
   overflow-x: clip;
   background: #ffffff;
   font-family: var(--vd-font);
@@ -17,12 +17,12 @@
    * grows by the same amount, so the panel's straight bottom edge lands on the
    * ribbon's centre line, where the brown band always covers it.
    */
-  --hero-side-inset: 0.5rem;
+  --hero-side-inset: clamp(0.85rem, 2.2vw, 1.75rem);
   --hero-ribbon-overlap: calc((100vw - (var(--hero-side-inset) * 2)) * 0.07);
   /* How far the band's highest point reaches above the panel's bottom edge. */
   --hero-ribbon-crest: calc(var(--hero-ribbon-overlap) * 0.7625);
-  /* Clearance for the fixed header above the panel. */
-  --hero-top-pad: 4.75rem;
+  /* Header floats over the panel — no white strip above the scene. */
+  --hero-top-pad: clamp(0.75rem, 1.5vw, 1.15rem);
 }
 
 /* —— Hero —— */
@@ -55,20 +55,21 @@
 
 .home-hero-panel {
   position: relative;
-  isolation: isolate;
+  /* Don’t isolate — merged ribbon needs to multiply into this olive surface. */
+  isolation: auto;
   display: block;
-  /* Fills the viewport below the header; ribbon crest keeps the join covered. */
-  min-height: max(28rem, calc(100vh - var(--hero-top-pad) + var(--hero-ribbon-crest)));
-  min-height: max(28rem, calc(100svh - var(--hero-top-pad) + var(--hero-ribbon-crest)));
-  min-height: max(28rem, calc(100dvh - var(--hero-top-pad) + var(--hero-ribbon-crest)));
+  /* Full viewport scene; header overlays the top of this panel. */
+  min-height: max(32rem, calc(100vh - var(--hero-top-pad) + var(--hero-ribbon-crest)));
+  min-height: max(32rem, calc(100svh - var(--hero-top-pad) + var(--hero-ribbon-crest)));
+  min-height: max(32rem, calc(100dvh - var(--hero-top-pad) + var(--hero-ribbon-crest)));
   margin: 0 auto;
   max-width: none;
   width: 100%;
   padding-bottom: calc(var(--hero-ribbon-overlap) + 5.5rem);
   overflow: hidden;
-  border-radius: clamp(1.5rem, 2.5vw, 2.75rem) clamp(1.5rem, 2.5vw, 2.75rem) 0 0;
+  border-radius: var(--home-radius-hero) var(--home-radius-hero) 0 0;
   background:
-    radial-gradient(circle at 76% 26%, rgba(255, 255, 255, 0.32), transparent 42%),
+    radial-gradient(circle at 76% 26%, rgba(255, 255, 255, 0.28), transparent 42%),
     linear-gradient(168deg, #8f9d6e 0%, #6f7c4f 100%);
 }
 
@@ -76,7 +77,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: clamp(1rem, 2.8vw, 2.25rem);
+  top: clamp(5.5rem, 11vh, 7.25rem);
   z-index: 1;
   margin: 0;
   text-align: center;
@@ -84,30 +85,41 @@
   user-select: none;
 }
 
+.home-hero-wordmark .home-hero-wordmark-line,
 .home-hero-wordmark span {
   display: block;
   font-family: var(--vd-display);
-  font-size: clamp(3.1rem, 11vw, 9.5rem);
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  font-size: clamp(2.85rem, 10.5vw, 8.75rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
   line-height: 0.9;
   text-transform: uppercase;
   color: #ffffff;
 }
 
-/* Cropped silhouette — large on desktop so the hero reads full-bleed. */
+/* Cropped silhouette — layout centers; GSAP animates .home-hero-subject-motion.
+ * Bottom tucks under the merged ribbon so the wave masks the straight crop edge. */
 .home-hero-subject {
   position: absolute;
   left: 50%;
   top: clamp(3.25rem, 7vh, 5.25rem);
-  bottom: calc(var(--hero-ribbon-overlap) + 4.25rem);
-  z-index: 2;
+  bottom: calc(var(--hero-ribbon-overlap) * 0.12);
+  z-index: 1;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   width: min(92rem, 98%);
   transform: translateX(-50%);
   pointer-events: none;
+}
+
+.home-hero-subject-motion {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 100%;
 }
 
 .home-hero-video-source {
@@ -131,8 +143,8 @@
 
 @media (min-width: 768px) {
   .home-hero-video-canvas {
-    /* Nudge only the video down; wordmark + CTAs stay put. */
-    transform: translateY(2rem);
+    /* Small tuck into the ribbon overlap zone (panel clips overflow). */
+    transform: translateY(1.15rem);
   }
 }
 
@@ -166,11 +178,8 @@
   flex: none;
 }
 
-.home-hero-cta {
-  position: absolute;
-  right: clamp(1rem, 3vw, 2.5rem);
-  bottom: calc(var(--hero-ribbon-overlap) + clamp(1rem, 3vw, 2.5rem));
-  z-index: 4;
+/* Legacy solid pill — overridden by .vd-pill-cta when PillCta is used */
+.home-hero-cta:not(.vd-pill-cta) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -184,10 +193,15 @@
   letter-spacing: 0.02em;
   text-decoration: none;
   text-transform: uppercase;
-  transition: background-color 220ms ease;
 }
 
-.home-hero-cta:hover {
+.home-hero-cta-wrap .home-hero-cta {
+  position: relative;
+  right: auto;
+  bottom: auto;
+}
+
+.home-hero-cta:not(.vd-pill-cta):hover {
   background: var(--vd-lime-deep);
   transform: none;
 }
@@ -204,24 +218,24 @@
 @media (max-width: 767px) {
   .home-flow {
     /* The ribbon svg widens to 200% below 768px, so it is taller. */
-    --hero-side-inset: 0.85rem;
+    --hero-side-inset: 0.75rem;
     --hero-ribbon-overlap: calc((100vw - (var(--hero-side-inset) * 2)) * 0.1111);
-    --hero-top-pad: 4.5rem;
+    --hero-top-pad: 0.65rem;
   }
 
   .home-hero-panel {
-    /* Pack brand + horse + CTA — avoid a full-viewport empty gray field. */
-    min-height: clamp(28rem, 68svh, 36rem);
+    min-height: clamp(28rem, 72svh, 36rem);
     padding-bottom: calc(var(--hero-ribbon-overlap) + 4.75rem);
-    border-radius: 28px 28px 0 0;
+    border-radius: clamp(1.5rem, 5vw, 2rem) clamp(1.5rem, 5vw, 2rem) 0 0;
   }
 
   .home-hero-wordmark {
-    top: 1rem;
+    top: clamp(4.25rem, 11vw, 5.25rem);
   }
 
-  .home-hero-wordmark span {
-    font-size: clamp(2.55rem, 13.5vw, 3.4rem);
+  .home-hero-wordmark span,
+  .home-hero-wordmark .home-hero-wordmark-line {
+    font-size: clamp(2.15rem, 10.2vw, 3.15rem);
   }
 
   .home-hero-pill {
@@ -229,23 +243,42 @@
   }
 
   .home-hero-subject {
-    top: 3.85rem;
-    bottom: calc(var(--hero-ribbon-overlap) + 4.35rem);
-    width: min(112vw, 28rem);
-    align-items: center;
+    top: clamp(5.75rem, 16vw, 7rem);
+    bottom: calc(var(--hero-ribbon-overlap) * 0.08);
+    width: min(100%, 22rem);
+    max-width: calc(100% - 1rem);
+    align-items: flex-end;
+    justify-content: center;
   }
 
-  .home-hero-video-canvas {
+  .home-hero-subject-motion {
     width: 100%;
-    height: auto;
+    height: 100%;
     max-height: 100%;
   }
 
-  .home-hero-cta {
-    left: 50%;
-    right: auto;
+  .home-hero-video-canvas {
+    width: auto;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: bottom center;
+    transform: none;
+  }
+
+  .home-hero-cta-wrap {
+    left: 0;
+    right: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding-inline: 1rem;
     bottom: calc(var(--hero-ribbon-overlap) + 1.15rem);
-    transform: translateX(-50%);
+    /* Avoid translateX — GSAP owns transform for entrance */
+  }
+
+  .home-hero-cta {
     padding: 13px 30px;
   }
 }
@@ -261,22 +294,22 @@
 /* Wide desktop: near full-bleed panel + dominant video. */
 @media (min-width: 1100px) {
   .home-flow {
-    --hero-side-inset: 0.35rem;
-    --hero-top-pad: 4.35rem;
+    --hero-side-inset: clamp(1rem, 1.8vw, 1.65rem);
+    --hero-top-pad: 0.9rem;
   }
 
   .home-hero-subject {
-    top: clamp(2.5rem, 5vh, 4.25rem);
-    bottom: calc(var(--hero-ribbon-overlap) + 3.5rem);
+    top: clamp(4.5rem, 8vh, 6.5rem);
+    bottom: calc(var(--hero-ribbon-overlap) * 0.05);
     width: min(98rem, 99%);
   }
 
   .home-hero-video-canvas {
-    transform: translateY(2.35rem);
+    transform: translateY(1.35rem);
   }
 
   .home-hero-wordmark {
-    top: clamp(0.75rem, 1.8vw, 1.75rem);
+    top: clamp(5.25rem, 10vh, 6.75rem);
   }
 
   .home-hero-cta {
@@ -290,7 +323,7 @@
   z-index: 6;
   margin-top: clamp(-3.5rem, -3vw, -1.5rem);
   margin-bottom: clamp(-3rem, -2.5vw, -1rem);
-  overflow: hidden;
+  overflow: visible;
   line-height: 0;
   pointer-events: none;
 }
@@ -299,11 +332,34 @@
  * Sits on the hero panel's bottom edge so the two read as one shape. It shares
  * the panel's side inset, so the silver above the band is the panel itself and no
  * white can peek through where the wave dips.
+ * mix-blend multiply: dark ribbon darkens into the olive hero (VOLDOG join).
  */
 .ribbon-marquee--merged {
-  width: calc(100% - (var(--hero-side-inset) * 2));
+  width: 100%;
   max-width: none;
-  margin: calc(-1 * var(--hero-ribbon-overlap)) auto -1.5vw;
+  margin: calc(-1 * var(--hero-ribbon-overlap)) 0 -1.5vw;
+  z-index: 8;
+}
+
+.ribbon-marquee--merged .ribbon-marquee-band {
+  stroke: var(--vd-ribbon-deep, #142221);
+  mix-blend-mode: multiply;
+}
+
+.ribbon-marquee-type-layer {
+  isolation: isolate;
+  mix-blend-mode: normal;
+}
+
+.home-hero-scroll {
+  position: relative;
+  /* Allow the ribbon to blend with the panel without a new stacking trap. */
+  isolation: auto;
+  overflow: visible;
+}
+
+.home-hero-layout {
+  overflow: visible;
 }
 
 .ribbon-marquee-svg {
@@ -406,30 +462,16 @@
 }
 
 /*
- * Product-highlights: velocity-driven cream wash with SVG clip curves.
- * Glow-stats keeps the static .curve-edge ellipses above.
+ * Product-highlights / glow-stats: ProgressCurve caps own the joins.
+ * Legacy velocity wash selectors kept inert.
  */
 .product-highlights {
   overflow: visible;
 }
 
-.highlight-curves {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  overflow: visible;
-}
-
+.highlight-curves,
 .highlight-curve-wash {
-  position: absolute;
-  left: 0;
-  right: 0;
-  /* Overhang so negative bend can expand cream into white neighbors. */
-  top: clamp(-4.5rem, -11vw, -3rem);
-  bottom: clamp(-4.5rem, -11vw, -3rem);
-  background: var(--vd-cream);
-  z-index: 0;
+  display: none !important;
 }
 
 /* —— Decorative ribbon curve behind a section —— */
@@ -649,8 +691,8 @@
 .home-flow .shop-range {
   z-index: 2;
   margin-top: 0;
-  padding: 3.25rem 0 2.5rem;
-  background: #ffffff;
+  padding: 0;
+  background: var(--vd-cream, #f4f1eb);
 }
 
 .home-flow .shop-range-blob,
@@ -789,46 +831,9 @@
   color: var(--vd-green);
 }
 
-/* —— Homepage motion (snappy reveals; no scroll-linked hero transforms) —— */
+/* —— Homepage motion: GSAP owns hero entrance; CSS only for section reveals —— */
 html.has-smooth-scroll {
   scroll-behavior: auto;
-}
-
-html.home-motion-ready .home-flow:not(.is-hero-ready) .home-hero-wordmark span {
-  opacity: 0;
-  transform: translate3d(0, 16px, 0);
-}
-
-html.home-motion-ready .home-flow.is-hero-ready .home-hero-wordmark span {
-  opacity: 1;
-  transform: translate3d(0, 0, 0);
-  transition:
-    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-html.home-motion-ready .home-flow:not(.is-hero-ready) .home-hero-subject {
-  opacity: 0;
-  transform: translate(-50%, 20px);
-}
-
-html.home-motion-ready .home-flow.is-hero-ready .home-hero-subject {
-  opacity: 1;
-  transform: translate(-50%, 0);
-  transition:
-    opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1) 60ms,
-    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1) 60ms;
-}
-
-html.home-motion-ready .home-flow:not(.is-hero-ready) .home-hero-pill,
-html.home-motion-ready .home-flow:not(.is-hero-ready) .home-hero-cta {
-  opacity: 0;
-}
-
-html.home-motion-ready .home-flow.is-hero-ready .home-hero-pill,
-html.home-motion-ready .home-flow.is-hero-ready .home-hero-cta {
-  opacity: 1;
-  transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1) 140ms, background-color 220ms ease;
 }
 
 html.home-motion-ready .home-flow .home-reveal {
@@ -842,6 +847,12 @@ html.home-motion-ready .home-flow .home-reveal {
 html.home-motion-ready .home-flow .home-reveal.is-revealed {
   opacity: 1;
   transform: translate3d(0, 0, 0);
+}
+
+/* Heading word reveals — visible until GSAP arms them */
+.vd-reveal-word {
+  opacity: 1;
+  transform: none;
 }
 
 .home-flow .vd-button,
@@ -863,20 +874,25 @@ html.home-motion-ready .home-flow .home-reveal.is-revealed {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html.home-motion-ready .home-flow .home-reveal,
-  html.home-motion-ready .home-flow.is-hero-ready .home-hero-wordmark span,
-  html.home-motion-ready .home-flow.is-hero-ready .home-hero-subject,
-  html.home-motion-ready .home-flow.is-hero-ready .home-hero-cta,
-  html.home-motion-ready .home-flow.is-hero-ready .home-hero-pill {
+  html.home-motion-ready .home-flow .home-reveal {
     opacity: 1 !important;
+    transform: none !important;
     transition: none !important;
+  }
+
+  .vd-reveal-word {
+    opacity: 1 !important;
+    transform: none !important;
   }
 
   .home-flow .home-hero-subject {
     transform: translateX(-50%) !important;
   }
 
-  html.home-motion-ready .home-flow .home-reveal {
-    transform: none !important;
+  .home-flow .vd-button:hover,
+  .home-flow .best-sellers-cta:hover,
+  .home-flow .ritual-finder-submit:hover {
+    transform: none;
+    box-shadow: none;
   }
 }

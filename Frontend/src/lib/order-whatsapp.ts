@@ -3,6 +3,7 @@ import {
   supportPhoneE164,
   toWhatsAppDigits,
 } from "@/constants/site";
+import { brandName } from "@/constants/brand";
 import { formatMoney } from "@/constants/storefront";
 
 type OrderWhatsAppInput = {
@@ -23,7 +24,7 @@ export function customerOrderWhatsAppMessage(order: OrderWhatsAppInput): string 
   return [
     `Assalam o Alaikum ${order.customer},`,
     ``,
-    `Thank you for shopping with Saddlera.`,
+    `Thank you for shopping with ${brandName}.`,
     `Your order ${order.orderNumber} is confirmed.`,
     ``,
     lines,
@@ -34,7 +35,7 @@ export function customerOrderWhatsAppMessage(order: OrderWhatsAppInput): string 
     ``,
     `Questions? WhatsApp us on ${display} (${e164}).`,
     ``,
-    `— Saddlera`,
+    `— ${brandName}`,
   ].join("\n");
 }
 

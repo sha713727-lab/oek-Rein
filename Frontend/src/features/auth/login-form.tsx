@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
+import { brandName } from "@/constants/brand";
 import { loginAction } from "@/features/auth/actions";
 import { PasswordField } from "@/features/auth/password-field";
 
 type State = { error?: string | undefined };
 
 export function LoginForm() {
-  const [state, action] = useActionState(async (_prev: State, formData: FormData) => {
+  const [state, action, pending] = useActionState(async (_prev: State, formData: FormData) => {
     return loginAction(formData);
   }, {});
 
@@ -30,6 +31,7 @@ export function LoginForm() {
             autoComplete="email"
             required
             className="auth-input"
+            disabled={pending}
           />
         </label>
         <PasswordField name="password" label="Password" placeholder="Password" autoComplete="current-password" />
@@ -38,16 +40,20 @@ export function LoginForm() {
             Forgot password?
           </Link>
         </div>
-        {state.error ? <p className="auth-form-error">{state.error}</p> : null}
-        <button type="submit" className="auth-btn auth-btn-primary luxury-button-solid">
-          Sign In
+        {state.error ? (
+          <p className="auth-form-error" role="alert">
+            {state.error}
+          </p>
+        ) : null}
+        <button type="submit" className="auth-btn auth-btn-primary luxury-button-solid" disabled={pending}>
+          {pending ? "Signing in…" : "Sign In"}
         </button>
       </form>
       <div className="auth-form-foot">
         <Link href="/collections/all" className="auth-link">
           Continue as Guest
         </Link>
-        <span className="auth-form-foot-copy">New to Saddlera?</span>
+        <span className="auth-form-foot-copy">New to {brandName}?</span>
         <Link href="/register" className="auth-link auth-form-foot-end">
           Create an account
         </Link>

@@ -13,7 +13,7 @@ loadDotEnv();
 const directory = path.dirname(fileURLToPath(import.meta.url));
 const migrationsDir = path.resolve(directory, "../../../../Database/migrations");
 
-async function migrate(): Promise<void> {
+export async function applyMigrations(): Promise<void> {
   const env = getEnv();
   const clientPool = new pg.Pool({ connectionString: env.DATABASE_MIGRATE_URL });
   try {
@@ -52,4 +52,9 @@ async function migrate(): Promise<void> {
   }
 }
 
-void migrate();
+const invokedDirectly =
+  Boolean(process.argv[1]) && path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1]);
+
+if (invokedDirectly) {
+  void applyMigrations();
+}

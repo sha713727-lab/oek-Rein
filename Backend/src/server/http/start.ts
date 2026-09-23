@@ -1,9 +1,12 @@
+import { spawnSync } from "node:child_process";
 import { createServer, type Server } from "node:http";
+import path from "node:path";
 
 import { getEnv } from "@/lib/env";
 import { loadDotEnv } from "@/lib/load-dot-env";
 import { logger } from "@/lib/logger";
-import { closePool, databaseHealth } from "@/server/database/pool";
+import { applyMigrations } from "@/server/database/migrate";
+import { closePool, databaseHealth, pool } from "@/server/database/pool";
 import { handleApiRequest } from "@/server/http/handle-api-request";
 import { pruneExpiredNonces } from "@/server/jobs/prune-nonces";
 import { authService } from "@/server/services/auth/auth.service";
@@ -14,6 +17,9 @@ const PRUNE_INTERVAL_MS = 5 * 60 * 1000;
 
 async function main(): Promise<void> {
   const env = getEnv();
+  if (env.NODE_ENV === "development") {
+    await applyMigrations();
+  }
   const health = await databaseHealth();
   if (health.status !== "connected") {
     throw new Error("PostgreSQL is not reachable");
@@ -21,6 +27,14 @@ async function main(): Promise<void> {
   if (env.NODE_ENV === "development") {
     const admin = await authService.seedAdmin();
     logger.info({ email: admin.email }, "Seed admin synced from environment");
+    const catalog = await pool.query<{ n: number }>("SELECT count(*)::int AS n FROM product");
+    if ((catalog.rows[0]?.n ?? 0) === 0) {
+      const seedScript = path.resolve("scripts/seed-hourse-shoe.mjs");
+      const seeded = spawnSync(process.execPath, [seedScript], { cwd: process.cwd(), stdio: "inherit" });
+      if (seeded.status !== 0) {
+        logger.warn({ status: seeded.status }, "Catalog seed script failed");
+      }
+    }
   }
   const server = createServer((req, res) => {
     void handleApiRequest(req, res);

@@ -1,8 +1,10 @@
 {
-  "name": "saddlera",
+  "name": "oak-rein",
   "private": true,
   "scripts": {
     "dev": "node scripts/dev.mjs",
+    "db:local": "node scripts/local-postgres.mjs",
+    "db:local:stop": "node scripts/local-postgres.mjs stop",
     "build": "npm run build --prefix Backend && npm run build --prefix Frontend",
     "start": "node scripts/start.mjs",
     "lint": "npm run lint --prefix Backend && npm run lint --prefix Frontend",
@@ -10,6 +12,8 @@
     "test": "npm run test --prefix Backend && npm run test --prefix Frontend",
     "db:migrate": "npm run migrate --prefix Backend",
     "db:seed": "npm run seed --prefix Backend",
+    "db:seed:catalog": "node Backend/scripts/seed-hourse-shoe.mjs",
+    "verify:local": "node scripts/verify-local.mjs",
     "migrate": "npm run db:migrate",
     "seed:admin": "npm run db:seed"
   }

@@ -3,7 +3,12 @@
 import { redirect } from "next/navigation";
 
 import { ADMIN_ROLES } from "@/constants/roles";
-import { DEFAULT_STOREFRONT_CONTENT, PRODUCT_HIGHLIGHTS_FLOAT_SLOTS } from "@/constants/storefront";
+import {
+  DEFAULT_STOREFRONT_CONTENT,
+  MEGA_MENU_IDS,
+  type MegaMenuId,
+  PRODUCT_HIGHLIGHTS_FLOAT_SLOTS,
+} from "@/constants/storefront";
 import { storefrontPublishFromForm } from "@/features/admin/parse-storefront-form";
 import { storefrontService } from "@/lib/api/storefront";
 import { revalidateStorefront } from "@/lib/revalidate-storefront";
@@ -41,6 +46,7 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
     const floatKeys = PRODUCT_HIGHLIGHTS_FLOAT_SLOTS.map((slot) => slot.id);
     const categoryCount = Math.min(7, Math.max(0, Number(formData.get("categoryCount") ?? 0)));
     const categoryIndexes = Array.from({ length: categoryCount }, (_, index) => index);
+    const riderCount = DEFAULT_STOREFRONT_CONTENT.riderGallery.items.length;
     const [
       heroProductSrc,
       heroVideoSrc,
@@ -56,6 +62,9 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
       authAdminSrc,
       categoryImages,
       collectionImages,
+      customTackImage,
+      riderGalleryImages,
+      ...megaCardImageLists
     ] = await Promise.all([
       readImage(formData, "heroProductSrc"),
       readImage(formData, "heroVideoSrc"),
@@ -71,7 +80,23 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
       readImage(formData, "authAdminSrc"),
       Promise.all(categoryIndexes.map((index) => readImage(formData, `categoryImage_${index}`))),
       readImageMap(formData, "collectionImage", collectionKeys),
+      readImage(formData, "customTackImage"),
+      Promise.all(
+        Array.from({ length: riderCount }, (_, index) => readImage(formData, `riderGalleryItemSrc_${index}`)),
+      ),
+      ...MEGA_MENU_IDS.map((menuId) =>
+        Promise.all(
+          DEFAULT_STOREFRONT_CONTENT.megaMenus[menuId].cards.map((_, index) =>
+            readImage(formData, `megaCardImage_${menuId}_${index}`),
+          ),
+        ),
+      ),
     ]);
+
+    const megaCardImages = Object.fromEntries(
+      MEGA_MENU_IDS.map((menuId, index) => [menuId, megaCardImageLists[index] ?? []]),
+    ) as Record<MegaMenuId, string[]>;
+
     const published = storefrontPublishFromForm(formData, {
       heroProductSrc,
       heroVideoSrc,
@@ -87,6 +112,9 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
       authAdminSrc,
       categoryImages,
       collectionImages,
+      customTackImage,
+      megaCardImages,
+      riderGalleryImages,
     });
     // Force exact image paths from the form (including intentional clears) so resolve defaults
     // cannot resurrect stock FAQ / homepage art after Remove.
@@ -108,6 +136,31 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
     published.content.collectionImages = {
       ...published.content.collectionImages,
       ...collectionImages,
+    };
+    published.content.customTack = {
+      ...published.content.customTack,
+      image: customTackImage || DEFAULT_STOREFRONT_CONTENT.customTack.image,
+    };
+    for (const menuId of MEGA_MENU_IDS) {
+      const images = megaCardImages[menuId] ?? [];
+      published.content.megaMenus[menuId] = {
+        ...published.content.megaMenus[menuId],
+        cards: published.content.megaMenus[menuId].cards.map((card, index) => ({
+          ...card,
+          image: images[index] || card.image,
+        })),
+      };
+    }
+    published.content.riderGallery = {
+      ...published.content.riderGallery,
+      items: published.content.riderGallery.items.map((item, index) => ({
+        ...item,
+        src:
+          riderGalleryImages[index] ||
+          item.src ||
+          DEFAULT_STOREFRONT_CONTENT.riderGallery.items[index]?.src ||
+          "",
+      })),
     };
     categoryIndexes.forEach((index) => {
       const category = published.content.shopCategories[index];

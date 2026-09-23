@@ -2,20 +2,14 @@
 
 import Link from "next/link";
 
-import { IconHeart, IconPlus } from "@/components/icons/icons";
-import { HORSE_COAT, formatMoney, resolveHorseCoatColor, tileStyle } from "@/constants/storefront";
-import { AddToBagForm } from "@/features/cart/add-to-bag-form";
+import { IconHeart } from "@/components/icons/icons";
+import { formatMoney } from "@/constants/storefront";
 import { CmsImage } from "@/features/media/cms-image";
+import { PillCta } from "@/features/motion/pill-cta";
 import { toggleWishlistAction } from "@/features/wishlist/actions";
 import { cn } from "@/lib/cn";
 
 export type ProductCardTone = "blush" | "mint" | "lavender";
-
-const TONE_COLORS: Record<ProductCardTone, string> = {
-  blush: HORSE_COAT.sorrel,
-  mint: HORSE_COAT.dappleGrey,
-  lavender: HORSE_COAT.blueRoan,
-};
 
 export type CatalogProduct = {
   id: string;
@@ -27,61 +21,56 @@ export type CatalogProduct = {
   tileColor?: string | null;
 };
 
+/** VOLDOG soft-gray product card — same language as category cards. */
 export function ProductCard({
   product,
   wished,
-  tone = "blush",
-  color,
   currency = "PKR",
+  ctaLabel = "Shop",
 }: {
   product: CatalogProduct;
   wished: boolean;
   tone?: ProductCardTone;
   color?: string;
   currency?: string;
+  ctaLabel?: string;
 }) {
   const primary = product.images[0];
+  const href = `/product/${product.id}`;
   const hasSale = Boolean(product.originalPrice && product.originalPrice > product.price);
 
   return (
-    <article className="product-card" style={tileStyle(resolveHorseCoatColor(color || TONE_COLORS[tone], TONE_COLORS[tone]))}>
-      <div className="product-card-media-wrap">
-        <div className="product-card-media-clip">
-          <Link href={`/product/${product.id}`} className="product-card-media-link" aria-label={product.title}>
-            <span className="product-card-orb" aria-hidden="true" />
-            {primary ? (
-              <CmsImage
-                src={primary}
-                alt={product.title}
-                fill
-                sizes="(min-width: 1024px) 28vw, 90vw"
-                className="product-card-still"
-              />
-            ) : (
-              <span className="product-card-empty">No image</span>
-            )}
-          </Link>
-          <form action={toggleWishlistAction} className="product-card-heart-form">
-            <input type="hidden" name="productId" value={product.id} />
-            <button
-              type="submit"
-              className={cn("product-card-wishlist", wished && "is-active")}
-              aria-label={wished ? `Remove ${product.title} from wishlist` : `Add ${product.title} to wishlist`}
-              aria-pressed={wished}
-            >
-              <IconHeart />
-            </button>
-          </form>
+    <article className="product-card">
+      <Link href={href} className="product-card-hit" aria-label={product.title} />
+      <div className="product-card-media" aria-hidden={primary ? true : undefined}>
+        <span className="product-card-glow" aria-hidden="true" />
+        <div className="product-card-product">
+          {primary ? (
+            <CmsImage
+              src={primary}
+              alt=""
+              fill
+              sizes="(min-width: 1024px) 28vw, (min-width: 768px) 40vw, 85vw"
+              className="product-card-still"
+            />
+          ) : (
+            <span className="product-card-empty">No image</span>
+          )}
         </div>
-        <AddToBagForm productId={product.id} className="product-quick-add">
-          <button type="submit" className="product-quick-add-btn" aria-label={`Add ${product.title} to bag`}>
-            <IconPlus />
+        <form action={toggleWishlistAction} className="product-card-heart-form">
+          <input type="hidden" name="productId" value={product.id} />
+          <button
+            type="submit"
+            className={cn("product-card-wishlist", wished && "is-active")}
+            aria-label={wished ? `Remove ${product.title} from wishlist` : `Add ${product.title} to wishlist`}
+            aria-pressed={wished}
+          >
+            <IconHeart />
           </button>
-        </AddToBagForm>
+        </form>
       </div>
-      <Link href={`/product/${product.id}`} className="product-card-copy">
+      <div className="product-card-copy">
         <h3 className="product-card-name">{product.title}</h3>
-        {product.description ? <p className="product-card-desc">{product.description}</p> : null}
         <p className="product-card-price-row">
           {hasSale && product.originalPrice ? (
             <span className="product-card-price-original">{formatMoney(product.originalPrice, currency)}</span>
@@ -90,7 +79,15 @@ export function ProductCard({
             {formatMoney(product.price, currency)}
           </span>
         </p>
-      </Link>
+        {product.description ? (
+          <p className="product-card-desc">
+            {product.description.length > 90 ? `${product.description.slice(0, 87).trimEnd()}…` : product.description}
+          </p>
+        ) : null}
+      </div>
+      <PillCta href={href} className="product-card-cta">
+        {ctaLabel}
+      </PillCta>
     </article>
   );
 }

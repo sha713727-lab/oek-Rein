@@ -1,8 +1,10 @@
 import Link from "next/link";
 
+import { brandName } from "@/constants/brand";
 import { normalizeCategoryFilter } from "@/constants/catalog";
 import { COLLECTION_HEROES } from "@/constants/site";
 import { CatalogEmptyState } from "@/features/catalog/catalog-empty-state";
+import type { CatalogProduct } from "@/features/catalog/product-card";
 import { toCatalogProduct } from "@/features/catalog/map-product";
 import { ProductGrid } from "@/features/catalog/product-grid";
 import { RitualFeature } from "@/features/catalog/ritual-feature";
@@ -18,22 +20,36 @@ const SORTS = [
   { id: "title", label: "Name", sort: "title", order: "asc" as const },
 ];
 
+const BEST_SELLERS_HERO = {
+  first: "Best",
+  second: "Sellers",
+  image: "/assets/images/western_floral_saddle.png",
+  alt: `${brandName} best sellers`,
+  tone: "mint" as const,
+};
+
 export async function CollectionView({
   category,
   page = 1,
   sort = "newest",
+  bestSeller = false,
 }: {
   category: string;
   page?: number | undefined;
   sort?: string | undefined;
+  bestSeller?: boolean | undefined;
 }) {
-  const slug = category in COLLECTION_HEROES ? category : "all";
-  const hero = COLLECTION_HEROES[slug] ?? COLLECTION_HEROES.all;
+  const slug = bestSeller ? "best-sellers" : category in COLLECTION_HEROES ? category : "all";
+  const hero = bestSeller ? BEST_SELLERS_HERO : (COLLECTION_HEROES[slug] ?? COLLECTION_HEROES.all);
   const selected = SORTS.find((item) => item.id === sort) ?? SORTS[0];
   const currentPage = Math.max(1, page);
+  const basePath = bestSeller ? "/best-sellers" : `/collections/${slug}`;
+
   const [result, wishlist, storefront] = await Promise.all([
     productService.list({
-      category: normalizeCategoryFilter(slug),
+      ...(bestSeller
+        ? { bestSeller: true }
+        : { category: normalizeCategoryFilter(slug) }),
       limit: 24,
       page: currentPage,
       sort: selected?.sort,
@@ -42,12 +58,33 @@ export async function CollectionView({
     readWishlist(),
     getStorefront(),
   ]);
-  const products = result.products.map(toCatalogProduct);
+
+  let products: CatalogProduct[] = result.products.map(toCatalogProduct);
+  let totalPages = result.pagination.totalPages;
+  let paginationPage = result.pagination.page;
+  let hasPrev = result.pagination.hasPrev;
+  let hasNext = result.pagination.hasNext;
+
+  if (bestSeller && products.length === 0) {
+    const fallback = await productService.getBySkus(storefront.content.bestSellerSkus);
+    products = fallback.map(toCatalogProduct);
+    totalPages = 1;
+    paginationPage = 1;
+    hasPrev = false;
+    hasNext = false;
+  }
+
   const splitIndex = Math.min(6, products.length);
   const before = products.slice(0, splitIndex);
   const after = products.slice(splitIndex);
-  const heroImage = storefront.content.collectionImages[slug] ?? hero?.image ?? "";
-  const titles = storefront.content.collectionTitles[slug] ?? { first: hero?.first ?? "The", second: hero?.second ?? "Ritual" };
+  const heroImage =
+    (bestSeller ? undefined : storefront.content.collectionImages[slug]) ?? hero?.image ?? "";
+  const titles = bestSeller
+    ? { first: BEST_SELLERS_HERO.first, second: BEST_SELLERS_HERO.second }
+    : (storefront.content.collectionTitles[slug] ?? {
+        first: hero?.first ?? "The",
+        second: hero?.second ?? "Ritual",
+      });
 
   if (!hero) {
     return null;
@@ -81,7 +118,7 @@ export async function CollectionView({
             {SORTS.map((item) => (
               <Link
                 key={item.id}
-                href={`/collections/${slug}?sort=${item.id}`}
+                href={`${basePath}?sort=${item.id}`}
                 className={item.id === selected?.id ? "collection-sort-active" : "collection-sort-link"}
               >
                 {item.label}
@@ -90,11 +127,28 @@ export async function CollectionView({
           </nav>
         ) : null}
         {before.length > 0 ? (
-          <ProductGrid products={before} wishlistIds={wishlist.ids} currency={storefront.commerce.currency} tileColors={storefront.content.productCardColors} />
+          <ProductGrid
+            products={before}
+            wishlistIds={wishlist.ids}
+            currency={storefront.commerce.currency}
+            tileColors={storefront.content.productCardColors}
+          />
         ) : null}
-        {products.length > 0 ? <RitualFeature image={heroImage} alt={hero.alt} tone={hero.tone} category={slug} /> : null}
+        {products.length > 0 ? (
+          <RitualFeature
+            image={heroImage}
+            alt={hero.alt}
+            tone={hero.tone}
+            category={bestSeller ? "all" : slug}
+          />
+        ) : null}
         {after.length > 0 ? (
-          <ProductGrid products={after} wishlistIds={wishlist.ids} currency={storefront.commerce.currency} tileColors={storefront.content.productCardColors} />
+          <ProductGrid
+            products={after}
+            wishlistIds={wishlist.ids}
+            currency={storefront.commerce.currency}
+            tileColors={storefront.content.productCardColors}
+          />
         ) : null}
         {products.length === 0 ? (
           <CatalogEmptyState
@@ -107,16 +161,20 @@ export async function CollectionView({
             secondaryLabel="New Arrivals"
           />
         ) : null}
-        {result.pagination.totalPages > 1 ? (
+        {totalPages > 1 ? (
           <nav className="collection-pager" aria-label="Pages">
-            {result.pagination.hasPrev ? (
-              <Link href={`/collections/${slug}?sort=${selected?.id ?? "newest"}&page=${currentPage - 1}`}>Previous</Link>
+            {hasPrev ? (
+              <Link href={`${basePath}?sort=${selected?.id ?? "newest"}&page=${currentPage - 1}`}>
+                Previous
+              </Link>
             ) : null}
             <span>
-              Page {result.pagination.page} of {result.pagination.totalPages}
+              Page {paginationPage} of {totalPages}
             </span>
-            {result.pagination.hasNext ? (
-              <Link href={`/collections/${slug}?sort=${selected?.id ?? "newest"}&page=${currentPage + 1}`}>Next</Link>
+            {hasNext ? (
+              <Link href={`${basePath}?sort=${selected?.id ?? "newest"}&page=${currentPage + 1}`}>
+                Next
+              </Link>
             ) : null}
           </nav>
         ) : null}

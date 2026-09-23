@@ -3,10 +3,17 @@
 import { useEffect, useId, useRef, useState } from "react";
 
 const MAX_BYTES = 25 * 1024 * 1024;
-const ACCEPT = "video/mp4,video/webm";
+const ACCEPT = "video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov";
+
+const ALLOWED_TYPES = new Set(["video/mp4", "video/webm", "video/quicktime", "video/x-quicktime"]);
 
 function isAllowed(file: File) {
-  return ["video/mp4", "video/webm"].includes(file.type);
+  if (ALLOWED_TYPES.has(file.type)) {
+    return true;
+  }
+  // Some browsers leave type empty for .mov — fall back to extension
+  const name = file.name.toLowerCase();
+  return name.endsWith(".mp4") || name.endsWith(".webm") || name.endsWith(".mov");
 }
 
 export function VideoUrlField({
@@ -39,7 +46,7 @@ export function VideoUrlField({
 
   function assignFile(file: File) {
     if (!isAllowed(file)) {
-      setError("Use MP4 or WEBM.");
+      setError("Use MP4, MOV, or WEBM.");
       return;
     }
     if (file.size > MAX_BYTES) {
@@ -123,7 +130,7 @@ export function VideoUrlField({
         {preview ? (
           <video src={preview} className="admin-storefront-preview-img" muted playsInline controls={false} />
         ) : (
-          <span className="admin-storefront-preview--empty">Drop an MP4 here or click to upload</span>
+          <span className="admin-storefront-preview--empty">Drop an MP4 or MOV here or click to upload</span>
         )}
       </button>
       <div className="admin-storefront-image-actions">
@@ -141,7 +148,7 @@ export function VideoUrlField({
           {error}
         </p>
       ) : (
-        <p className="admin-product-kicker">MP4 or WEBM. Up to 25MB. Publish to update the live hero.</p>
+        <p className="admin-product-kicker">MP4, MOV, or WEBM. Up to 25MB. Publish to update the live hero.</p>
       )}
     </div>
   );

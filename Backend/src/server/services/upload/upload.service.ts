@@ -13,6 +13,7 @@ const ALLOWED = new Map([
   ["video/mp4", "mp4"],
   ["video/webm", "webm"],
   ["video/quicktime", "mov"],
+  ["video/x-quicktime", "mov"],
 ]);
 
 export class UploadService {

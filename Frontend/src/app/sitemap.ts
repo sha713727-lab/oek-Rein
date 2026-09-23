@@ -4,6 +4,7 @@ const appUrl = (process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "
 
 const paths = [
   "/",
+  "/best-sellers",
   "/collections/all",
   "/collections/new",
   "/collections/saddles",

@@ -6,6 +6,21 @@
   background: #ffffff;
 }
 
+@media (max-width: 767px) {
+  .features-section {
+    padding: 3.25rem 0 3.75rem;
+  }
+
+  .features-inner {
+    padding-left: 1.15rem;
+    padding-right: 1.15rem;
+  }
+
+  .features-header {
+    margin-bottom: 1.5rem;
+  }
+}
+
 .features-inner {
   position: relative;
   z-index: 2;
@@ -20,6 +35,14 @@
   margin: 0 auto 2.25rem;
   max-width: 42rem;
   text-align: center;
+}
+
+.features-support {
+  margin: 0.85rem auto 0;
+  max-width: 38rem;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--vd-body, #666);
 }
 
 .features-heading {
@@ -47,6 +70,22 @@
 @media (min-width: 1024px) {
   .features-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Size & fit home section — three tips, centered as a group */
+@media (min-width: 700px) {
+  .home-size-guide .features-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: center;
+  }
+}
+
+@media (min-width: 1024px) {
+  .home-size-guide .features-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: 52rem;
+    margin-inline: auto;
   }
 }
 

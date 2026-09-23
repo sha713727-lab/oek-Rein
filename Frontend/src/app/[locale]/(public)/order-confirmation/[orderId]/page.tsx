@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { IconShield, IconTruck } from "@/components/icons/icons";
+import { brandName } from "@/constants/brand";
 import { formatSupportPhoneDisplay, supportWhatsAppUrlFromPhone } from "@/constants/site";
 import { OrderSummary } from "@/features/orders/order-summary";
 import { orderService } from "@/lib/api/orders";
@@ -27,7 +28,7 @@ export default async function OrderConfirmationPage({
   const supportDisplay = formatSupportPhoneDisplay(storefront.content.supportPhone);
   const whatsappHref = supportWhatsAppUrlFromPhone(
     storefront.content.supportPhone,
-    `Assalam o Alaikum Saddlera, I just placed order ${order.orderNumber}. Please confirm.`,
+    `Assalam o Alaikum ${brandName}, I just placed order ${order.orderNumber}. Please confirm.`,
   );
   return (
     <div className="order-confirmation-page">
@@ -70,7 +71,7 @@ export default async function OrderConfirmationPage({
         </div>
         <div className="order-confirmation-actions no-print">
           <a href={whatsappHref} className="luxury-button-solid" target="_blank" rel="noreferrer">
-            WhatsApp Saddlera
+            WhatsApp {brandName}
           </a>
           <Link href="/collections/all" className="luxury-button-outline">
             Continue Shopping

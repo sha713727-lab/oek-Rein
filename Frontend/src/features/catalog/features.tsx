@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 
 import { IconLeather, IconShield, IconStitch, IconTruck } from "@/components/icons/icons";
+import { brandName } from "@/constants/brand";
 import type { StorefrontContent } from "@/constants/storefront";
 import { RibbonCurve } from "@/features/catalog/ribbon-curve";
 
@@ -15,12 +16,12 @@ const FEATURE_ICONS: Record<string, ComponentType<IconProps>> = {
 
 export function Features({ content }: { content: StorefrontContent }) {
   return (
-    <section className="features-section" aria-labelledby="features-title">
+    <section className="features-section" id="why-saddlera" aria-labelledby="features-title">
       <RibbonCurve />
       <div className="features-inner">
         <header className="features-header">
           <h2 id="features-title" className="features-heading">
-            Trusted by riders — <span className="section-mark">why people choose us!</span>
+            Why <span className="section-mark">{brandName}</span>
           </h2>
         </header>
         <ul className="features-grid">

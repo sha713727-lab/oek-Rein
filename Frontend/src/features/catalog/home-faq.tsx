@@ -1,7 +1,13 @@
+"use client";
+
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
+import { useId, useState } from "react";
 
 import { brandName } from "@/constants/brand";
 import type { StorefrontContent } from "@/constants/storefront";
+import { TackAccent } from "@/features/motion/draw-parallax";
+import { EASE, MOTION } from "@/features/motion/motion-config";
 
 function FaqArrow() {
   return (
@@ -17,20 +23,58 @@ function FaqArrow() {
   );
 }
 
-function FaqUnderline() {
+function FaqItem({
+  item,
+  open,
+  onToggle,
+  reduced,
+}: {
+  item: StorefrontContent["faqItems"][number];
+  open: boolean;
+  onToggle: () => void;
+  reduced: boolean;
+}) {
+  const panelId = useId();
   return (
-    <svg className="home-faq-underline" viewBox="0 0 220 28" fill="none" aria-hidden="true">
-      <path
-        d="M6 16c28-10 54-14 84-8 24 5 44 10 70 6 18-3 36-10 54-14"
-        stroke="currentColor"
-        strokeWidth="10"
-        strokeLinecap="round"
-      />
-    </svg>
+    <div className={open ? "home-faq-item is-open" : "home-faq-item"}>
+      <button
+        type="button"
+        className="home-faq-question"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={onToggle}
+      >
+        <span>{item.question}</span>
+        <span className="home-faq-toggle" aria-hidden="true">
+          {open ? "−" : "+"}
+        </span>
+      </button>
+      <AnimatePresence initial={false}>
+        {open ? (
+          <motion.div
+            id={panelId}
+            key="panel"
+            className="home-faq-answer-wrap"
+            initial={reduced ? false : { height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            {...(reduced ? {} : { exit: { height: 0, opacity: 0 } })}
+            transition={
+              reduced ? { duration: 0 } : { duration: MOTION.disclosureMs / 1000, ease: EASE.panel }
+            }
+          >
+            <p className="home-faq-answer">{item.answer}</p>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </div>
   );
 }
 
+/** M10 — Motion height/opacity FAQ disclosures. */
 export function HomeFaq({ content }: { content: StorefrontContent }) {
+  const [openId, setOpenId] = useState<string | null>(content.faqItems[0]?.id ?? null);
+  const reduced = useReducedMotion() ?? false;
+
   return (
     <section className="home-faq" aria-labelledby="home-faq-title">
       <div className="home-faq-inner">
@@ -40,7 +84,7 @@ export function HomeFaq({ content }: { content: StorefrontContent }) {
             <span className="home-faq-title-mark">
               Questions
               <span className="home-faq-dot" aria-hidden="true" />
-              <FaqUnderline />
+              <TackAccent className="home-faq-underline vd-tack-accent" />
             </span>
           </h2>
           <p className="home-faq-lead">
@@ -55,16 +99,14 @@ export function HomeFaq({ content }: { content: StorefrontContent }) {
           </Link>
         </div>
         <div className="home-faq-list">
-          {content.faqItems.map((item, index) => (
-            <details key={`${item.id}-${index}`} className="home-faq-item" name="zermae-home-faq">
-              <summary className="home-faq-question">
-                <span>{item.question}</span>
-                <span className="home-faq-toggle" aria-hidden="true">
-                  +
-                </span>
-              </summary>
-              <p className="home-faq-answer">{item.answer}</p>
-            </details>
+          {content.faqItems.map((item) => (
+            <FaqItem
+              key={item.id}
+              item={item}
+              open={openId === item.id}
+              reduced={reduced}
+              onToggle={() => setOpenId((current) => (current === item.id ? null : item.id))}
+            />
           ))}
         </div>
       </div>

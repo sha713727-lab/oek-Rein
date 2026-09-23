@@ -209,7 +209,7 @@ export const BEST_SELLERS = [
   },
 ] as const;
 
-export const PRODUCT_HIGHLIGHTS_TITLE = "Saddlera Product";
+export const PRODUCT_HIGHLIGHTS_TITLE = `${brandName} Product`;
 export const PRODUCT_HIGHLIGHTS_MARK = "Highlights";
 export const PRODUCT_HIGHLIGHTS_IMAGE = "/assets/images/western_floral_saddle.png";
 export const PRODUCT_HIGHLIGHTS_ALT = `${brandName} western floral saddle`;
@@ -303,7 +303,7 @@ export const HOME_TESTIMONIALS = [
     rating: 4,
     initials: "HB",
     tone: "#e1e53f",
-    body: "The leather balm revived my older bridle. Love that Saddlera is artisan-made in Pakistan for riders here in the US.",
+    body: `The leather balm revived my older bridle. Love that ${brandName} is artisan-made in Pakistan for riders here in the US.`,
   },
 ] as const;
 
@@ -340,11 +340,11 @@ export const HOME_FAQ = [
     id: "saddle-fit",
     question: `How do I know the saddle will fit my horse?`,
     answer:
-      "Saddlera saddles are handcrafted with fit-minded construction for North American riding. We recommend working with a professional saddle fitter for first adjustments on your horse.",
+      `${brandName} saddles are handcrafted with fit-minded construction for North American riding. We recommend working with a professional saddle fitter for first adjustments on your horse.`,
   },
   {
     id: "leather-care",
-    question: `How should I care for my Saddlera leather goods?`,
+    question: `How should I care for my ${brandName} leather goods?`,
     answer:
       "Pakistani leather loves routine care. Use our leather balm every few weeks, store tack dry and cool, and wipe sweat and dirt after each ride.",
   },
@@ -352,7 +352,7 @@ export const HOME_FAQ = [
     id: "shipping-na",
     question: "Do you ship to North America?",
     answer:
-      "Yes. Saddlera is made in Pakistan and ships to riders across the United States and Canada. Tracking details arrive after your order is confirmed.",
+      `Yes. ${brandName} is made in Pakistan and ships to riders across the United States and Canada. Tracking details arrive after your order is confirmed.`,
   },
   {
     id: "tracking",

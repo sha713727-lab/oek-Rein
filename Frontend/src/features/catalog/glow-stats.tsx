@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import {
   GLOW_STATS_ALT,
   GLOW_STATS_COPY,
@@ -7,13 +5,16 @@ import {
   GLOW_STATS_CTA_HREF,
   GLOW_STATS_TITLE,
 } from "@/constants/site";
-import { GlowStatsCurves } from "@/features/catalog/glow-stats-curves";
 import { CmsImage } from "@/features/media/cms-image";
+import { FooterTrail } from "@/features/motion/footer-trail";
+import { PillCta } from "@/features/motion/pill-cta";
+import { ProgressCurve } from "@/features/motion/progress-curve";
 
 export function GlowStats({ image }: { image: string }) {
   return (
-    <section className="glow-stats" aria-labelledby="glow-stats-title">
-      <GlowStatsCurves />
+    <section className="glow-stats vd-footer-trail-host" aria-labelledby="glow-stats-title">
+      <ProgressCurve from="white" to="forest" />
+      <FooterTrail />
       <div className="glow-stats-media" aria-hidden={!image}>
         {image ? (
           <CmsImage
@@ -34,9 +35,9 @@ export function GlowStats({ image }: { image: string }) {
           </h2>
           <p className="glow-stats-lead">{GLOW_STATS_COPY}</p>
         </div>
-        <Link href={GLOW_STATS_CTA_HREF} className="glow-stats-cta">
+        <PillCta href={GLOW_STATS_CTA_HREF} className="glow-stats-cta">
           {GLOW_STATS_CTA}
-        </Link>
+        </PillCta>
       </div>
     </section>
   );

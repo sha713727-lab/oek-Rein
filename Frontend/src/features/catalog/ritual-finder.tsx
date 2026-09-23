@@ -31,7 +31,8 @@ export function RitualFinder() {
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    router.push(concern || routine);
+    const target = routine === "/collections/all" ? concern : routine;
+    router.push(target);
   };
 
   return (

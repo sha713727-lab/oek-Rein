@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 
 import {
+  brandName,
   brandStoryEnd,
   brandStoryLead,
   brandStoryMid,
@@ -9,13 +10,13 @@ import {
   brandStorySecondarySrc,
   footerStatementEnd,
   footerStatementLead,
-  brandName,
   heroHeadline,
   heroProductAlt,
   heroProductSrc,
   heroSupport,
   heroVideoSrc,
 } from "@/constants/brand";
+import { MEGA_FEATURED } from "@/constants/navigation-ia";
 import {
   AUTH_BANNERS,
   BEST_SELLERS,
@@ -78,6 +79,75 @@ export type StorefrontShopCategory = {
   hidden: boolean;
 };
 
+export const MEGA_MENU_IDS = ["navShop", "navCustom", "navDisciplines"] as const;
+export type MegaMenuId = (typeof MEGA_MENU_IDS)[number];
+
+export type StorefrontMegaCard = {
+  id: string;
+  label: string;
+  href: string;
+  image: string;
+};
+
+export type StorefrontMegaMenu = {
+  headline: string;
+  cards: StorefrontMegaCard[];
+};
+
+export type StorefrontCustomTackOption = {
+  id: string;
+  title: string;
+  description: string;
+  href: string;
+};
+
+export type StorefrontCustomTack = {
+  title: string;
+  titleAccent: string;
+  lead: string;
+  image: string;
+  ctaLabel: string;
+  ctaHref: string;
+  options: StorefrontCustomTackOption[];
+};
+
+export type StorefrontDisciplineItem = {
+  id: string;
+  title: string;
+  description: string;
+  href: string;
+  cta: string;
+};
+
+export type StorefrontDisciplinesSection = {
+  title: string;
+  titleMark: string;
+  support: string;
+  ctaLabel: string;
+  ctaHref: string;
+  items: StorefrontDisciplineItem[];
+};
+
+export type StorefrontRiderGalleryTone = "warm" | "mint" | "photo";
+
+export type StorefrontRiderGalleryItem = {
+  id: string;
+  src: string;
+  alt: string;
+  label: string;
+  href: string;
+  tone: StorefrontRiderGalleryTone;
+};
+
+export type StorefrontRiderGallery = {
+  title: string;
+  titleMark: string;
+  lead: string;
+  ctaLabel: string;
+  ctaHref: string;
+  items: StorefrontRiderGalleryItem[];
+};
+
 export const SHOP_CATEGORY_ICONS = ["saddle", "bridle", "halter", "leather", "horseshoe", "stitch"] as const;
 
 /** Orbit slots around the product-highlights hero (CSS modifiers keep legacy ids). */
@@ -96,7 +166,7 @@ export type StorefrontContent = {
   heroSupport: string;
   heroProductSrc: string;
   heroProductAlt: string;
-  /** Homepage hero cutout video (MP4/WEBM). */
+  /** Homepage hero cutout video (MP4/MOV/WEBM). */
   heroVideoSrc: string;
   brandStoryPrimarySrc: string;
   brandStorySecondarySrc: string;
@@ -134,6 +204,10 @@ export type StorefrontContent = {
   productCardColors: string[];
   navLinks: StorefrontNavLink[];
   shopCategories: StorefrontShopCategory[];
+  megaMenus: Record<MegaMenuId, StorefrontMegaMenu>;
+  customTack: StorefrontCustomTack;
+  disciplinesSection: StorefrontDisciplinesSection;
+  riderGallery: StorefrontRiderGallery;
 };
 
 export const DEFAULT_STOREFRONT_THEME: StorefrontTheme = {
@@ -213,6 +287,180 @@ export const DEFAULT_SHOP_CATEGORIES: StorefrontShopCategory[] = SHOP_RANGE_CATE
   hidden: false,
 }));
 
+const MEGA_IMAGE_BY_KEY: Record<string, string> = {
+  ...Object.fromEntries(DEFAULT_SHOP_CATEGORIES.map((item) => [item.id, item.image])),
+  ...Object.fromEntries(Object.entries(COLLECTION_HEROES).map(([key, value]) => [key, value.image])),
+  all: "/assets/images/western_floral_saddle.png",
+  bridles: "/assets/images/western_floral_bridle.png",
+  reins: "/assets/images/western_floral_halter.png",
+  saddles: "/assets/images/western_floral_saddle.png",
+};
+
+function megaImageForKey(imageKey: string): string {
+  return MEGA_IMAGE_BY_KEY[imageKey] || "/assets/images/western_floral_saddle.png";
+}
+
+export const DEFAULT_MEGA_MENUS: Record<MegaMenuId, StorefrontMegaMenu> = {
+  navShop: {
+    headline: MEGA_FEATURED.navShop!.headline,
+    cards: MEGA_FEATURED.navShop!.cards.map((card) => ({
+      id: card.id,
+      label: card.label,
+      href: card.href,
+      image: megaImageForKey(card.imageKey),
+    })),
+  },
+  navCustom: {
+    headline: MEGA_FEATURED.navCustom!.headline,
+    cards: MEGA_FEATURED.navCustom!.cards.map((card) => ({
+      id: card.id,
+      label: card.label,
+      href: card.href,
+      image: megaImageForKey(card.imageKey),
+    })),
+  },
+  navDisciplines: {
+    headline: MEGA_FEATURED.navDisciplines!.headline,
+    cards: MEGA_FEATURED.navDisciplines!.cards.map((card) => ({
+      id: card.id,
+      label: card.label,
+      href: card.href,
+      image: megaImageForKey(card.imageKey),
+    })),
+  },
+};
+
+export const DEFAULT_CUSTOM_TACK: StorefrontCustomTack = {
+  title: "Made for your ride.",
+  titleAccent: "Made your way.",
+  lead: "Choose your leather, colors, hardware, personalization and details. Our craftsmen create your tack to match your vision.",
+  image: "/assets/images/premium_saddle.png",
+  ctaLabel: "Start Customizing",
+  ctaHref: "/custom",
+  options: [
+    {
+      id: "colors",
+      title: "Custom Colors",
+      description: "Choose a leather color that reflects your style.",
+      href: "/custom/colors",
+    },
+    {
+      id: "engraving",
+      title: "Custom Engraving",
+      description: "Add personalized leather engraving and detailing.",
+      href: "/custom/engraving",
+    },
+    {
+      id: "name-logo",
+      title: "Name & Logo",
+      description: "Personalize your tack with a name, initials or logo.",
+      href: "/custom/personalization",
+    },
+    {
+      id: "matching",
+      title: "Matching Sets",
+      description: "Create a coordinated bridle, breast collar, reins and saddle pad.",
+      href: "/collections/complete-sets",
+    },
+  ],
+};
+
+export const DEFAULT_DISCIPLINES_SECTION: StorefrontDisciplinesSection = {
+  title: "Crafted for",
+  titleMark: "every ride",
+  support: "Purpose-focused tack for riders, schools and equestrian disciplines.",
+  ctaLabel: "Explore Disciplines",
+  ctaHref: "/disciplines",
+  items: [
+    {
+      id: "riding-schools",
+      title: "Riding Schools",
+      description: "Durable handcrafted tack for training environments and riding programs.",
+      href: "/disciplines/riding-schools",
+      cta: "Shop for Riding Schools",
+    },
+    {
+      id: "polo",
+      title: "Polo",
+      description: "Tack designed around the demands of fast-paced polo riding.",
+      href: "/disciplines/polo",
+      cta: "Shop Polo",
+    },
+    {
+      id: "tent-pegging",
+      title: "Tent Pegging",
+      description: "Specialized tack for traditional tent pegging and competitive riding.",
+      href: "/disciplines/tent-pegging",
+      cta: "Shop Tent Pegging",
+    },
+    {
+      id: "racing",
+      title: "Racing",
+      description: "Purpose-focused equipment for racing environments.",
+      href: "/disciplines/racing",
+      cta: "Shop Racing",
+    },
+  ],
+};
+
+export const DEFAULT_RIDER_GALLERY: StorefrontRiderGallery = {
+  title: "Seen in the",
+  titleMark: "saddle",
+  lead: `Real craftsmanship in the arena and on the trail — explore the pieces that define the ${brandName} look.`,
+  ctaLabel: "Shop the collection",
+  ctaHref: "/collections/all",
+  items: [
+    {
+      id: "saddle",
+      src: "/assets/images/western_floral_saddle.png",
+      alt: `${brandName} western floral saddle`,
+      label: "Western Floral Saddle",
+      href: "/collections/saddles",
+      tone: "warm",
+    },
+    {
+      id: "bridle",
+      src: "/assets/images/western_floral_bridle.png",
+      alt: `${brandName} western floral bridle`,
+      label: "Western Floral Bridle",
+      href: "/collections/bridles",
+      tone: "mint",
+    },
+    {
+      id: "lifestyle",
+      src: "/assets/images/saddle_hero.jpg",
+      alt: `${brandName} saddle in the field`,
+      label: "Built for the ride",
+      href: "/craftsmanship",
+      tone: "photo",
+    },
+    {
+      id: "halter",
+      src: "/assets/images/western_floral_halter.png",
+      alt: `${brandName} western floral halter`,
+      label: "Western Floral Halter",
+      href: "/collections/reins",
+      tone: "mint",
+    },
+    {
+      id: "sets",
+      src: "/assets/images/western_floral_new_arrivals.png",
+      alt: `${brandName} matching tack set`,
+      label: "Matching Sets",
+      href: "/collections/complete-sets",
+      tone: "warm",
+    },
+    {
+      id: "care",
+      src: "/assets/images/saddlera_leather_care.png",
+      alt: `${brandName} leather care`,
+      label: "Leather Care",
+      href: "/collections/all",
+      tone: "warm",
+    },
+  ],
+};
+
 export const DEFAULT_STOREFRONT_CONTENT: StorefrontContent = {
   heroHeadline,
   heroSupport,
@@ -244,7 +492,7 @@ export const DEFAULT_STOREFRONT_CONTENT: StorefrontContent = {
   socialInstagram: FOOTER_SOCIAL.find((item) => item.id === "instagram")?.href ?? "https://instagram.com/saddlera",
   socialPinterest: FOOTER_SOCIAL.find((item) => item.id === "pinterest")?.href ?? "https://pinterest.com/saddlera",
   aboutCopy:
-    "Saddlera is a premium handcrafted Pakistani leather equestrian brand for North America. From saddles and bridles to halters and leather care, every piece is built for riders who want honest materials, careful stitching, and gear that lasts.",
+    `${brandName} is a premium handcrafted Pakistani leather equestrian brand for North America. From saddles and bridles to halters and leather care, every piece is built for riders who want honest materials, careful stitching, and gear that lasts.`,
   contactLead:
     "Questions about an order, a fit, or shipping to the US or Canada? We are here to help.",
   supportPhone: SUPPORT_PHONE_LOCAL,
@@ -263,6 +511,10 @@ export const DEFAULT_STOREFRONT_CONTENT: StorefrontContent = {
   heroStageColor: DEFAULT_STOREFRONT_THEME.mint,
   productCardColors: [...PRODUCT_CARD_COATS],
   navLinks: DEFAULT_NAV_LINKS,
+  megaMenus: DEFAULT_MEGA_MENUS,
+  customTack: DEFAULT_CUSTOM_TACK,
+  disciplinesSection: DEFAULT_DISCIPLINES_SECTION,
+  riderGallery: DEFAULT_RIDER_GALLERY,
 };
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -292,7 +544,11 @@ function asAssetSrc(value: unknown, fallback: string): string {
 }
 
 function asBrandText(value: unknown, fallback: string): string {
-  return asStoredText(value, fallback).replace(/zermaé/gi, brandName).replace(/Saddlera/g, brandName).replace(/zermae/gi, brandName);
+  return asStoredText(value, fallback)
+    .replace(/zermaé/gi, brandName)
+    .replace(/zermae/gi, brandName)
+    .replace(/saddlera/gi, brandName)
+    .replace(/oak\s*&\s*rein/gi, brandName);
 }
 
 function asImageMap(value: unknown, fallback: Record<string, string>): Record<string, string> {
@@ -328,14 +584,6 @@ function asBool(value: unknown): boolean {
   return value === true || value === "on" || value === "true" || value === 1;
 }
 
-function asPath(value: unknown, fallback: string): string {
-  const text = String(value ?? "").trim();
-  if (!text.startsWith("/") || text.startsWith("//") || /[\s<>'"`]/.test(text)) {
-    return fallback;
-  }
-  return text.slice(0, 160);
-}
-
 function asIcon(value: unknown, fallback: string): string {
   const text = String(value ?? "").trim();
   return (SHOP_CATEGORY_ICONS as readonly string[]).includes(text) ? text : fallback;
@@ -348,27 +596,132 @@ function asNavLinks(value: unknown): StorefrontNavLink[] {
   const links = value.slice(0, 12).map((item, index) => {
     const record = asRecord(item);
     const fallback = DEFAULT_NAV_LINKS[index] ?? { id: `nav-${index + 1}`, label: "Shop", path: "/collections/all", hidden: false };
-    let id = asText(record.id, `${fallback.id}-${index + 1}`);
-    let label = asText(record.label, fallback.label);
-    let path = asPath(record.path, fallback.path);
-    if (id === "navHalters" || path === "/collections/halters" || label.toLowerCase() === "halters") {
-      id = "navReins";
-      label = "Reins";
-      path = "/collections/reins";
-    }
     return {
-      id,
-      label,
-      path,
+      id: asText(record.id, fallback.id),
+      label: asText(record.label, fallback.label),
+      path: asPath(record.path, fallback.path),
       hidden: asBool(record.hidden),
     };
   }).filter((item) => item.label && item.path);
 
-  // Prefer permanent default nav when CMS still has an outdated shorter set.
   if (links.length === 0) {
     return DEFAULT_NAV_LINKS;
   }
+
+  const LEGACY_NAV_IDS = new Set(["navNew", "navAll", "navSaddles", "navBridles", "navReins", "navCare", "navHalters"]);
+  const hasModernId = links.some((link) => DEFAULT_NAV_LINKS.some((item) => item.id === link.id));
+  const onlyLegacy = links.every((link) => LEGACY_NAV_IDS.has(link.id));
+  if (!hasModernId || onlyLegacy) {
+    return DEFAULT_NAV_LINKS;
+  }
+
   return links;
+}
+
+function asPath(value: unknown, fallback: string): string {
+  const text = String(value ?? "").trim();
+  if (!text) {
+    return fallback;
+  }
+  return text.startsWith("/") ? text : fallback;
+}
+
+function asMegaMenus(value: unknown): Record<MegaMenuId, StorefrontMegaMenu> {
+  const record = asRecord(value);
+  const next = { ...DEFAULT_MEGA_MENUS };
+  for (const id of MEGA_MENU_IDS) {
+    const fallback = DEFAULT_MEGA_MENUS[id];
+    const section = asRecord(record[id]);
+    const incomingCards = Array.isArray(section.cards) ? section.cards.map((item) => asRecord(item)) : [];
+    next[id] = {
+      headline: asStoredText(section.headline, fallback.headline),
+      cards: fallback.cards.map((card, index) => {
+        const raw = incomingCards[index] ?? {};
+        return {
+          id: asStoredText(raw.id, card.id) || card.id,
+          label: asStoredText(raw.label, card.label),
+          href: asPath(raw.href, card.href),
+          image: resolvePublicAssetSrc(asStoredText(raw.image, card.image) || card.image),
+        };
+      }),
+    };
+  }
+  return next;
+}
+
+function asCustomTack(value: unknown): StorefrontCustomTack {
+  const record = asRecord(value);
+  const fallback = DEFAULT_CUSTOM_TACK;
+  const incoming = Array.isArray(record.options) ? record.options.map((item) => asRecord(item)) : [];
+  return {
+    title: asStoredText(record.title, fallback.title),
+    titleAccent: asStoredText(record.titleAccent, fallback.titleAccent),
+    lead: asStoredText(record.lead, fallback.lead),
+    image: resolvePublicAssetSrc(asStoredText(record.image, fallback.image) || fallback.image),
+    ctaLabel: asStoredText(record.ctaLabel, fallback.ctaLabel),
+    ctaHref: asPath(record.ctaHref, fallback.ctaHref),
+    options: fallback.options.map((option, index) => {
+      const raw = incoming[index] ?? {};
+      return {
+        id: asStoredText(raw.id, option.id) || option.id,
+        title: asStoredText(raw.title, option.title),
+        description: asStoredText(raw.description, option.description),
+        href: asPath(raw.href, option.href),
+      };
+    }),
+  };
+}
+
+function asDisciplinesSection(value: unknown): StorefrontDisciplinesSection {
+  const record = asRecord(value);
+  const fallback = DEFAULT_DISCIPLINES_SECTION;
+  const incoming = Array.isArray(record.items) ? record.items.map((item) => asRecord(item)) : [];
+  return {
+    title: asStoredText(record.title, fallback.title),
+    titleMark: asStoredText(record.titleMark, fallback.titleMark),
+    support: asStoredText(record.support, fallback.support),
+    ctaLabel: asStoredText(record.ctaLabel, fallback.ctaLabel),
+    ctaHref: asPath(record.ctaHref, fallback.ctaHref),
+    items: fallback.items.map((item, index) => {
+      const raw = incoming[index] ?? {};
+      return {
+        id: asStoredText(raw.id, item.id) || item.id,
+        title: asStoredText(raw.title, item.title),
+        description: asStoredText(raw.description, item.description),
+        href: asPath(raw.href, item.href),
+        cta: asStoredText(raw.cta, item.cta),
+      };
+    }),
+  };
+}
+
+function asRiderTone(value: unknown, fallback: StorefrontRiderGalleryTone): StorefrontRiderGalleryTone {
+  const text = String(value ?? "").trim();
+  return text === "warm" || text === "mint" || text === "photo" ? text : fallback;
+}
+
+function asRiderGallery(value: unknown): StorefrontRiderGallery {
+  const record = asRecord(value);
+  const fallback = DEFAULT_RIDER_GALLERY;
+  const incoming = Array.isArray(record.items) ? record.items.map((item) => asRecord(item)) : [];
+  return {
+    title: asStoredText(record.title, fallback.title),
+    titleMark: asStoredText(record.titleMark, fallback.titleMark),
+    lead: asStoredText(record.lead, fallback.lead),
+    ctaLabel: asStoredText(record.ctaLabel, fallback.ctaLabel),
+    ctaHref: asPath(record.ctaHref, fallback.ctaHref),
+    items: fallback.items.map((item, index) => {
+      const raw = incoming[index] ?? {};
+      return {
+        id: asStoredText(raw.id, item.id) || item.id,
+        src: resolvePublicAssetSrc(asStoredText(raw.src, item.src) || item.src),
+        alt: asStoredText(raw.alt, item.alt),
+        label: asStoredText(raw.label, item.label),
+        href: asPath(raw.href, item.href),
+        tone: asRiderTone(raw.tone, item.tone),
+      };
+    }),
+  };
 }
 
 function asShopCategories(
@@ -463,10 +816,10 @@ function asFaqItems(value: unknown): StorefrontFaqItem[] {
       };
     })
     .filter((item) => item.question && item.answer)
-    .slice(0, 8);
+    .slice(0, 16);
 
   // Prefer canonical default FAQ set when CMS has stale/duplicate entries from older publishes.
-  if (items.length === 0) {
+  if (items.length === 0 || items.length < fallback.length) {
     return fallback;
   }
   return items;
@@ -574,6 +927,10 @@ export function resolveStorefrontContent(raw: unknown): StorefrontContent {
     bestSellerColors: asHexList(record.bestSellerColors, DEFAULT_STOREFRONT_CONTENT.bestSellerColors),
     heroStageColor: asHex(record.heroStageColor, DEFAULT_STOREFRONT_CONTENT.heroStageColor),
     productCardColors: asHexList(record.productCardColors, DEFAULT_STOREFRONT_CONTENT.productCardColors),
+    megaMenus: asMegaMenus(record.megaMenus),
+    customTack: asCustomTack(record.customTack),
+    disciplinesSection: asDisciplinesSection(record.disciplinesSection),
+    riderGallery: asRiderGallery(record.riderGallery),
   };
 }
 
@@ -600,15 +957,37 @@ export function visibleShopCategories(content: StorefrontContent): StorefrontSho
 export function resolveNavImages(content: StorefrontContent): Record<string, { src: string; tone: "blush" | "mint" }> {
   const next: Record<string, { src: string; tone: "blush" | "mint" }> = {};
   const olive = DEFAULT_STOREFRONT_THEME.mint.toLowerCase();
+
+  const put = (key: string, src: string, color?: string) => {
+    if (!key || !src || next[key]?.src) {
+      return;
+    }
+    const toneColor = (color || DEFAULT_STOREFRONT_THEME.blush).toLowerCase();
+    next[key] = {
+      src,
+      tone: toneColor === olive ? "mint" : "blush",
+    };
+  };
+
   for (const link of content.navLinks) {
     const slug = link.path.replace(/^\/collections\//, "").replace(/^\//, "");
     const category = content.shopCategories.find((item) => item.id === slug || item.href === link.path);
     const src = category?.image || content.shopImages[slug] || content.collectionImages[slug] || "";
-    const color = (category?.color || content.shopCardColors[slug] || DEFAULT_STOREFRONT_THEME.blush).toLowerCase();
-    next[link.id] = {
-      src,
-      tone: color === olive ? "mint" : "blush",
-    };
+    const color = category?.color || content.shopCardColors[slug] || DEFAULT_STOREFRONT_THEME.blush;
+    put(link.id, src, color);
   }
+
+  for (const category of content.shopCategories) {
+    put(category.id, category.image, category.color);
+  }
+
+  for (const [slug, src] of Object.entries(content.shopImages)) {
+    put(slug, src, content.shopCardColors[slug]);
+  }
+
+  for (const [slug, src] of Object.entries(content.collectionImages)) {
+    put(slug, src);
+  }
+
   return next;
 }

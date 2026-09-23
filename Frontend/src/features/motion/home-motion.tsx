@@ -2,86 +2,46 @@
 
 import { useEffect } from "react";
 
-/** Section-level reveals only — avoids animating dozens of cards at once. */
-const REVEAL_SELECTORS = [
-  ".ritual-finder",
-  ".shop-range",
-  ".best-sellers",
-  ".product-highlights",
-  ".brand-story",
-  ".features-section",
-  ".home-testimonials",
-  ".home-faq",
-  ".glow-stats",
-].join(", ");
+import { useCardEntrances } from "@/features/motion/card-entrances";
+import { useDrawAndParallax } from "@/features/motion/draw-parallax";
+import { useHeadingReveals } from "@/features/motion/heading-reveals";
+import { useHeroMotion } from "@/features/motion/hero-motion";
+import { prefersReducedMotion, registerGsapPlugins, ScrollTrigger } from "@/features/motion/motion-config";
 
 /**
- * Lightweight homepage motion: one-shot section fade-ups + hero entrance.
- * No continuous scroll-linked transforms (those felt laggy with Lenis).
+ * Homepage motion orchestrator — mounts GSAP scenes once on .home-flow.
  */
 export function HomeMotion() {
-  useEffect(() => {
-    const root = document.querySelector(".home-flow");
-    if (!(root instanceof HTMLElement)) {
-      return;
-    }
+  useHeroMotion();
+  useHeadingReveals();
+  useDrawAndParallax();
+  useCardEntrances();
 
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  useEffect(() => {
+    registerGsapPlugins();
     document.documentElement.classList.add("home-motion-ready");
 
-    if (reduced) {
-      root.querySelectorAll(REVEAL_SELECTORS).forEach((node) => {
-        node.classList.add("is-revealed");
-      });
+    const root = document.querySelector(".home-flow");
+    if (root instanceof HTMLElement && prefersReducedMotion()) {
       root.classList.add("is-hero-ready");
-      return;
     }
 
-    const heroReady = window.setTimeout(() => {
-      root.classList.add("is-hero-ready");
-    }, 40);
+    const refresh = () => ScrollTrigger.refresh();
+    void document.fonts?.ready.then(refresh);
+    window.addEventListener("load", refresh);
 
-    const revealNodes = [...root.querySelectorAll(REVEAL_SELECTORS)];
-    revealNodes.forEach((node) => node.classList.add("home-reveal"));
-
-    let observer: IntersectionObserver | null = null;
-
-    const markRevealed = (node: Element) => {
-      node.classList.add("is-revealed");
-      observer?.unobserve(node);
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const onReduced = () => {
+      refresh();
+      if (reduced.matches && root instanceof HTMLElement) {
+        root.classList.add("is-hero-ready");
+      }
     };
-
-    const isPastFold = (node: Element) => node.getBoundingClientRect().top < window.innerHeight * 0.92;
-
-    observer =
-      typeof IntersectionObserver === "undefined"
-        ? null
-        : new IntersectionObserver(
-            (entries) => {
-              for (const entry of entries) {
-                if (entry.isIntersecting || entry.boundingClientRect.top < window.innerHeight) {
-                  markRevealed(entry.target);
-                }
-              }
-            },
-            { threshold: 0.1, rootMargin: "0px 0px -6% 0px" },
-          );
-
-    if (observer) {
-      revealNodes.forEach((node) => {
-        if (isPastFold(node)) {
-          markRevealed(node);
-          return;
-        }
-        observer?.observe(node);
-      });
-    } else {
-      revealNodes.forEach((node) => node.classList.add("is-revealed"));
-    }
+    reduced.addEventListener("change", onReduced);
 
     return () => {
-      window.clearTimeout(heroReady);
-      observer?.disconnect();
+      window.removeEventListener("load", refresh);
+      reduced.removeEventListener("change", onReduced);
       document.documentElement.classList.remove("home-motion-ready");
     };
   }, []);

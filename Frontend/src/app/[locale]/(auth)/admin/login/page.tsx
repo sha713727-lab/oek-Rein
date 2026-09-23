@@ -13,9 +13,17 @@ export default async function AdminLoginPage() {
     redirect("/admin");
   }
   const storefront = await getStorefront();
+  const seedHint =
+    process.env.NODE_ENV === "development"
+      ? {
+          email: process.env.SEED_ADMIN_EMAIL ?? "admin@example.com",
+          password: process.env.SEED_ADMIN_PASSWORD ?? "ChangeMeAdmin123!",
+          passcode: process.env.ADMIN_PASSCODE ?? "1234",
+        }
+      : undefined;
   return (
     <AuthPageFrame image={storefront.content.authAdminSrc} imageAlt={AUTH_BANNERS.adminLogin.alt}>
-      <AdminLoginForm />
+      <AdminLoginForm seedHint={seedHint} />
     </AuthPageFrame>
   );
 }

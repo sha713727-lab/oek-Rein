@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { brandName } from "@/constants/brand";
 import { CATEGORY_LABELS, getCategoryPath } from "@/constants/catalog";
 import { productImageUrls, toCatalogProduct } from "@/features/catalog/map-product";
 import { ProductBuyBox } from "@/features/catalog/product-buy-box";
@@ -58,7 +59,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               id: product.id,
               title: product.title,
               sku: product.sku,
-              category: CATEGORY_LABELS[category] ?? "Saddlera",
+              category: CATEGORY_LABELS[category] ?? brandName,
               intro: product.description.intro,
               volume: product.specifications.includes,
               price: product.effectivePrice,

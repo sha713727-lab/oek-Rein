@@ -36,8 +36,8 @@ function StitchCluster({ className }: { className: string }) {
 export function BrandStory({ content }: { content: StorefrontContent }) {
   return (
     <section className="brand-story" aria-labelledby="brand-story-title">
-      <StoryBotanical className="brand-story-vine brand-story-vine--tl" />
-      <StoryBotanical className="brand-story-vine brand-story-vine--br" />
+      <StoryBotanical className="brand-story-vine brand-story-vine--tl vd-parallax-a" />
+      <StoryBotanical className="brand-story-vine brand-story-vine--br vd-parallax-c" />
       <div className="brand-story-shell">
         <figure className="brand-story-still">
           <span className="brand-story-still-orb" aria-hidden="true" />

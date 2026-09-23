@@ -12,9 +12,13 @@ type LoginState = {
   challengeId?: string | undefined;
 };
 
-export function AdminLoginForm() {
+export function AdminLoginForm({
+  seedHint,
+}: {
+  seedHint?: { email: string; password: string; passcode: string } | undefined;
+}) {
   const [challengeId, setChallengeId] = useState<string | undefined>();
-  const [loginState, loginFormAction] = useActionState(async (_prev: LoginState, formData: FormData) => {
+  const [loginState, loginFormAction, loginPending] = useActionState(async (_prev: LoginState, formData: FormData) => {
     const result = await adminLoginAction(formData);
     if (result.challengeId) {
       setChallengeId(result.challengeId);
@@ -40,7 +44,15 @@ export function AdminLoginForm() {
         <form className="auth-form" action={loginFormAction}>
           <label className="auth-field">
             <span className="sr-only">Email</span>
-            <input type="email" name="email" required className="auth-input" placeholder="Email Address" />
+            <input
+              type="email"
+              name="email"
+              required
+              className="auth-input"
+              placeholder="Email Address"
+              defaultValue={seedHint?.email}
+              disabled={loginPending}
+            />
           </label>
           <PasswordField name="password" label="Password" placeholder="Password" autoComplete="current-password" />
           <div className="auth-form-password-meta">
@@ -48,9 +60,18 @@ export function AdminLoginForm() {
               Forgot password?
             </Link>
           </div>
-          {loginState.error ? <p className="auth-form-error">{loginState.error}</p> : null}
-          <button type="submit" className="auth-btn auth-btn-primary luxury-button-solid">
-            Continue
+          {loginState.error ? (
+            <p className="auth-form-error" role="alert">
+              {loginState.error}
+            </p>
+          ) : null}
+          {seedHint ? (
+            <p className="admin-login-seed">
+              Local admin: {seedHint.email} / {seedHint.password} · passcode {seedHint.passcode}
+            </p>
+          ) : null}
+          <button type="submit" className="auth-btn auth-btn-primary luxury-button-solid" disabled={loginPending}>
+            {loginPending ? "Checking…" : "Continue"}
           </button>
         </form>
       </div>

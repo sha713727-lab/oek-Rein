@@ -72,6 +72,7 @@ export function RibbonMarquee({
 
   useEffect(() => {
     let cancelled = false;
+    const root = textPathRef.current?.ownerSVGElement?.closest(".ribbon-marquee") as HTMLElement | null;
 
     const run = () => {
       const textPath = textPathRef.current;
@@ -88,28 +89,58 @@ export function RibbonMarquee({
         return;
       }
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const speed = reducedMotion ? 0.028 : 0.052;
+      if (reducedMotion) {
+        textPath.setAttribute("startOffset", "0");
+        return;
+      }
+      const speed = 0.052;
       let offset = 0;
       let last = performance.now();
+      let visible = true;
+
       const tick = (now: number) => {
-        const delta = Math.min(now - last, 32);
-        last = now;
-        offset = (offset + delta * speed) % unit;
-        textPath.setAttribute("startOffset", String(offset - unit));
+        if (cancelled) return;
+        if (visible) {
+          const delta = Math.min(now - last, 32);
+          last = now;
+          offset = (offset + delta * speed) % unit;
+          textPath.setAttribute("startOffset", String(offset - unit));
+        } else {
+          last = now;
+        }
         frameRef.current = window.requestAnimationFrame(tick);
       };
+
+      const io =
+        root &&
+        new IntersectionObserver(
+          (entries) => {
+            visible = entries.some((entry) => entry.isIntersecting);
+          },
+          { rootMargin: "120px 0px", threshold: 0 },
+        );
+      if (root && io) {
+        io.observe(root);
+      }
+
       frameRef.current = window.requestAnimationFrame(tick);
+
+      return () => {
+        io?.disconnect();
+      };
     };
 
+    let stopIo: (() => void) | undefined;
     const fontsReady = document.fonts ? document.fonts.ready : Promise.resolve();
     void fontsReady.then(() => {
       if (!cancelled) {
-        run();
+        stopIo = run() ?? undefined;
       }
     });
 
     return () => {
       cancelled = true;
+      stopIo?.();
       window.cancelAnimationFrame(frameRef.current);
     };
   }, []);
@@ -122,11 +153,14 @@ export function RibbonMarquee({
       <svg className="ribbon-marquee-svg" viewBox="0 0 1440 160">
         <path className="ribbon-marquee-band" d={WAVE_GUIDE} />
         <path id={pathId} className="ribbon-marquee-guide" d={WAVE_GUIDE} />
-        <text className="ribbon-marquee-type" dominantBaseline="middle">
-          <textPath href={`#${pathId}`} startOffset="0" ref={textPathRef}>
-            {copy}
-          </textPath>
-        </text>
+        {/* Isolate type so multiply on the band doesn’t muddy the lime text. */}
+        <g className="ribbon-marquee-type-layer">
+          <text className="ribbon-marquee-type" dominantBaseline="middle">
+            <textPath href={`#${pathId}`} startOffset="0" ref={textPathRef}>
+              {copy}
+            </textPath>
+          </text>
+        </g>
       </svg>
     </div>
   );

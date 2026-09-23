@@ -37,5 +37,6 @@ export function resolveBestSellers(
       color: resolveHorseCoatColor(matched.tileColor || colors[index] || fallback, fallback),
       wished: wishlistIds.includes(matched.id),
     };
-  }).filter((item) => item.productId.length > 0 && item.image.length > 0);
+  }).filter((item) => item.productId.length > 0 && item.image.length > 0)
+    .slice(0, 3);
 }

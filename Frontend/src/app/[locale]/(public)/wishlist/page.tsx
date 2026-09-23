@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { brandName } from "@/constants/brand";
 import { toCatalogProduct } from "@/features/catalog/map-product";
 import { ProductGrid } from "@/features/catalog/product-grid";
 import { productService } from "@/lib/api/products";
@@ -23,7 +24,7 @@ export default async function WishlistPage() {
             <span className="wishlist-eyebrow">Your Collection</span>
             <h1 className="wishlist-title">Saved Gear You Love</h1>
             <p className="wishlist-description">
-              Keep the Saddlera products you want to return to — saddles, bridles, halters, and leather care, saved in one calm
+              Keep the {brandName} products you want to return to — saddles, bridles, halters, and leather care, saved in one calm
               favorites list.
             </p>
             <div className="wishlist-actions">

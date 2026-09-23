@@ -2,45 +2,18 @@
   position: relative;
   z-index: 1;
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  align-items: stretch;
   min-height: min(78vh, 42rem);
   padding: 0;
   overflow: visible;
-  background: var(--vd-footer);
-}
-
-.glow-stats-curves {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  pointer-events: none;
-  overflow: visible;
-}
-
-.glow-stats-scroll-curve {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 100vw;
-  height: clamp(6.5rem, 16vw, 12rem);
-  transform: translateX(-50%) translateY(-38%);
-  display: block;
-  overflow: visible;
-}
-
-.glow-stats-scroll-curve-fill {
-  fill: #ffffff;
-}
-
-@media (max-width: 768px) {
-  .glow-stats-scroll-curve {
-    height: clamp(4.5rem, 18vw, 7.5rem);
-  }
+  background: var(--vd-footer, #204e4a);
 }
 
 .glow-stats-media {
   position: absolute;
   inset: 0;
+  z-index: 0;
   overflow: hidden;
   border-radius: 0;
 }
@@ -53,7 +26,7 @@
 .glow-stats-veil {
   position: absolute;
   inset: 0;
-  background: linear-gradient(rgba(74, 34, 25, 0) 0%, var(--vd-footer) 100%);
+  background: linear-gradient(rgba(74, 34, 25, 0) 0%, var(--vd-footer, #204e4a) 100%);
 }
 
 .glow-stats-inner {
@@ -65,7 +38,7 @@
   justify-content: space-between;
   gap: 1.5rem 2rem;
   width: 100%;
-  margin: 0 auto;
+  margin: auto auto 0;
   max-width: 1080px;
   padding: 3.5rem 1.5rem 3.35rem;
 }

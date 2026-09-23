@@ -2,42 +2,11 @@
 
 .home-testimonials {
   position: relative;
-  /* Above FAQ so the cream scoop can paint into the white band. */
   z-index: 2;
-  padding: clamp(3.75rem, 8vw, 6rem) 0 clamp(4.25rem, 8vw, 5.75rem);
+  padding: 0;
   overflow: visible;
   background: var(--vd-cream);
   color: var(--vd-green);
-}
-
-.home-testimonials-curves {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  overflow: visible;
-}
-
-.home-testimonials-scroll-curve {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  width: 100vw;
-  height: clamp(6.25rem, 15vw, 11rem);
-  transform: translateX(-50%) translateY(58%);
-  display: block;
-  overflow: visible;
-}
-
-.home-testimonials-scroll-curve-fill {
-  fill: var(--vd-cream);
-}
-
-@media (max-width: 768px) {
-  .home-testimonials-scroll-curve {
-    height: clamp(4.75rem, 18vw, 7.5rem);
-    transform: translateX(-50%) translateY(52%);
-  }
 }
 
 .home-testimonials-intro {
@@ -49,8 +18,9 @@
   margin: 0 auto 2.75rem;
   max-width: 54rem;
   min-height: clamp(16rem, 36vw, 22rem);
-  padding: 0 1.5rem 2.5rem;
+  padding: clamp(2.75rem, 6vw, 4.5rem) 1.5rem 2.5rem;
   text-align: center;
+  overflow: visible;
 }
 
 .home-testimonials-badge {
@@ -117,16 +87,18 @@
   }
 }
 
-/* Ribbon sash — sits behind copy, dipping under the headline. */
+/* Ribbon sash — full-bleed behind the headline; round caps must stay unclipped. */
 .home-testimonials-ribbon {
   position: absolute;
-  left: -18%;
-  right: -18%;
-  top: 48%;
+  left: 50%;
+  top: 42%;
   z-index: 0;
-  height: clamp(10rem, 24vw, 15rem);
+  width: 100vw;
+  height: clamp(9.5rem, 22vw, 14rem);
+  transform: translateX(-50%);
   pointer-events: none;
   opacity: 0.98;
+  overflow: visible;
 }
 
 .home-testimonials-ribbon-svg {
@@ -146,10 +118,12 @@
 .home-testimonials-ribbon-type {
   fill: var(--vd-ribbon-text);
   font-family: var(--vd-font);
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  dominant-baseline: central;
+  alignment-baseline: central;
 }
 
 /* —— Carousel —— */
@@ -323,7 +297,7 @@
 .home-testimonials-summary {
   margin: 2.25rem auto 0;
   max-width: 28rem;
-  padding: 0 1.5rem;
+  padding: 0 1.5rem clamp(2.75rem, 6vw, 4.5rem);
   text-align: center;
 }
 

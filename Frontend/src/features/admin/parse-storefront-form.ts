@@ -1,6 +1,12 @@
 import { type CommerceSettings, DEFAULT_COMMERCE_SETTINGS, resolveCommerceSettings } from "@/constants/commerce";
 import {
+  DEFAULT_CUSTOM_TACK,
+  DEFAULT_DISCIPLINES_SECTION,
+  DEFAULT_MEGA_MENUS,
+  DEFAULT_RIDER_GALLERY,
   DEFAULT_STOREFRONT_CONTENT,
+  MEGA_MENU_IDS,
+  type MegaMenuId,
   resolveStorefrontContent,
   resolveStorefrontTheme,
   type StorefrontContent,
@@ -22,6 +28,9 @@ export type StorefrontFormImages = {
   authAdminSrc: string;
   categoryImages: string[];
   collectionImages: Record<string, string>;
+  customTackImage: string;
+  megaCardImages: Record<MegaMenuId, string[]>;
+  riderGalleryImages: string[];
 };
 
 export type StorefrontPublishPayload = {
@@ -86,6 +95,72 @@ export function storefrontPublishFromForm(formData: FormData, images: Storefront
     path: String(formData.get(`navPath_${index}`) ?? "/collections/all"),
     hidden: formData.get(`navHidden_${index}`) === "on",
   }));
+
+  const megaMenus = Object.fromEntries(
+    MEGA_MENU_IDS.map((menuId) => {
+      const fallback = DEFAULT_MEGA_MENUS[menuId];
+      const cards = fallback.cards.map((card, index) => ({
+        id: String(formData.get(`megaCardId_${menuId}_${index}`) ?? card.id),
+        label: String(formData.get(`megaCardLabel_${menuId}_${index}`) ?? card.label),
+        href: String(formData.get(`megaCardHref_${menuId}_${index}`) ?? card.href),
+        image: images.megaCardImages[menuId]?.[index] ?? card.image,
+      }));
+      return [
+        menuId,
+        {
+          headline: String(formData.get(`megaHeadline_${menuId}`) ?? fallback.headline),
+          cards,
+        },
+      ];
+    }),
+  ) as StorefrontContent["megaMenus"];
+
+  const customTack = {
+    title: String(formData.get("customTackTitle") ?? DEFAULT_CUSTOM_TACK.title),
+    titleAccent: String(formData.get("customTackTitleAccent") ?? DEFAULT_CUSTOM_TACK.titleAccent),
+    lead: String(formData.get("customTackLead") ?? DEFAULT_CUSTOM_TACK.lead),
+    image: images.customTackImage || DEFAULT_CUSTOM_TACK.image,
+    ctaLabel: String(formData.get("customTackCtaLabel") ?? DEFAULT_CUSTOM_TACK.ctaLabel),
+    ctaHref: String(formData.get("customTackCtaHref") ?? DEFAULT_CUSTOM_TACK.ctaHref),
+    options: DEFAULT_CUSTOM_TACK.options.map((option, index) => ({
+      id: String(formData.get(`customTackOptionId_${index}`) ?? option.id),
+      title: String(formData.get(`customTackOptionTitle_${index}`) ?? option.title),
+      description: String(formData.get(`customTackOptionDescription_${index}`) ?? option.description),
+      href: String(formData.get(`customTackOptionHref_${index}`) ?? option.href),
+    })),
+  };
+
+  const disciplinesSection = {
+    title: String(formData.get("disciplinesTitle") ?? DEFAULT_DISCIPLINES_SECTION.title),
+    titleMark: String(formData.get("disciplinesTitleMark") ?? DEFAULT_DISCIPLINES_SECTION.titleMark),
+    support: String(formData.get("disciplinesSupport") ?? DEFAULT_DISCIPLINES_SECTION.support),
+    ctaLabel: String(formData.get("disciplinesCtaLabel") ?? DEFAULT_DISCIPLINES_SECTION.ctaLabel),
+    ctaHref: String(formData.get("disciplinesCtaHref") ?? DEFAULT_DISCIPLINES_SECTION.ctaHref),
+    items: DEFAULT_DISCIPLINES_SECTION.items.map((item, index) => ({
+      id: String(formData.get(`disciplineItemId_${index}`) ?? item.id),
+      title: String(formData.get(`disciplineItemTitle_${index}`) ?? item.title),
+      description: String(formData.get(`disciplineItemDescription_${index}`) ?? item.description),
+      href: String(formData.get(`disciplineItemHref_${index}`) ?? item.href),
+      cta: String(formData.get(`disciplineItemCta_${index}`) ?? item.cta),
+    })),
+  };
+
+  const riderGallery = {
+    title: String(formData.get("riderGalleryTitle") ?? DEFAULT_RIDER_GALLERY.title),
+    titleMark: String(formData.get("riderGalleryTitleMark") ?? DEFAULT_RIDER_GALLERY.titleMark),
+    lead: String(formData.get("riderGalleryLead") ?? DEFAULT_RIDER_GALLERY.lead),
+    ctaLabel: String(formData.get("riderGalleryCtaLabel") ?? DEFAULT_RIDER_GALLERY.ctaLabel),
+    ctaHref: String(formData.get("riderGalleryCtaHref") ?? DEFAULT_RIDER_GALLERY.ctaHref),
+    items: DEFAULT_RIDER_GALLERY.items.map((item, index) => ({
+      id: String(formData.get(`riderGalleryItemId_${index}`) ?? item.id),
+      src: images.riderGalleryImages[index] ?? item.src,
+      alt: String(formData.get(`riderGalleryItemAlt_${index}`) ?? item.alt),
+      label: String(formData.get(`riderGalleryItemLabel_${index}`) ?? item.label),
+      href: String(formData.get(`riderGalleryItemHref_${index}`) ?? item.href),
+      tone: String(formData.get(`riderGalleryItemTone_${index}`) ?? item.tone) as (typeof item)["tone"],
+    })),
+  };
+
   return {
     theme,
     commerce: resolveCommerceSettings({
@@ -139,6 +214,10 @@ export function storefrontPublishFromForm(formData: FormData, images: Storefront
         formData.get("productCardColor2"),
         formData.get("productCardColor3"),
       ],
+      megaMenus,
+      customTack,
+      disciplinesSection,
+      riderGallery,
     }),
   };
 }

@@ -127,7 +127,18 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
     }
     sendJson(res, req.method === "POST" ? status : 200, { data }, extraHeaders);
   } catch (error) {
-    logger.error({ err: error instanceof Error ? error.message : "error", correlationId, path: url.pathname }, "API request failed");
+    const status = error instanceof AppError ? error.statusCode : 500;
+    const payload = {
+      err: error instanceof Error ? error.message : "error",
+      correlationId,
+      path: url.pathname,
+      status,
+    };
+    if (status >= 500) {
+      logger.error(payload, "API request failed");
+    } else {
+      logger.info(payload, "API request rejected");
+    }
     sendError(res, error, correlationId);
   }
 }

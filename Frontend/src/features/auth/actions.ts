@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { sessionCookieName } from "@/constants/cookies";
 import { authApi } from "@/lib/api/auth";
 import { mergeAccountBag } from "@/lib/cart-cookie";
+import { isNextNavigationError } from "@/lib/navigation-error";
 import { parseSchema } from "@/lib/parse-schema";
 import { forgotPasswordSchema, loginSchema, registerSchema, resetPasswordSchema } from "@/schemas/auth";
 
@@ -20,7 +21,11 @@ export async function registerAction(formData: FormData): Promise<{ error?: stri
     });
     await authApi.register(parsed);
     await mergeAccountBag();
+    revalidatePath("/", "layout");
   } catch (error) {
+    if (isNextNavigationError(error)) {
+      throw error;
+    }
     return { error: error instanceof Error ? error.message : "Unable to register" };
   }
   redirect("/account");
@@ -34,7 +39,11 @@ export async function loginAction(formData: FormData): Promise<{ error?: string 
     });
     await authApi.login(parsed);
     await mergeAccountBag();
+    revalidatePath("/", "layout");
   } catch (error) {
+    if (isNextNavigationError(error)) {
+      throw error;
+    }
     return { error: error instanceof Error ? error.message : "Unable to sign in" };
   }
   redirect("/account");
@@ -47,7 +56,7 @@ export async function logoutAction(): Promise<void> {
     const store = await cookies();
     store.delete(sessionCookieName);
   }
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   redirect("/");
 }
 
@@ -74,6 +83,9 @@ export async function resetPasswordAction(formData: FormData): Promise<{ error?:
     });
     await authApi.reset(parsed);
   } catch (error) {
+    if (isNextNavigationError(error)) {
+      throw error;
+    }
     return { error: error instanceof Error ? error.message : "Unable to update password" };
   }
   redirect("/login");

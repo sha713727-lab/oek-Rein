@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { brandName } from "@/constants/brand";
 import { calculateOrderTotals, getFreeShippingNote } from "@/constants/commerce";
 import { formatMoney } from "@/constants/storefront";
 import { CheckoutForm } from "@/features/checkout/checkout-form";
@@ -44,7 +45,7 @@ export default async function CheckoutPage() {
         <header className="section-intro checkout-intro">
           <span className="section-intro-eyebrow">Checkout</span>
           <h1 className="section-intro-title">Complete Your Order</h1>
-          <p className="section-intro-description">Enter your details to finalize your Saddlera order.</p>
+          <p className="section-intro-description">Enter your details to finalize your {brandName} order.</p>
         </header>
         <div className="checkout-layout">
           <CheckoutForm

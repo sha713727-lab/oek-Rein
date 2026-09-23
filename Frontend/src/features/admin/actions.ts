@@ -1,10 +1,10 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { sessionCookieName } from "@/constants/cookies";
 import { authApi } from "@/lib/api/auth";
+import { isNextNavigationError } from "@/lib/navigation-error";
 import { parseSchema } from "@/lib/parse-schema";
 import { adminVerifyPasscodeSchema, loginSchema } from "@/schemas/auth";
 
@@ -29,13 +29,16 @@ export async function adminVerifyAction(formData: FormData): Promise<{ error?: s
       challengeId: String(formData.get("challengeId") ?? ""),
       otp: String(formData.get("otp") ?? ""),
     });
-    await authApi.adminVerify(parsed);
+    const result = await authApi.adminVerify(parsed);
+    if (!result.user?.id) {
+      return { error: "Unable to start admin session" };
+    }
+    revalidatePath("/", "layout");
   } catch (error) {
+    if (isNextNavigationError(error)) {
+      throw error;
+    }
     return { error: error instanceof Error ? error.message : "Invalid passcode" };
-  }
-  const store = await cookies();
-  if (!store.get(sessionCookieName)?.value) {
-    return { error: "Unable to start admin session" };
   }
   redirect("/admin");
 }

@@ -7,9 +7,9 @@ import {
   PRODUCT_HIGHLIGHTS_FLOAT_SLOTS,
   type ProductHighlightsFloatId,
 } from "@/constants/storefront";
-import { HighlightCurves } from "@/features/catalog/highlight-curves";
 import { HighlightRibbons } from "@/features/catalog/highlight-ribbons";
 import { CmsImage } from "@/features/media/cms-image";
+import { ProgressCurve } from "@/features/motion/progress-curve";
 
 type IconProps = { className?: string | undefined };
 
@@ -80,7 +80,7 @@ export function ProductHighlights({
 }) {
   return (
     <section className="product-highlights" aria-labelledby="product-highlights-title">
-      <HighlightCurves />
+      <ProgressCurve from="white" to="cream" />
       <HighlightBotanical className="product-highlights-vine" />
       <div className="product-highlights-inner">
         <h2 id="product-highlights-title" className="product-highlights-title">
@@ -136,6 +136,7 @@ export function ProductHighlights({
           })}
         </div>
       </div>
+      <ProgressCurve from="cream" to="white" />
     </section>
   );
 }

@@ -2,35 +2,27 @@ import Link from "next/link";
 import type { ComponentType } from "react";
 
 import {
-  IconArrowRight,
-  IconBridle,
-  IconHalter,
   IconHorse,
   IconHorseshoe,
   IconLeather,
-  IconSaddle,
   IconShield,
   IconStitch,
 } from "@/components/icons/icons";
 import {
+  SHOP_RANGE_CATEGORIES,
   SHOP_RANGE_SIGNATURE,
   SHOP_RANGE_SUPPORT,
+  SHOP_RANGE_TITLE,
   SHOP_RANGE_TRUST,
 } from "@/constants/site";
-import { PRODUCT_CARD_COATS, type StorefrontShopCategory, resolveHorseCoatColor, tileStyle } from "@/constants/storefront";
+import type { StorefrontShopCategory } from "@/constants/storefront";
 import { CatalogEmptyState } from "@/features/catalog/catalog-empty-state";
+import { ShopRangeSlider } from "@/features/catalog/shop-range-slider";
 import { CmsImage } from "@/features/media/cms-image";
+import { PillCta } from "@/features/motion/pill-cta";
+import { ProgressCurve } from "@/features/motion/progress-curve";
 
 type IconProps = { className?: string | undefined };
-
-const CARD_ICONS: Record<string, ComponentType<IconProps>> = {
-  saddle: IconSaddle,
-  bridle: IconBridle,
-  halter: IconHalter,
-  leather: IconLeather,
-  horseshoe: IconHorseshoe,
-  stitch: IconStitch,
-};
 
 const TRUST_ICONS: Record<string, ComponentType<IconProps>> = {
   leather: IconLeather,
@@ -53,13 +45,18 @@ function RangeBotanical({ className }: { className: string }) {
   );
 }
 
+const CATEGORY_CTA = Object.fromEntries(
+  SHOP_RANGE_CATEGORIES.map((item) => [item.id, "cta" in item ? String(item.cta) : "Explore"]),
+);
+
 export function ShopByCategory({ categories }: { categories: StorefrontShopCategory[] }) {
   return (
     <section className="shop-range" aria-labelledby="shop-range-title">
-      <div className="shop-range-blob shop-range-blob--mint" aria-hidden="true" />
-      <div className="shop-range-blob shop-range-blob--blush" aria-hidden="true" />
-      <RangeBotanical className="shop-range-vine shop-range-vine--tl" />
-      <RangeBotanical className="shop-range-vine shop-range-vine--br" />
+      <ProgressCurve from="white" to="cream" />
+      <div className="shop-range-blob shop-range-blob--mint vd-parallax-a" aria-hidden="true" />
+      <div className="shop-range-blob shop-range-blob--blush vd-parallax-c" aria-hidden="true" />
+      <RangeBotanical className="shop-range-vine shop-range-vine--tl vd-parallax-b" />
+      <RangeBotanical className="shop-range-vine shop-range-vine--br vd-parallax-a" />
       <div className="shop-range-inner">
         <header className="shop-range-header">
           <p className="shop-range-eyebrow">
@@ -70,7 +67,7 @@ export function ShopByCategory({ categories }: { categories: StorefrontShopCateg
             <span className="shop-range-eyebrow-line" />
           </p>
           <h2 id="shop-range-title" className="shop-range-title">
-            Made with <span className="section-mark">love</span>, crafted with care!
+            {SHOP_RANGE_TITLE}
           </h2>
           <p className="shop-range-support">{SHOP_RANGE_SUPPORT}</p>
         </header>
@@ -83,43 +80,40 @@ export function ShopByCategory({ categories }: { categories: StorefrontShopCateg
             primaryLabel="Shop All"
           />
         ) : (
-          <div className="shop-range-track">
-            {categories.map((category, index) => {
-              const CardIcon = CARD_ICONS[category.icon] ?? IconSaddle;
-              const coat = resolveHorseCoatColor(category.color, PRODUCT_CARD_COATS[index % PRODUCT_CARD_COATS.length]!);
-              return (
-                <article key={category.id} className="shop-range-card" style={tileStyle(coat)}>
-                  <span className="shop-range-card-icon">
-                    <CardIcon />
-                  </span>
-                  <div className="shop-range-card-visual">
-                    <span className="shop-range-card-orb" aria-hidden="true" />
-                    <RangeBotanical className="shop-range-card-vine" />
+          <ShopRangeSlider>
+            {categories.map((category) => (
+              <div key={category.id} className="vd-card-entrance">
+                <article className="shop-range-card">
+                  <Link href={category.href} className="shop-range-card-hit" aria-label={category.title} />
+                  <div className="shop-range-card-media" aria-hidden="true">
+                    <span className="shop-range-card-glow" />
                     <div className="shop-range-card-product">
                       {category.image ? (
                         <CmsImage
                           src={category.image}
-                          alt={category.alt || category.title}
+                          alt=""
                           fill
-                          sizes="(min-width: 1200px) 16vw, 240px"
+                          sizes="(min-width: 1200px) 22vw, (min-width: 768px) 40vw, 78vw"
                           className="shop-range-card-image"
                         />
-                      ) : null}
+                      ) : (
+                        <span className="shop-range-card-empty">No image</span>
+                      )}
                     </div>
                   </div>
                   <div className="shop-range-card-copy">
                     <h3 className="shop-range-card-title">{category.title}</h3>
-                    <span className="shop-range-card-rule" aria-hidden="true" />
-                    <p className="shop-range-card-desc">{category.description}</p>
-                    <Link href={category.href} className="shop-range-card-cta">
-                      Explore
-                      <IconArrowRight className="shop-range-card-cta-arrow" />
-                    </Link>
+                    {category.description ? (
+                      <p className="shop-range-card-meta">{category.description}</p>
+                    ) : null}
                   </div>
+                  <PillCta href={category.href} className="shop-range-card-cta">
+                    {CATEGORY_CTA[category.id] ?? "Explore"}
+                  </PillCta>
                 </article>
-              );
-            })}
-          </div>
+              </div>
+            ))}
+          </ShopRangeSlider>
         )}
         <ul className="shop-range-trust">
           {SHOP_RANGE_TRUST.map((item) => {
@@ -142,6 +136,7 @@ export function ShopByCategory({ categories }: { categories: StorefrontShopCateg
           {SHOP_RANGE_SIGNATURE}
         </p>
       </div>
+      <ProgressCurve from="cream" to="white" />
     </section>
   );
 }

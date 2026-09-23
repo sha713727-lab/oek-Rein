@@ -3,9 +3,10 @@ node_modules
 dist
 coverage
 logs
+.pgdata
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
 *.log
 .DS_Store
 tsconfig.tsbuildinfo
@@ -19,4 +20,8 @@ Backend/coverage
 Backend/logs
 Frontend/public/uploads/*
 !Frontend/public/uploads/.gitkeep
+.playwright-cli
 *.tar.gz
+_tmp_*
+_tmp_*/
+*.canvas.tsx

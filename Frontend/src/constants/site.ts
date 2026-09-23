@@ -1,4 +1,11 @@
 import { brandName } from "@/constants/brand";
+import { NAV_ITEMS as MAIN_NAV_FLAT } from "@/constants/navigation-ia";
+
+export type { HubPageContent, MainNavItem, NavGroup, NavLinkItem } from "@/constants/navigation-ia";
+export { getHubPage, HUB_PAGES, MAIN_NAV, NAV_ITEMS } from "@/constants/navigation-ia";
+
+/** @deprecated Prefer MAIN_NAV; alias of NAV_ITEMS from navigation-ia. */
+export const NAV_ITEMS_FLAT = MAIN_NAV_FLAT;
 
 export const LOCALES = ["en"] as const;
 
@@ -68,103 +75,90 @@ export function supportWhatsAppUrlFromPhone(phone?: string | null, prefill?: str
   return `${base}?text=${encodeURIComponent(prefill.trim())}`;
 }
 
-export const NAV_ITEMS = [
-  { id: "navNew", label: "New Arrivals", path: "/collections/new" },
-  { id: "navAll", label: "Shop All", path: "/collections/all" },
-  { id: "navSaddles", label: "Saddles", path: "/collections/saddles" },
-  { id: "navBridles", label: "Bridles", path: "/collections/bridles" },
-  { id: "navReins", label: "Reins", path: "/collections/reins" },
-  { id: "navCare", label: "Leather Care", path: "/collections/care" },
-] as const;
-
-export const SHOP_RANGE_EYEBROW = "Explore our range";
-export const SHOP_RANGE_TITLE = "Shop by Category";
+export const SHOP_RANGE_EYEBROW = "Find your perfect tack";
+export const SHOP_RANGE_TITLE = "Find your perfect tack";
 export const SHOP_RANGE_SUPPORT =
-  "Premium handcrafted Pakistani leather products — saddles, bridles, reins, and more made for North American riders.";
+  "Handcrafted leather, distinctive designs and custom details — made for the way you ride.";
 export const SHOP_RANGE_SIGNATURE = "Crafted in Pakistan. Shipped to North America.";
 
 export const SHOP_RANGE_CATEGORIES = [
   {
     id: "engraved-saddles",
-    title: "Hand Crafted Leather Engraved Saddles",
-    description: "A master leather craftsman designs our unique and one-of-a-kind leather saddles.",
+    title: "Handcrafted Saddles",
+    description: "Traditional leather craftsmanship, made for the modern rider.",
     href: "/collections/engraved-saddles",
     image: "/assets/images/western_floral_saddle.png",
-    alt: `${brandName} hand crafted leather engraved saddle`,
+    alt: `${brandName} handcrafted leather saddle`,
     tone: "blush",
     icon: "saddle",
+    cta: "Shop Saddles",
   },
   {
     id: "western-saddles",
     title: "Western Saddles",
-    description: "Elegant, durable saddles made from the finest quality Pakistani leather.",
+    description: "Authentic western styling with handcrafted leather detailing.",
     href: "/collections/western-saddles",
     image: "/assets/images/premium_saddle.png",
     alt: `${brandName} western saddle`,
     tone: "mint",
     icon: "saddle",
+    cta: "Shop Western",
   },
   {
     id: "crystal-rhinestone",
-    title: "Crystal - Rhinestone",
-    description: "Beautifully designed pieces for everyday rides and the show ring.",
+    title: "Crystal & Rhinestone",
+    description: "Make your ride stand out with premium crystal and rhinestone detailing.",
     href: "/collections/crystal-rhinestone",
     image: "/assets/images/western_floral_bridle.png",
-    alt: `${brandName} crystal rhinestone bridle`,
+    alt: `${brandName} crystal rhinestone tack`,
     tone: "blush",
     icon: "bridle",
+    cta: "Explore Designs",
   },
   {
     id: "studded-leather",
     title: "Studded Leather",
-    description: "Premium studded leather made for lasting beauty and classic longevity.",
+    description: "Bold leatherwork with distinctive studded detailing.",
     href: "/collections/studded-leather",
     image: "/assets/images/leather_bridle.png",
-    alt: `${brandName} studded leather bridle`,
+    alt: `${brandName} studded leather`,
     tone: "blush",
     icon: "bridle",
+    cta: "Explore Studded",
   },
   {
-    id: "custom-colors",
-    title: "Custom Colors",
-    description: "Choose custom colorways to match your horse, barn, and personal style.",
-    href: "/collections/custom-colors",
-    image: "/assets/images/western_floral_halter.png",
-    alt: `${brandName} custom color leather`,
+    id: "tack-accessories",
+    title: "Tack & Accessories",
+    description: "Bridles, breast collars, reins and saddle pads.",
+    href: "/tack",
+    image: "/assets/images/western_floral_bridle.png",
+    alt: `${brandName} tack and accessories`,
     tone: "mint",
-    icon: "leather",
-  },
-  {
-    id: "personalized",
-    title: "Personalized Name/Logo",
-    description: "Add your name or logo for one-of-a-kind saddles and tack.",
-    href: "/collections/personalized",
-    image: "/assets/images/saddle_hero.jpg",
-    alt: `${brandName} personalized leather`,
-    tone: "blush",
-    icon: "stitch",
+    icon: "bridle",
+    cta: "Shop Tack",
   },
   {
     id: "complete-sets",
-    title: "Matching Bridle, Breast Collar, Reins & Saddle Pad — Complete Set",
-    description: "Coordinated matching sets — bridle, breast collar, reins, and saddle pad.",
+    title: "Matching Sets",
+    description: "Complete your setup with coordinated leather tack.",
     href: "/collections/complete-sets",
     image: "/assets/images/western_floral_new_arrivals.png",
-    alt: `${brandName} matching complete set`,
+    alt: `${brandName} matching tack sets`,
     tone: "blush",
     icon: "horseshoe",
+    cta: "Shop Sets",
   },
 ] as const;
 
 export const SHOP_RANGE_TRUST = [
-  { id: "natural", title: "Pakistani Leather", detail: "Premium Full-Grain", icon: "leather" },
-  { id: "cruelty", title: "Handcrafted", detail: "Artisan Made", icon: "stitch" },
-  { id: "tested", title: "Built to Ride", detail: "Trail to Arena", icon: "shield" },
-  { id: "sustain", title: "For North America", detail: "US & Canada Ready", icon: "horse" },
+  { id: "natural", title: "Handcrafted Leather", detail: "Crafted by skilled leatherworkers.", icon: "leather" },
+  { id: "cruelty", title: "Custom Options", detail: "Colors, personalization and matching sets.", icon: "stitch" },
+  { id: "tested", title: "Secure Checkout", detail: "Protected payment experience.", icon: "shield" },
+  { id: "sustain", title: "North America Shipping", detail: "Shipping options across the US and Canada.", icon: "horse" },
 ] as const;
 
-export const BEST_SELLERS_CTA = "View All Products";
-export const BEST_SELLERS_CTA_HREF = "/collections/all";
+export const BEST_SELLERS_CTA = "View Best Sellers";
+export const BEST_SELLERS_CTA_HREF = "/best-sellers";
 export const BEST_SELLERS_VIEW = "View Product";
 
 export const BEST_SELLERS = [
@@ -209,7 +203,7 @@ export const BEST_SELLERS = [
   },
 ] as const;
 
-export const PRODUCT_HIGHLIGHTS_TITLE = "Saddlera Product";
+export const PRODUCT_HIGHLIGHTS_TITLE = `${brandName} Product`;
 export const PRODUCT_HIGHLIGHTS_MARK = "Highlights";
 export const PRODUCT_HIGHLIGHTS_IMAGE = "/assets/images/western_floral_saddle.png";
 export const PRODUCT_HIGHLIGHTS_ALT = `${brandName} western floral saddle`;
@@ -303,7 +297,7 @@ export const HOME_TESTIMONIALS = [
     rating: 4,
     initials: "HB",
     tone: "#e1e53f",
-    body: "The leather balm revived my older bridle. Love that Saddlera is artisan-made in Pakistan for riders here in the US.",
+    body: `The leather balm revived my older bridle. Love that ${brandName} is artisan-made in Pakistan for riders here in the US.`,
   },
 ] as const;
 
@@ -337,22 +331,70 @@ export const HOME_FAQ_IMAGE_ALT = `${brandName} leather care kit`;
 
 export const HOME_FAQ = [
   {
-    id: "saddle-fit",
-    question: `How do I know the saddle will fit my horse?`,
+    id: "leather",
+    question: "What leather is used?",
     answer:
-      "Saddlera saddles are handcrafted with fit-minded construction for North American riding. We recommend working with a professional saddle fitter for first adjustments on your horse.",
+      `${brandName} uses full-grain Pakistani leather selected for strength and a rich hand. Care for it with routine cleaning and leather balm.`,
   },
   {
-    id: "leather-care",
-    question: `How should I care for my Saddlera leather goods?`,
+    id: "handcrafted",
+    question: "Are products handcrafted?",
     answer:
-      "Pakistani leather loves routine care. Use our leather balm every few weeks, store tack dry and cool, and wipe sweat and dirt after each ride.",
+      "Yes. Pieces are handcrafted in Pakistan by skilled leatherworkers — stitched, tooled, and finished with care.",
+  },
+  {
+    id: "custom-colors",
+    question: "Can I customize colors?",
+    answer:
+      "Custom colorways are available on select pieces. Browse the Custom Colors collection or contact us to discuss options for your order.",
+  },
+  {
+    id: "name-logo",
+    question: "Can I add a name or logo?",
+    answer:
+      "Yes. Personalized name and logo options are available on select products. See Personalized pieces or contact us with your artwork.",
+  },
+  {
+    id: "engraving",
+    question: "Can I request engraving?",
+    answer:
+      "Engraving is offered as a custom request on select handcrafted pieces. Contact us with the product and text or design you have in mind so we can confirm before production.",
+  },
+  {
+    id: "matching-sets",
+    question: "Can I order matching tack?",
+    answer:
+      "Yes. Matching Tack Sets coordinate pieces such as bridle, breast collar, reins, and saddle pad where available. You can also request custom matching combinations.",
+  },
+  {
+    id: "saddle-fit",
+    question: "How do I choose the right saddle size?",
+    answer:
+      "We recommend working with a professional saddle fitter for first adjustments. Visit our Size Guide for an overview, or contact us with your horse’s measurements and the saddle you are considering.",
   },
   {
     id: "shipping-na",
-    question: "Do you ship to North America?",
+    question: "Where do you ship?",
     answer:
-      "Yes. Saddlera is made in Pakistan and ships to riders across the United States and Canada. Tracking details arrive after your order is confirmed.",
+      "Orders ship from Pakistan to addresses across the United States and Canada. Tracking details arrive after your order is confirmed.",
+  },
+  {
+    id: "shipping-times",
+    question: "What are the shipping times?",
+    answer:
+      "Transit times vary by destination and carrier. You will receive an order reference after checkout so you can follow up with client care if needed. Free shipping may apply above the published order threshold shown at checkout.",
+  },
+  {
+    id: "returns",
+    question: "What is the return or exchange policy?",
+    answer:
+      "Unused saddles, bridles, and tack may be exchanged within 14 days of delivery. Used, fitted, or leather-conditioned items cannot be returned. Contact us with your order reference before sending anything back.",
+  },
+  {
+    id: "contact",
+    question: `How can I contact ${brandName}?`,
+    answer:
+      "Reach us through the Contact page for questions about orders, fit, customization, or shipping to the US and Canada. Guest orders can also be looked up at Order Lookup with your email and order number.",
   },
   {
     id: "tracking",
@@ -372,13 +414,23 @@ export const FOOTER_NAV = [
   {
     id: "shop",
     title: "Shop",
-    links: NAV_ITEMS.map((item) => ({ label: item.label, href: item.path })),
+    links: [
+      { label: "Shop All", href: "/collections/all" },
+      { label: "Saddles", href: "/collections/saddles" },
+      { label: "Tack & Accessories", href: "/tack" },
+      { label: "Matching Sets", href: "/collections/complete-sets" },
+      { label: "Best Sellers", href: "/best-sellers" },
+    ],
   },
   {
     id: "house",
     title: "House",
     links: [
       { label: "About", href: "/about-us" },
+      { label: "Craftsmanship", href: "/craftsmanship" },
+      { label: "Custom", href: "/custom" },
+      { label: "Disciplines", href: "/disciplines" },
+      { label: "Size Guide", href: "/size-guide" },
       { label: "FAQ", href: "/faq" },
       { label: "Contact", href: "/contact" },
       { label: "Track order", href: "/orders/lookup" },

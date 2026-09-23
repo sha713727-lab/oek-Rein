@@ -2,6 +2,7 @@ import Image, { type ImageProps } from "next/image";
 
 import { resolvePublicAssetSrc } from "@/lib/public-assets";
 
+/** CMS / storefront image — skips render when src is missing so Next/Image never gets "". */
 export function CmsImage({
   src,
   alt,
@@ -12,7 +13,7 @@ export function CmsImage({
   sizes,
   priority,
 }: {
-  src: string;
+  src: string | null | undefined;
   alt: string;
   className?: string;
   fill?: boolean;
@@ -21,8 +22,13 @@ export function CmsImage({
   sizes?: string;
   priority?: boolean;
 }) {
+  const resolved = resolvePublicAssetSrc(String(src ?? "").trim());
+  if (!resolved) {
+    return null;
+  }
+
   const props: ImageProps = {
-    src: resolvePublicAssetSrc(src),
+    src: resolved,
     alt,
     unoptimized: true,
   };

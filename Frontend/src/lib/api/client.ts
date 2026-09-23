@@ -10,7 +10,11 @@ type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 function cookieHeader(store: Awaited<ReturnType<typeof cookies>>): string {
   return store
     .getAll()
-    .map((item) => `${item.name}=${encodeURIComponent(item.value)}`)
+    .map((item) => {
+      // Values are already decoded by Next; only encode when Cookie-header unsafe chars appear.
+      const safe = /^[\w!#$%&'.*+\-^`|~]+$/.test(item.value) ? item.value : encodeURIComponent(item.value);
+      return `${item.name}=${safe}`;
+    })
     .join("; ");
 }
 

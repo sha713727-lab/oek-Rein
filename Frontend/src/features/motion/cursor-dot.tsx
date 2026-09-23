@@ -2,15 +2,19 @@
 
 import { useEffect, useRef } from "react";
 
-const INTERACTIVE = "a, button, select, summary, label, [role='button'], input, textarea";
-
-/** Lime dot that trails the pointer and swells over anything clickable. */
+/**
+ * M11 — accent pointer follower.
+ * Reference follow: (target−current)/6 with time-aware alpha.
+ * 15px base; 2× / 4× on interactive / drag targets.
+ */
 export function CursorDot() {
-  const dotRef = useRef<HTMLDivElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const dot = dotRef.current;
-    if (!dot) {
+    const wrap = wrapRef.current;
+    const inner = innerRef.current;
+    if (!wrap || !inner) {
       return;
     }
     if (!window.matchMedia("(pointer: fine)").matches) {
@@ -24,8 +28,15 @@ export function CursorDot() {
     let targetY = window.innerHeight / 2;
     let currentX = targetX;
     let currentY = targetY;
+    let targetScale = 1;
+    let currentScale = 1;
     let started = false;
     let frame = 0;
+    let lastT = performance.now();
+    let paused = false;
+
+    const INTERACTIVE = "a, button, select, summary, label, [role='button'], input, textarea";
+    const DRAG = "[data-cursor-drag], .best-sellers-rail-viewport.is-dragging";
 
     const onMove = (event: PointerEvent) => {
       targetX = event.clientX;
@@ -34,22 +45,43 @@ export function CursorDot() {
         started = true;
         currentX = targetX;
         currentY = targetY;
-        dot.classList.add("is-active");
+        wrap.classList.add("is-active");
       }
-      const target = event.target;
-      const hovering = target instanceof Element ? Boolean(target.closest(INTERACTIVE)) : false;
-      dot.classList.toggle("is-hover", hovering);
+      const el = event.target;
+      if (el instanceof Element) {
+        if (el.closest(DRAG)) {
+          targetScale = 4;
+          wrap.classList.add("is-drag");
+          wrap.classList.remove("is-hover");
+        } else if (el.closest(INTERACTIVE)) {
+          targetScale = 2;
+          wrap.classList.add("is-hover");
+          wrap.classList.remove("is-drag");
+        } else {
+          targetScale = 1;
+          wrap.classList.remove("is-hover", "is-drag");
+        }
+      }
+      paused = false;
     };
 
     const onLeave = () => {
       started = false;
-      dot.classList.remove("is-active", "is-hover");
+      wrap.classList.remove("is-active", "is-hover", "is-drag");
+      paused = true;
     };
 
-    const tick = () => {
-      currentX += (targetX - currentX) * 0.15;
-      currentY += (targetY - currentY) * 0.15;
-      dot.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
+    const tick = (now: number) => {
+      const deltaMs = Math.min(64, now - lastT);
+      lastT = now;
+      if (!paused && started) {
+        const alpha = 1 - Math.pow(5 / 6, deltaMs / (1000 / 60));
+        currentX += (targetX - currentX) * alpha;
+        currentY += (targetY - currentY) * alpha;
+        currentScale += (targetScale - currentScale) * alpha;
+        wrap.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
+        inner.style.transform = `scale(${currentScale})`;
+      }
       frame = window.requestAnimationFrame(tick);
     };
 
@@ -66,5 +98,10 @@ export function CursorDot() {
     };
   }, []);
 
-  return <div ref={dotRef} className="cursor-dot" aria-hidden="true" />;
+  return (
+    <div ref={wrapRef} className="cursor-dot" aria-hidden="true">
+      <div ref={innerRef} className="cursor-dot-inner" />
+      <span className="cursor-dot-label">Drag</span>
+    </div>
+  );
 }

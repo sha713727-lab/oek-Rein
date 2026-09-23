@@ -5,6 +5,7 @@ import { IconFacebook, IconInstagram, IconPinterest, IconHorseshoe } from "@/com
 import { brandName, footerSocialLabel, heroCtaHref, heroExploreLabel } from "@/constants/brand";
 import { FOOTER_NAV, FOOTER_SOCIAL, formatSupportPhoneDisplay, supportWhatsAppUrlFromPhone } from "@/constants/site";
 import { type StorefrontContent, visibleNavLinks } from "@/constants/storefront";
+import { FooterTrail } from "@/features/motion/footer-trail";
 import { NewsletterForm } from "@/features/newsletter/newsletter-form";
 
 type IconProps = { className?: string | undefined };
@@ -37,7 +38,8 @@ export function SiteFooter({ content }: { content: StorefrontContent }) {
   const supportDisplay = formatSupportPhoneDisplay(content.supportPhone);
   const supportWhatsApp = supportWhatsAppUrlFromPhone(content.supportPhone);
   return (
-    <footer id="site-footer" className="site-footer">
+    <footer id="site-footer" className="site-footer vd-footer-trail-host">
+      <FooterTrail />
       <div className="site-footer-inner">
         <Link href={heroCtaHref} className="site-footer-badge" aria-label={heroExploreLabel}>
           <span className="site-footer-badge-ring">
@@ -57,7 +59,7 @@ export function SiteFooter({ content }: { content: StorefrontContent }) {
           <span>{content.footerStatementEnd}</span>
         </p>
         <div className="footer-newsletter">
-          <p className="site-footer-social-label">Ride with Saddlera</p>
+          <p className="site-footer-social-label">Ride with {brandName}</p>
           <NewsletterForm />
         </div>
         <div className="site-footer-social">
@@ -92,18 +94,18 @@ export function SiteFooter({ content }: { content: StorefrontContent }) {
               return null;
             }
             return (
-            <div key={group.id} className="site-footer-link-group">
-              <p className="site-footer-link-title">{group.title}</p>
-              <ul className="site-footer-link-list">
-                {links.map((link) => (
-                  <li key={link.href}>
-                    <Link href={link.href} className="site-footer-link">
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
+              <div key={group.id} className="site-footer-link-group">
+                <p className="site-footer-link-title">{group.title}</p>
+                <ul className="site-footer-link-list">
+                  {links.map((link) => (
+                    <li key={link.href}>
+                      <Link href={link.href} className="site-footer-link">
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             );
           })}
         </nav>

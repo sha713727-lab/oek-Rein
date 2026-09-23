@@ -1,50 +1,46 @@
 "use client";
 
+import "lenis/dist/lenis.css";
+
 import Lenis from "lenis";
 import { useEffect } from "react";
 
-import "lenis/dist/lenis.css";
+import { gsap, isDesktopFinePointer, prefersReducedMotion, registerGsapPlugins, ScrollTrigger } from "@/features/motion/motion-config";
 
 const DESKTOP_MQ = "(min-width: 768px) and (pointer: fine)";
 const REDUCED_MQ = "(prefers-reduced-motion: reduce)";
 
 /**
- * Lightweight Lenis smooth scroll for desktop.
- * Tuned snappy (higher lerp) so it doesn’t feel like laggy rubber-banding.
+ * Desktop Lenis smooth scroll driven by the GSAP ticker (single RAF owner).
+ * Contract baseline: lerp 0.06, wheelMultiplier 1.1.
  */
 export function SmoothScroll() {
   useEffect(() => {
+    registerGsapPlugins();
+
     const desktop = window.matchMedia(DESKTOP_MQ);
     const reduced = window.matchMedia(REDUCED_MQ);
 
     let lenis: Lenis | null = null;
+    let tickerFn: ((time: number) => void) | null = null;
+    let unbindAnchors: (() => void) | undefined;
 
     const stop = () => {
+      unbindAnchors?.();
+      unbindAnchors = undefined;
+      if (tickerFn) {
+        gsap.ticker.remove(tickerFn);
+        tickerFn = null;
+      }
       if (lenis) {
         lenis.destroy();
         lenis = null;
       }
       document.documentElement.classList.remove("has-smooth-scroll");
+      ScrollTrigger.refresh();
     };
 
-    const start = () => {
-      stop();
-      if (!desktop.matches || reduced.matches) {
-        return;
-      }
-
-      lenis = new Lenis({
-        // Higher lerp = more responsive, less “float behind” lag.
-        lerp: 0.14,
-        wheelMultiplier: 0.95,
-        touchMultiplier: 1,
-        smoothWheel: true,
-        autoRaf: true,
-        syncTouch: false,
-      });
-
-      document.documentElement.classList.add("has-smooth-scroll");
-
+    const bindAnchors = (instance: Lenis) => {
       const onAnchorClick = (event: MouseEvent) => {
         if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
           return;
@@ -76,7 +72,7 @@ export function SmoothScroll() {
           return;
         }
 
-        if (!targetId || !lenis) {
+        if (!targetId) {
           return;
         }
         const target = document.getElementById(targetId);
@@ -85,7 +81,7 @@ export function SmoothScroll() {
         }
 
         event.preventDefault();
-        lenis.scrollTo(target, {
+        instance.scrollTo(target, {
           offset: -88,
           duration: 0.85,
           easing: (value) => 1 - Math.pow(1 - value, 3),
@@ -93,16 +89,40 @@ export function SmoothScroll() {
       };
 
       document.addEventListener("click", onAnchorClick);
-
-      return () => {
-        document.removeEventListener("click", onAnchorClick);
-      };
+      return () => document.removeEventListener("click", onAnchorClick);
     };
 
-    let unbindAnchors: (() => void) | undefined;
+    const start = () => {
+      stop();
+      if (!desktop.matches || reduced.matches || !isDesktopFinePointer() || prefersReducedMotion()) {
+        return;
+      }
+
+      lenis = new Lenis({
+        lerp: 0.1,
+        wheelMultiplier: 1,
+        touchMultiplier: 1,
+        smoothWheel: true,
+        autoRaf: false,
+        syncTouch: false,
+      });
+
+      lenis.on("scroll", ScrollTrigger.update);
+
+      tickerFn = (time: number) => {
+        lenis?.raf(time * 1000);
+      };
+      gsap.ticker.add(tickerFn);
+      // Absorb small frame spikes so scroll does not feel stuck.
+      gsap.ticker.lagSmoothing(500, 33);
+
+      document.documentElement.classList.add("has-smooth-scroll");
+      unbindAnchors = bindAnchors(lenis);
+      ScrollTrigger.refresh();
+    };
+
     const sync = () => {
-      unbindAnchors?.();
-      unbindAnchors = start() ?? undefined;
+      start();
     };
 
     sync();
@@ -112,7 +132,6 @@ export function SmoothScroll() {
     return () => {
       desktop.removeEventListener("change", sync);
       reduced.removeEventListener("change", sync);
-      unbindAnchors?.();
       stop();
     };
   }, []);

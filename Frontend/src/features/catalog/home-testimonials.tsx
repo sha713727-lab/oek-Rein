@@ -2,6 +2,7 @@
 
 import { useCallback, useId, useRef } from "react";
 
+import { brandName } from "@/constants/brand";
 import {
   HOME_TESTIMONIALS,
   HOME_TESTIMONIALS_BADGE,
@@ -10,7 +11,7 @@ import {
   HOME_TESTIMONIALS_RATING,
   HOME_TESTIMONIALS_RIBBON,
 } from "@/constants/site";
-import { TestimonialsCurves } from "@/features/catalog/testimonials-curves";
+import { ProgressCurve } from "@/features/motion/progress-curve";
 
 function Stars({ value }: { value: number }) {
   return (
@@ -62,29 +63,81 @@ function Chevron({ dir }: { dir: "prev" | "next" }) {
   );
 }
 
+const RIBBON_X0 = 48;
+const RIBBON_X1 = 1392;
+const RIBBON_MID_Y = 130;
+const RIBBON_AMP = 34;
+const RIBBON_PERIOD = 520;
+const RIBBON_STEP = 18;
+
+function sampleRibbonWave(x: number): number {
+  return RIBBON_MID_Y + RIBBON_AMP * Math.sin((2 * Math.PI * (x - RIBBON_X0)) / RIBBON_PERIOD);
+}
+
+/** Continuous sine spine — keeps band thickness and type centered along the curve. */
+function buildReviewRibbonGuide(): string {
+  const points: Array<readonly [number, number]> = [];
+  for (let x = RIBBON_X0; x <= RIBBON_X1; x += RIBBON_STEP) {
+    points.push([x, sampleRibbonWave(x)]);
+  }
+  const first = points[0];
+  if (!first) {
+    return "";
+  }
+  let path = `M${first[0].toFixed(1)} ${first[1].toFixed(1)}`;
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const previous = points[index - 1] ?? points[index];
+    const current = points[index];
+    const next = points[index + 1];
+    const ahead = points[index + 2] ?? points[index + 1];
+    if (!previous || !current || !next || !ahead) {
+      continue;
+    }
+    const c1x = current[0] + (next[0] - previous[0]) / 6;
+    const c1y = current[1] + (next[1] - previous[1]) / 6;
+    const c2x = next[0] - (ahead[0] - current[0]) / 6;
+    const c2y = next[1] - (ahead[1] - current[1]) / 6;
+    path += ` C${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${next[0].toFixed(1)} ${next[1].toFixed(1)}`;
+  }
+  return path;
+}
+
+const REVIEW_RIBBON_GUIDE = buildReviewRibbonGuide();
+
 function ReviewRibbon({ text }: { text: string }) {
   const rawId = useId();
-  const pathId = `testimonial-ribbon-${rawId.replace(/:/g, "")}`;
-  /* Soft S-curve: enters mid-left, dips under copy, rises out to the right. */
-  const guide = "M-80,70 C200,10 400,190 720,115 C1020,45 1240,185 1520,75";
-  const copy = `${text}  ·  `.repeat(12);
+  const safeId = rawId.replace(/:/g, "");
+  const pathId = `testimonial-ribbon-${safeId}`;
+  const maskId = `testimonial-ribbon-mask-${safeId}`;
+  const copy = `${text}  ·  `.repeat(10);
 
   return (
     <div className="home-testimonials-ribbon" aria-hidden="true">
       <svg
         className="home-testimonials-ribbon-svg"
         viewBox="0 0 1440 240"
-        preserveAspectRatio="xMidYMid slice"
+        preserveAspectRatio="xMidYMid meet"
       >
         <defs>
-          <path id={pathId} d={guide} fill="none" />
+          <path id={pathId} d={REVIEW_RIBBON_GUIDE} fill="none" />
+          {/* Clip type to the stroked band so ends read as caps, not mid-letter cuts. */}
+          <mask id={maskId} maskUnits="userSpaceOnUse">
+            <rect x="0" y="0" width="1440" height="240" fill="black" />
+            <use href={`#${pathId}`} stroke="white" strokeWidth="58" strokeLinecap="round" fill="none" />
+          </mask>
         </defs>
-        <use href={`#${pathId}`} className="home-testimonials-ribbon-band" strokeWidth="64" />
-        <text className="home-testimonials-ribbon-type">
-          <textPath href={`#${pathId}`} startOffset="2%" dominantBaseline="middle">
-            {copy}
-          </textPath>
-        </text>
+        <use
+          href={`#${pathId}`}
+          className="home-testimonials-ribbon-band"
+          strokeWidth="64"
+        />
+        <g mask={`url(#${maskId})`}>
+          <text className="home-testimonials-ribbon-type" dominantBaseline="central">
+            <textPath href={`#${pathId}`} startOffset="0" spacing="auto">
+              {copy}
+            </textPath>
+          </text>
+        </g>
       </svg>
     </div>
   );
@@ -105,7 +158,7 @@ export function HomeTestimonials() {
 
   return (
     <section className="home-testimonials" aria-labelledby="home-testimonials-title">
-      <TestimonialsCurves />
+      <ProgressCurve from="white" to="cream" />
       <div className="home-testimonials-intro">
         <ReviewRibbon text={HOME_TESTIMONIALS_RIBBON} />
         <p className="home-testimonials-badge">{HOME_TESTIMONIALS_BADGE}</p>
@@ -164,8 +217,9 @@ export function HomeTestimonials() {
           <Stars value={5} />
         </p>
         <p className="home-testimonials-count">Based on {HOME_TESTIMONIALS_COUNT} reviews</p>
-        <p className="home-testimonials-powered">Loved by the Saddlera community</p>
+        <p className="home-testimonials-powered">Loved by the {brandName} community</p>
       </div>
+      <ProgressCurve from="cream" to="white" />
     </section>
   );
 }

@@ -12,6 +12,10 @@ const STOREFRONT_PATHS = [
   "/returns",
   "/about-us",
   "/contact",
+  "/best-sellers",
+  "/craftsmanship",
+  "/custom",
+  "/disciplines",
   "/admin/customer-side",
   "/admin/promos",
   "/admin/inventory",
@@ -29,8 +33,9 @@ function revalidateEntry(path: string, asLayout: boolean): void {
 }
 
 export function revalidateStorefront(productId?: string): void {
+  const layoutPaths = new Set(["/", "/collections", "/best-sellers", "/craftsmanship", "/about-us", "/custom", "/disciplines"]);
   for (const path of STOREFRONT_PATHS) {
-    const asLayout = path === "/" || path === "/collections";
+    const asLayout = layoutPaths.has(path);
     revalidateEntry(path, asLayout);
     for (const locale of LOCALES) {
       revalidateEntry(path === "/" ? `/${locale}` : `/${locale}${path}`, asLayout);

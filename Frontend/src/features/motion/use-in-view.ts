@@ -13,8 +13,8 @@ export function useInView<T extends Element>(threshold = 0.2) {
       return;
     }
     if (typeof IntersectionObserver === "undefined") {
-      setInView(true);
-      return;
+      const id = window.setTimeout(() => setInView(true), 0);
+      return () => window.clearTimeout(id);
     }
     const observer = new IntersectionObserver(
       (entries) => {
