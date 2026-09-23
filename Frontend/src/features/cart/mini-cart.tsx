@@ -99,7 +99,14 @@ export function MiniCart({
               <li key={`${line.productId}-${line.size ?? ""}-${line.color ?? ""}`} className="mini-cart-line">
                 <Link href={`/product/${line.productId}`} className="mini-cart-media" onClick={onClose}>
                   {line.image ? (
-                    <Image src={resolvePublicAssetSrc(line.image)} alt="" width={72} height={72} className="mini-cart-image" />
+                    <Image
+                      src={resolvePublicAssetSrc(line.image)}
+                      alt=""
+                      width={72}
+                      height={72}
+                      className="mini-cart-image"
+                      unoptimized
+                    />
                   ) : (
                     <span className="mini-cart-fallback" aria-hidden="true" />
                   )}

@@ -117,7 +117,14 @@ export function SearchModal({ open, onClose }: { open: boolean; onClose: () => v
                     <Link href={`/product/${product.id}`} className="search-modal-result" onClick={handleClose}>
                       <div className="search-modal-result-media">
                         {product.image ? (
-                          <Image src={resolvePublicAssetSrc(product.image)} alt="" width={56} height={72} className="search-modal-result-image" />
+                          <Image
+                            src={resolvePublicAssetSrc(product.image)}
+                            alt=""
+                            width={56}
+                            height={72}
+                            className="search-modal-result-image"
+                            unoptimized
+                          />
                         ) : (
                           <span className="search-modal-result-fallback" aria-hidden="true" />
                         )}

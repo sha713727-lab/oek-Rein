@@ -22,7 +22,15 @@ export function AuthPageFrame({
       <div className="auth-layout">
         <aside className="auth-brand-panel" aria-label={`${brandName} brand`}>
           {image ? (
-            <Image src={resolvePublicAssetSrc(image)} alt={imageAlt} fill className="auth-brand-image" sizes="50vw" priority />
+            <Image
+              src={resolvePublicAssetSrc(image)}
+              alt={imageAlt}
+              fill
+              className="auth-brand-image"
+              sizes="50vw"
+              priority
+              unoptimized
+            />
           ) : null}
           <div className="auth-brand-overlay" aria-hidden="true" />
         </aside>

@@ -71,7 +71,14 @@ export default async function CartPage() {
                     <article key={`${line.productId}-${line.size ?? ""}-${line.color ?? ""}`} className="cart-item-card">
                       <Link href={`/product/${line.productId}`} className="cart-item-media">
                         {image ? (
-                          <Image src={resolvePublicAssetSrc(image)} alt={title} fill className="cart-item-image" sizes="160px" />
+                          <Image
+                            src={resolvePublicAssetSrc(image)}
+                            alt={title}
+                            fill
+                            className="cart-item-image"
+                            sizes="160px"
+                            unoptimized
+                          />
                         ) : null}
                       </Link>
                       <div className="cart-item-body">
