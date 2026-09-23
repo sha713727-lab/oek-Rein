@@ -17,6 +17,7 @@ import {
   sendError,
   sendJson,
 } from "@/server/http/respond";
+import { tryServeUpload } from "@/server/http/serve-upload";
 import { assertAllowedOrigin } from "@/server/middleware/origin";
 import { applyRateLimit, clientIp } from "@/server/middleware/rate-limit";
 
@@ -45,6 +46,12 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
 
   const host = req.headers.host ?? `${env.API_HOST}:${env.API_PORT}`;
   const url = new URL(req.url ?? "/", `http://${host}`);
+
+  // CMS media is stored on this process's UPLOAD_DIR — serve it before HMAC/JSON.
+  if (await tryServeUpload(req, res, url.pathname)) {
+    return;
+  }
+
   const apiPath = url.pathname.startsWith(env.API_PREFIX)
     ? url.pathname.slice(env.API_PREFIX.length) || "/"
     : url.pathname;

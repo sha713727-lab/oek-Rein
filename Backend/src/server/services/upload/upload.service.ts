@@ -4,6 +4,7 @@ import path from "node:path";
 
 import { AppError } from "@/lib/app-error";
 import { getEnv } from "@/lib/env";
+import { uploadDirectory } from "@/server/http/serve-upload";
 
 const ALLOWED = new Map([
   ["image/png", "png"],
@@ -39,10 +40,10 @@ export class UploadService {
     if (name.includes("..") || name.includes("/") || name.includes("\\")) {
       throw AppError.validation([{ field: "data", message: "Invalid filename" }]);
     }
-    const directory = path.resolve(process.cwd(), env.UPLOAD_DIR);
+    const directory = uploadDirectory();
     await mkdir(directory, { recursive: true });
     const target = path.join(directory, name);
-    if (!target.startsWith(directory)) {
+    if (!target.startsWith(directory + path.sep) && target !== directory) {
       throw AppError.validation([{ field: "data", message: "Invalid upload path" }]);
     }
     await writeFile(target, buffer);
