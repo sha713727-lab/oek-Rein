@@ -1,0 +1,85 @@
+name: oakrein
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: oakrein
+      POSTGRES_PASSWORD: ${OAKREIN_POSTGRES_PASSWORD:?set OAKREIN_POSTGRES_PASSWORD}
+      POSTGRES_DB: oak_rein
+    volumes:
+      - oakrein_pgdata:/var/lib/postgresql/data
+    networks:
+      - oakrein_internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U oakrein -d oak_rein"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile
+      target: backend
+    container_name: oakrein-backend-1
+    restart: unless-stopped
+    env_file:
+      - /etc/oakrein/backend.env
+    environment:
+      NODE_ENV: production
+      API_HOST: 0.0.0.0
+      API_PORT: "5000"
+      DATABASE_URL: postgresql://oakrein:${OAKREIN_POSTGRES_PASSWORD}@postgres:5432/oak_rein
+      DATABASE_MIGRATE_URL: postgresql://oakrein:${OAKREIN_POSTGRES_PASSWORD}@postgres:5432/oak_rein
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - oakrein_uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - oakrein_internal
+      - proxy
+    expose:
+      - "5000"
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile
+      target: frontend
+      args:
+        APP_URL: https://oakrein.com
+    container_name: oakrein-frontend-1
+    restart: unless-stopped
+    env_file:
+      - /etc/oakrein/frontend.env
+    environment:
+      NODE_ENV: production
+      APP_URL: https://oakrein.com
+      API_URL: http://oakrein-backend-1:5000
+      API_PREFIX: /api/v1
+    volumes:
+      - oakrein_uploads:/app/Frontend/public/uploads
+    depends_on:
+      - backend
+    networks:
+      oakrein_internal:
+      proxy:
+        aliases:
+          - oakrein-frontend
+    expose:
+      - "3020"
+
+volumes:
+  oakrein_pgdata:
+  oakrein_uploads:
+
+networks:
+  oakrein_internal:
+    driver: bridge
+  proxy:
+    external: true
+    name: ${OAKREIN_PROXY_NETWORK:-aviosupportdesk_avion}
