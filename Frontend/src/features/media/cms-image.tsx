@@ -4,8 +4,19 @@ import { resolvePublicAssetSrc } from "@/lib/public-assets";
 
 const RASTER_EXTENSIONS = /\.(png|jpe?g|webp|avif)(\?|#|$)/i;
 
-function isOptimizableRaster(src: string): boolean {
-  return RASTER_EXTENSIONS.test(src);
+/**
+ * Only bake-time public assets go through `/_next/image`.
+ * CMS `/uploads/*` live on a Docker volume and return 400 from the optimizer
+ * when the runtime file isn't in the image filesystem the way Next expects.
+ */
+function shouldOptimize(src: string): boolean {
+  if (!RASTER_EXTENSIONS.test(src)) {
+    return false;
+  }
+  if (src.startsWith("/uploads/") || src.includes("/uploads/")) {
+    return false;
+  }
+  return src.startsWith("/assets/");
 }
 
 /** CMS / storefront image — skips render when src is missing so Next/Image never gets "". */
@@ -36,9 +47,7 @@ export function CmsImage({
   const props: ImageProps = {
     src: resolved,
     alt,
-    // Vector/animated sources must pass through untouched; rasters get resized
-    // per breakpoint so phones don't decode full-size CMS uploads.
-    unoptimized: !isOptimizableRaster(resolved),
+    unoptimized: !shouldOptimize(resolved),
   };
   if (className) {
     props.className = className;
