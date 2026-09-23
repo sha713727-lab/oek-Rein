@@ -13,7 +13,7 @@ export type Locale = (typeof LOCALES)[number];
 
 export const DEFAULT_LOCALE: Locale = "en";
 
-export const SUPPORT_EMAIL = "support@example.com";
+export const SUPPORT_EMAIL = "support@oakrein.com";
 /** Display form for customers */
 export const SUPPORT_PHONE = "0311 700 3196";
 /** Local Pakistan mobile (no spaces) */
