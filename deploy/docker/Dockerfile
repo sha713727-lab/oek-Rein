@@ -14,6 +14,7 @@ FROM base AS backend
 WORKDIR /app/Backend
 COPY --from=backend-deps /app/Backend/node_modules ./node_modules
 COPY Backend ./
+COPY Database /app/Database
 ENV NODE_ENV=production
 EXPOSE 5000
 CMD ["npm", "run", "start"]

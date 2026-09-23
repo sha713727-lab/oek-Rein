@@ -35,6 +35,7 @@ services:
       UPLOAD_DIR: /app/uploads
     volumes:
       - oakrein_uploads:/app/uploads
+      - ../../Database:/app/Database:ro
     depends_on:
       postgres:
         condition: service_healthy
