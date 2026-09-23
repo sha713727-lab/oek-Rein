@@ -18,7 +18,6 @@ export default async function AboutPage() {
               alt={INFO_STILLS.about.alt}
               width={304}
               height={637}
-              unoptimized
               sizes="12rem"
               className="ritual-still-image"
             />

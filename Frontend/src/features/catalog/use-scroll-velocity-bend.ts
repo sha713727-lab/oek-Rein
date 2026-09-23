@@ -41,8 +41,10 @@ export function useScrollVelocityBend({ sectionSelector, onBend }: BendOptions) 
     let target = SCROLL_CURVE_REST_BEND;
     let idleMs = 0;
     let active = false;
+    let emitted = bend;
 
-    const mobile = () => window.matchMedia("(max-width: 768px)").matches;
+    const mobileQuery = window.matchMedia("(max-width: 768px)");
+    const mobile = () => mobileQuery.matches;
 
     const sectionNear = () => {
       const rect = section.getBoundingClientRect();
@@ -90,14 +92,20 @@ export function useScrollVelocityBend({ sectionSelector, onBend }: BendOptions) 
         velocity *= 0.94;
       }
 
-      onBendRef.current(bend);
+      // Rebuilding the path costs an SVG reparse; skip sub-visual deltas.
+      if (Math.abs(bend - emitted) > 0.0006) {
+        emitted = bend;
+        onBendRef.current(bend);
+      }
 
-      if (settled() && !sectionNear()) {
+      // Park the loop once motion dies down; `kick` restarts it on next scroll.
+      if (settled()) {
         active = false;
         raf = 0;
         bend = SCROLL_CURVE_REST_BEND;
         target = SCROLL_CURVE_REST_BEND;
         velocity = 0;
+        emitted = bend;
         onBendRef.current(bend);
         return;
       }
@@ -106,7 +114,7 @@ export function useScrollVelocityBend({ sectionSelector, onBend }: BendOptions) 
     };
 
     const kick = () => {
-      if (!active) {
+      if (!active && sectionNear()) {
         active = true;
         lastY = window.scrollY;
         lastT = performance.now();

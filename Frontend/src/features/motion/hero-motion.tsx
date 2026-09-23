@@ -211,11 +211,20 @@ export function useHeroMotion() {
       }
     }, root);
 
-    const onResize = () => ScrollTrigger.refresh();
+    // Height-only resizes are the mobile URL bar, not a layout change.
+    let lastWidth = window.innerWidth;
+    let resizeTimer = 0;
+    const onResize = () => {
+      if (window.innerWidth === lastWidth) return;
+      lastWidth = window.innerWidth;
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => ScrollTrigger.refresh(), 200);
+    };
     window.addEventListener("resize", onResize);
 
     return () => {
       removeEarlyScroll?.();
+      window.clearTimeout(resizeTimer);
       window.removeEventListener("resize", onResize);
       ctx.revert();
     };

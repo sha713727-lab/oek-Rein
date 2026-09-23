@@ -273,8 +273,17 @@ export function SiteHeader({
     const hero = document.querySelector(".home-hero-panel");
     const threshold =
       isHome && hero instanceof HTMLElement ? Math.max(160, hero.getBoundingClientRect().height * 0.55) : 48;
-    const onScroll = () => setScrolled(window.scrollY > threshold);
-    onScroll();
+    // Only touch state on the crossing, not on every scroll event.
+    let past = window.scrollY > threshold;
+    setScrolled(past);
+    const onScroll = () => {
+      const next = window.scrollY > threshold;
+      if (next === past) {
+        return;
+      }
+      past = next;
+      setScrolled(next);
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [pathname, isHome]);

@@ -8,6 +8,7 @@ import "./home-faq.css";
 import "./footer.css";
 import "./storefront.css";
 import "./home-design.css";
+import "./performance.css";
 
 import { Fraunces, Manrope } from "next/font/google";
 import type { ReactNode } from "react";

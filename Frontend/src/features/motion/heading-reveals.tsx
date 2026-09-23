@@ -92,6 +92,7 @@ export function useHeadingReveals(rootSelector = ".home-flow") {
 
     let ctx: ReturnType<typeof gsap.context> | null = null;
     let resizeTimer = 0;
+    let lastWidth = window.innerWidth;
 
     const mount = () => {
       ctx?.revert();
@@ -127,6 +128,9 @@ export function useHeadingReveals(rootSelector = ".home-flow") {
     };
 
     const onResize = () => {
+      // Word splitting only depends on width; ignore mobile URL-bar height changes.
+      if (window.innerWidth === lastWidth) return;
+      lastWidth = window.innerWidth;
       window.clearTimeout(resizeTimer);
       resizeTimer = window.setTimeout(() => {
         root.querySelectorAll<HTMLElement>(HEADING_SELECTORS).forEach(clearSplit);

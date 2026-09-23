@@ -20,7 +20,6 @@ export default async function ContactPage() {
               alt={INFO_STILLS.contact.alt}
               width={800}
               height={800}
-              unoptimized
               sizes="(max-width: 899px) 14rem, 18rem"
               className="ritual-still-image"
             />

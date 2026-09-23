@@ -2,6 +2,12 @@ import Image, { type ImageProps } from "next/image";
 
 import { resolvePublicAssetSrc } from "@/lib/public-assets";
 
+const RASTER_EXTENSIONS = /\.(png|jpe?g|webp|avif)(\?|#|$)/i;
+
+function isOptimizableRaster(src: string): boolean {
+  return RASTER_EXTENSIONS.test(src);
+}
+
 /** CMS / storefront image — skips render when src is missing so Next/Image never gets "". */
 export function CmsImage({
   src,
@@ -30,7 +36,9 @@ export function CmsImage({
   const props: ImageProps = {
     src: resolved,
     alt,
-    unoptimized: true,
+    // Vector/animated sources must pass through untouched; rasters get resized
+    // per breakpoint so phones don't decode full-size CMS uploads.
+    unoptimized: !isOptimizableRaster(resolved),
   };
   if (className) {
     props.className = className;

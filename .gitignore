@@ -21,6 +21,7 @@ Backend/logs
 Frontend/public/uploads/*
 !Frontend/public/uploads/.gitkeep
 .playwright-cli
+output/
 *.tar.gz
 _tmp_*
 _tmp_*/

@@ -94,18 +94,22 @@ export function RibbonMarquee({
         return;
       }
       const speed = 0.052;
+      // Text-on-path relayout is costly; halve the rate on phones/tablets.
+      const minFrameMs = window.matchMedia("(pointer: coarse)").matches ? 32 : 0;
       let offset = 0;
       let last = performance.now();
+      let painted = last;
       let visible = true;
 
       const tick = (now: number) => {
         if (cancelled) return;
-        if (visible) {
+        if (visible && now - painted >= minFrameMs) {
           const delta = Math.min(now - last, 32);
           last = now;
+          painted = now;
           offset = (offset + delta * speed) % unit;
           textPath.setAttribute("startOffset", String(offset - unit));
-        } else {
+        } else if (!visible) {
           last = now;
         }
         frameRef.current = window.requestAnimationFrame(tick);

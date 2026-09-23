@@ -39,6 +39,11 @@ export function registerGsapPlugins(): void {
     return;
   }
   gsap.registerPlugin(ScrollTrigger, CustomEase);
+  // Mobile URL-bar show/hide fires resize constantly; refreshing on it stalls scroll.
+  ScrollTrigger.config({
+    ignoreMobileResize: true,
+    autoRefreshEvents: "visibilitychange,DOMContentLoaded,load",
+  });
   CustomEase.create("brandSweep", "0.785,0.135,0.15,0.86");
   CustomEase.create("expressiveOut", "0.19,1,0.22,1");
   CustomEase.create("panelOut", "0.2,1,0.3,1");

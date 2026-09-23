@@ -63,6 +63,7 @@ export function CursorDot() {
         }
       }
       paused = false;
+      ensureFrame();
     };
 
     const onLeave = () => {
@@ -74,18 +75,34 @@ export function CursorDot() {
     const tick = (now: number) => {
       const deltaMs = Math.min(64, now - lastT);
       lastT = now;
-      if (!paused && started) {
-        const alpha = 1 - Math.pow(5 / 6, deltaMs / (1000 / 60));
-        currentX += (targetX - currentX) * alpha;
-        currentY += (targetY - currentY) * alpha;
-        currentScale += (targetScale - currentScale) * alpha;
-        wrap.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
-        inner.style.transform = `scale(${currentScale})`;
+      if (paused || !started) {
+        frame = 0;
+        return;
+      }
+      const alpha = 1 - Math.pow(5 / 6, deltaMs / (1000 / 60));
+      currentX += (targetX - currentX) * alpha;
+      currentY += (targetY - currentY) * alpha;
+      currentScale += (targetScale - currentScale) * alpha;
+      wrap.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
+      inner.style.transform = `scale(${currentScale})`;
+      const settled =
+        Math.abs(targetX - currentX) < 0.05 &&
+        Math.abs(targetY - currentY) < 0.05 &&
+        Math.abs(targetScale - currentScale) < 0.002;
+      if (settled) {
+        frame = 0;
+        return;
       }
       frame = window.requestAnimationFrame(tick);
     };
 
-    frame = window.requestAnimationFrame(tick);
+    /** Idle pointer must not hold an open animation frame loop. */
+    function ensureFrame() {
+      if (frame) return;
+      lastT = performance.now();
+      frame = window.requestAnimationFrame(tick);
+    }
+
     window.addEventListener("pointermove", onMove, { passive: true });
     document.addEventListener("pointerleave", onLeave);
     window.addEventListener("blur", onLeave);
