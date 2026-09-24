@@ -20,14 +20,9 @@ export function HeroHome({ content }: { content: StorefrontContent }) {
 
   return (
     <section className="home-hero" aria-label={title}>
-      {/* Kick the network early so cold loads (esp. mobile) decode sooner. */}
-      {videoSrc ? (
-        <link
-          rel="preload"
-          as="video"
-          href={videoSrc.includes("#") ? videoSrc : `${videoSrc}#t=${heroVideoStartSec}`}
-          type="video/mp4"
-        />
+      {/* Preload poster only — `as="video"` is unsupported by browsers. */}
+      {usesBundledVideo ? (
+        <link rel="preload" as="image" href={DEFAULT_POSTER} type="image/webp" />
       ) : null}
       <div className="home-hero-layout">
         <div className="home-hero-scroll">
