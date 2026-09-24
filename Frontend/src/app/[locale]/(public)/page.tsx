@@ -11,6 +11,10 @@ import { productService } from "@/lib/api/products";
 import { getStorefront } from "@/lib/storefront";
 import { readWishlist } from "@/lib/wishlist-cookie";
 
+/** CMS-driven homepage — never serve a stale published storefront snapshot. */
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 /** Below-the-fold chunks hydrate after the hero — keeps cold navigations snappy. */
 const Features = dynamic(() => import("@/features/catalog/features").then((m) => m.Features));
 const ProductHighlights = dynamic(() =>

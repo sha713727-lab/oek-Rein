@@ -64,7 +64,7 @@ export async function handler(ctx: RequestContext) {
       }
     }
   }
-  // Preserve shop category / mega-menu tile images from the admin payload (incl. /uploads/…).
+  // Preserve shop category tile images + hide flags from the admin payload.
   if (Array.isArray(rawContent.shopCategories)) {
     const rawCats = rawContent.shopCategories as Record<string, unknown>[];
     const byId = new Map(
@@ -74,11 +74,24 @@ export async function handler(ctx: RequestContext) {
     );
     content.shopCategories = content.shopCategories.map((category) => {
       const raw = byId.get(category.id);
-      if (!raw || !Object.prototype.hasOwnProperty.call(raw, "image")) {
+      if (!raw) {
         return category;
       }
-      const image = String(raw.image ?? "").trim();
-      return image ? { ...category, image } : category;
+      const next = { ...category };
+      if (Object.prototype.hasOwnProperty.call(raw, "image")) {
+        const image = String(raw.image ?? "").trim();
+        if (image) {
+          next.image = image;
+        }
+      }
+      if (Object.prototype.hasOwnProperty.call(raw, "hidden")) {
+        const hiddenRaw = raw.hidden;
+        next.hidden =
+          hiddenRaw === true ||
+          hiddenRaw === 1 ||
+          ["1", "on", "true", "yes"].includes(String(hiddenRaw ?? "").trim().toLowerCase());
+      }
+      return next;
     });
     content.shopImages = Object.fromEntries(content.shopCategories.map((item) => [item.id, item.image]));
   }

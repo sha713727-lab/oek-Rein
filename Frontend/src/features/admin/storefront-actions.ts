@@ -160,6 +160,10 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
       if (!category) {
         return;
       }
+      const hiddenRaw = String(formData.get(`categoryHidden_${index}`) ?? "")
+        .trim()
+        .toLowerCase();
+      category.hidden = hiddenRaw === "1" || hiddenRaw === "on" || hiddenRaw === "true";
       const nextImage = String(categoryImages[index] ?? "").trim();
       if (nextImage) {
         category.image = nextImage;

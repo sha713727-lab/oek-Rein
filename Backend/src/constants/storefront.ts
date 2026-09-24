@@ -638,7 +638,13 @@ function asHexList(value: unknown, fallback: string[]): string[] {
 }
 
 function asBool(value: unknown): boolean {
-  return value === true || value === "on" || value === "true" || value === 1;
+  if (value === true || value === 1) {
+    return true;
+  }
+  const text = String(value ?? "")
+    .trim()
+    .toLowerCase();
+  return text === "on" || text === "true" || text === "1" || text === "yes";
 }
 
 function asPath(value: unknown, fallback: string): string {

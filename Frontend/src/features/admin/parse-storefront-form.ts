@@ -86,14 +86,20 @@ export function storefrontPublishFromForm(formData: FormData, images: Storefront
       alt: String(formData.get(`categoryTitle_${index}`) ?? "Category"),
       icon: String(formData.get(`categoryIcon_${index}`) ?? "saddle"),
       color: String(formData.get(`categoryColor_${index}`) ?? ""),
-      hidden: formData.get(`categoryHidden_${index}`) === "on",
+      hidden: (() => {
+        const raw = formData.get(`categoryHidden_${index}`);
+        return raw === "on" || raw === "1" || raw === "true";
+      })(),
     };
   });
   const navLinks = Array.from({ length: navCount }, (_, index) => ({
     id: String(formData.get(`navId_${index}`) ?? `nav-${index + 1}`),
     label: String(formData.get(`navLabel_${index}`) ?? ""),
     path: String(formData.get(`navPath_${index}`) ?? "/collections/all"),
-    hidden: formData.get(`navHidden_${index}`) === "on",
+    hidden: (() => {
+      const raw = formData.get(`navHidden_${index}`);
+      return raw === "on" || raw === "1" || raw === "true";
+    })(),
   }));
 
   const megaMenus = Object.fromEntries(

@@ -192,7 +192,10 @@ export function StorefrontEditor({
               <IconStorefront />
               Storefront
             </h1>
-            <p className="admin-product-sku">Edit categories, nav, photos, and copy, then publish</p>
+            <p className="admin-product-sku">
+              Edit categories, nav, photos, and copy — then click <strong>Publish</strong> at the top to update the live
+              site
+            </p>
           </div>
           <div className="admin-product-toolbar-actions">
             {publishState.error ? (
@@ -558,13 +561,18 @@ export function StorefrontEditor({
                   <input type="hidden" name={`categoryId_${index}`} value={item.id} />
                   <input type="hidden" name={`categoryHref_${index}`} value={item.href} />
                   <div className="admin-storefront-head">
+                    <input type="hidden" name={`categoryHidden_${index}`} value={item.hidden ? "1" : "0"} />
                     <label className="admin-storefront-hide">
                       <input
                         type="checkbox"
-                        name={`categoryHidden_${index}`}
                         checked={item.hidden}
                         onChange={(event) => {
                           const hidden = event.target.checked;
+                          // Sync before React re-renders so Publish right after click still saves.
+                          const field = event.currentTarget.form?.elements.namedItem(`categoryHidden_${index}`);
+                          if (field instanceof HTMLInputElement) {
+                            field.value = hidden ? "1" : "0";
+                          }
                           setShopCategories((current) =>
                             current.map((entry) => (entry.id === item.id ? { ...entry, hidden } : entry)),
                           );
@@ -673,13 +681,17 @@ export function StorefrontEditor({
                   <div key={item.id} className={`admin-storefront-group${item.hidden ? " is-hidden" : ""}`}>
                     <input type="hidden" name={`navId_${index}`} value={item.id} />
                     <div className="admin-storefront-head">
+                      <input type="hidden" name={`navHidden_${index}`} value={item.hidden ? "1" : "0"} />
                       <label className="admin-storefront-hide">
                         <input
                           type="checkbox"
-                          name={`navHidden_${index}`}
                           checked={item.hidden}
                           onChange={(event) => {
                             const hidden = event.target.checked;
+                            const field = event.currentTarget.form?.elements.namedItem(`navHidden_${index}`);
+                            if (field instanceof HTMLInputElement) {
+                              field.value = hidden ? "1" : "0";
+                            }
                             setNavLinks((current) =>
                               current.map((entry) => (entry.id === item.id ? { ...entry, hidden } : entry)),
                             );
