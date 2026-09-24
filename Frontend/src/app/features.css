@@ -6,21 +6,6 @@
   background: #ffffff;
 }
 
-@media (max-width: 767px) {
-  .features-section {
-    padding: 3.25rem 0 3.75rem;
-  }
-
-  .features-inner {
-    padding-left: 1.15rem;
-    padding-right: 1.15rem;
-  }
-
-  .features-header {
-    margin-bottom: 1.5rem;
-  }
-}
-
 .features-inner {
   position: relative;
   z-index: 2;
@@ -49,10 +34,17 @@
   margin: 0;
 }
 
-.features-grid {
+/*
+ * Mobile-first grid:
+ * phone  → 1 column
+ * tablet → 2 × 2
+ * desktop → 4 across
+ */
+.features-grid,
+.home-flow .features-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1rem;
+  gap: 0.85rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -61,20 +53,24 @@
   border-radius: 0;
 }
 
-@media (min-width: 700px) {
-  .features-grid {
+@media (min-width: 640px) {
+  .features-grid,
+  .home-flow .features-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
   }
 }
 
 @media (min-width: 1024px) {
-  .features-grid {
+  .features-grid,
+  .home-flow .features-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
   }
 }
 
 /* Size & fit home section — three tips, centered as a group */
-@media (min-width: 700px) {
+@media (min-width: 640px) {
   .home-size-guide .features-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     justify-content: center;
@@ -94,7 +90,7 @@
   min-width: 0;
   flex-direction: column;
   align-items: flex-start;
-  padding: 20px 20px 23px;
+  padding: 1.15rem 1.15rem 1.35rem;
   text-align: left;
   border-radius: var(--vd-radius-card);
   background: var(--vd-cream);
@@ -120,8 +116,8 @@
 .feature-title {
   margin: 0;
   font-family: var(--vd-font);
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 600;
   letter-spacing: normal;
   line-height: 1.4;
   color: var(--vd-green);
@@ -131,8 +127,44 @@
   margin: 0.4rem 0 0;
   max-width: none;
   font-family: var(--vd-font);
-  font-size: 13px;
+  font-size: 0.88rem;
   font-weight: 400;
   line-height: 1.65;
   color: var(--vd-body);
+}
+
+@media (max-width: 639px) {
+  .features-section {
+    padding: 3rem 0 3.5rem;
+  }
+
+  .features-inner {
+    padding-left: 1.15rem;
+    padding-right: 1.15rem;
+  }
+
+  .features-header {
+    margin-bottom: 1.35rem;
+  }
+
+  .feature-item {
+    padding: 1.25rem 1.2rem 1.4rem;
+  }
+
+  .feature-title {
+    font-size: 1.02rem;
+  }
+
+  .feature-desc {
+    font-size: 0.92rem;
+  }
+
+  /* Soften the desktop-scale ribbon so it doesn't dominate a stacked layout */
+  .features-section .ribbon-curve {
+    inset: 52% -8% 4%;
+  }
+
+  .features-section .ribbon-curve-band {
+    stroke-width: 48;
+  }
 }
