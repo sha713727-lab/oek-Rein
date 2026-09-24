@@ -1,9 +1,8 @@
+import { brandName } from "@/constants/brand";
 import { PRODUCT_STATUS } from "@/constants/catalog";
 import { calculateOrderTotals } from "@/constants/commerce";
-import { brandName } from "@/constants/brand";
 import { ORDER_STATUS, ORDER_STATUS_TRANSITIONS, type OrderStatus } from "@/constants/order-status";
 import { ADMIN_ROLES, type Role } from "@/constants/roles";
-import { formatMoney } from "@/constants/storefront";
 import { AppError } from "@/lib/app-error";
 import { sha256Hex } from "@/lib/crypto";
 import { getEnv } from "@/lib/env";
@@ -59,7 +58,23 @@ export class OrderService {
       return existing.response_body as OrderRecord;
     }
 
+    let createdNew = false;
     const order = await withTransaction(async (client) => {
+      const reserved = await idempotencyRepository.reserve(
+        {
+          keyValue: idempotencyKey,
+          requestHash,
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        },
+        client,
+      );
+      if (!reserved.inserted) {
+        if (reserved.existing.request_hash !== requestHash) {
+          throw AppError.conflict("Idempotency key reused with a different payload");
+        }
+        return reserved.existing.response_body as OrderRecord;
+      }
+
       const products = await productService.getByIds(
         payload.items.map((item) => item.productId),
         client,
@@ -108,7 +123,7 @@ export class OrderService {
         await productService.reserveStock(item.productId, item.quantity, client);
       }
 
-      return orderRepository.insert(
+      const created = await orderRepository.insert(
         {
           orderNumber: generateOrderNumber(),
           accountId: userId,
@@ -135,14 +150,15 @@ export class OrderService {
         },
         client,
       );
+      await idempotencyRepository.updateResponse(idempotencyKey, created, client);
+      createdNew = true;
+      return created;
     });
 
-    await idempotencyRepository.insert({
-      keyValue: idempotencyKey,
-      requestHash,
-      responseBody: order,
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-    });
+    if (!createdNew) {
+      return order;
+    }
+
     const storefront = await storefrontService.getFull();
     const supportOpts = { supportPhone: storefront.content.supportPhone };
     await sendMail({
@@ -174,7 +190,17 @@ export class OrderService {
 
   async getByOrderNumber(orderNumber: string, user: { id: string; role: Role } | null) {
     const isAdmin = Boolean(user && ADMIN_ROLES.includes(user.role));
-    const order = await orderRepository.findByOrderNumber(orderNumber, isAdmin ? undefined : user?.id);
+    if (isAdmin) {
+      const order = await orderRepository.findByOrderNumberUnscoped(orderNumber);
+      if (!order) {
+        throw AppError.notFound("Order not found");
+      }
+      return order;
+    }
+    if (!user?.id) {
+      throw AppError.notFound("Order not found");
+    }
+    const order = await orderRepository.findByOrderNumber(orderNumber, user.id);
     if (!order) {
       throw AppError.notFound("Order not found");
     }

@@ -6,8 +6,18 @@ import { usePathname } from "next/navigation";
 import { CUSTOMER_DASHBOARD_NAV } from "@/constants/account";
 import { cn } from "@/lib/cn";
 
+function stripLocale(pathname: string): string {
+  const raw = pathname.replace(/\/$/, "") || "/";
+  const match = raw.match(/^\/(en|ar|fr|de|es)(?=\/|$)/i);
+  if (!match) {
+    return raw === "" ? "/" : raw;
+  }
+  const rest = raw.slice(match[0].length);
+  return rest === "" ? "/" : rest;
+}
+
 export function AccountNav() {
-  const pathname = usePathname() ?? "/account";
+  const pathname = stripLocale(usePathname() ?? "/account");
   return (
     <aside className="customer-dashboard-sidebar" aria-label="Account navigation">
       <p className="customer-dashboard-sidebar-label">My Account</p>

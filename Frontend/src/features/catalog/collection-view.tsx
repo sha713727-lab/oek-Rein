@@ -1,11 +1,12 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 import { brandName } from "@/constants/brand";
 import { normalizeCategoryFilter } from "@/constants/catalog";
 import { COLLECTION_HEROES } from "@/constants/site";
 import { CatalogEmptyState } from "@/features/catalog/catalog-empty-state";
-import type { CatalogProduct } from "@/features/catalog/product-card";
 import { toCatalogProduct } from "@/features/catalog/map-product";
+import type { CatalogProduct } from "@/features/catalog/product-card";
 import { ProductGrid } from "@/features/catalog/product-grid";
 import { RitualFeature } from "@/features/catalog/ritual-feature";
 import { CmsImage } from "@/features/media/cms-image";
@@ -39,8 +40,16 @@ export async function CollectionView({
   sort?: string | undefined;
   bestSeller?: boolean | undefined;
 }) {
-  const slug = bestSeller ? "best-sellers" : category in COLLECTION_HEROES ? category : "all";
-  const hero = bestSeller ? BEST_SELLERS_HERO : (COLLECTION_HEROES[slug] ?? COLLECTION_HEROES.all);
+  if (!bestSeller && !(category in COLLECTION_HEROES)) {
+    notFound();
+  }
+
+  const slug = bestSeller ? "best-sellers" : category;
+  const hero = bestSeller ? BEST_SELLERS_HERO : COLLECTION_HEROES[slug];
+  if (!hero) {
+    notFound();
+  }
+
   const selected = SORTS.find((item) => item.id === sort) ?? SORTS[0];
   const currentPage = Math.max(1, page);
   const basePath = bestSeller ? "/best-sellers" : `/collections/${slug}`;
@@ -78,17 +87,13 @@ export async function CollectionView({
   const before = products.slice(0, splitIndex);
   const after = products.slice(splitIndex);
   const heroImage =
-    (bestSeller ? undefined : storefront.content.collectionImages[slug]) ?? hero?.image ?? "";
+    (bestSeller ? undefined : storefront.content.collectionImages[slug]) ?? hero.image;
   const titles = bestSeller
     ? { first: BEST_SELLERS_HERO.first, second: BEST_SELLERS_HERO.second }
     : (storefront.content.collectionTitles[slug] ?? {
-        first: hero?.first ?? "The",
-        second: hero?.second ?? "Ritual",
+        first: hero.first,
+        second: hero.second,
       });
-
-  if (!hero) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-brand-bg">
@@ -100,7 +105,7 @@ export async function CollectionView({
             alt=""
             width={304}
             height={637}
-            priority
+            preload
             sizes="(max-width: 767px) 12rem, 18rem"
             className="collection-hero-product"
           />

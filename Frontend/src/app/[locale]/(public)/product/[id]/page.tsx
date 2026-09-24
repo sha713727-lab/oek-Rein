@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -13,6 +14,30 @@ import { productService } from "@/lib/api/products";
 import { getStorefront } from "@/lib/storefront";
 import { readWishlist } from "@/lib/wishlist-cookie";
 import type { SerializedProduct } from "@/types/product";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const product = await productService.details(id);
+    const description =
+      product.description.intro || product.description.detail || `${product.title} from ${brandName}`;
+    return {
+      title: `${product.title} | ${brandName}`,
+      description,
+      openGraph: {
+        title: product.title,
+        description,
+        images: product.images[0]?.url ? [{ url: product.images[0].url }] : undefined,
+      },
+    };
+  } catch {
+    return { title: `Product | ${brandName}` };
+  }
+}
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

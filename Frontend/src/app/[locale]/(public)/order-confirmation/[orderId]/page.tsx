@@ -6,6 +6,7 @@ import { brandName } from "@/constants/brand";
 import { formatSupportPhoneDisplay, supportWhatsAppUrlFromPhone } from "@/constants/site";
 import { OrderSummary } from "@/features/orders/order-summary";
 import { orderService } from "@/lib/api/orders";
+import { readOrderReceipt } from "@/lib/order-receipt-cookie";
 import { getSessionUser } from "@/lib/session";
 import { getStorefront } from "@/lib/storefront";
 import type { OrderRecord } from "@/types/order";
@@ -17,10 +18,31 @@ export default async function OrderConfirmationPage({
 }) {
   const { orderId } = await params;
   const user = await getSessionUser();
-  let order: OrderRecord;
-  try {
-    order = await orderService.getByOrderNumber(orderId, user);
-  } catch {
+  let order: OrderRecord | null = null;
+
+  if (user) {
+    try {
+      order = await orderService.getByOrderNumber(orderId, user);
+    } catch {
+      order = null;
+    }
+  }
+
+  if (!order) {
+    const receipt = await readOrderReceipt();
+    if (
+      receipt &&
+      receipt.orderNumber.toUpperCase() === orderId.toUpperCase()
+    ) {
+      try {
+        order = await orderService.lookupGuest(receipt.orderNumber, receipt.email);
+      } catch {
+        order = null;
+      }
+    }
+  }
+
+  if (!order) {
     notFound();
   }
 

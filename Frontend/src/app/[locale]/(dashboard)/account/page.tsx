@@ -5,7 +5,7 @@ import { getCustomerFirstName } from "@/constants/account";
 import { formatMoney } from "@/constants/storefront";
 import { logoutAction } from "@/features/auth/actions";
 import { orderService } from "@/lib/api/orders";
-import { readCart } from "@/lib/cart-cookie";
+import { resolveAndPruneCart } from "@/lib/resolve-cart";
 import { getSessionUser } from "@/lib/session";
 import { getStorefront } from "@/lib/storefront";
 import { readWishlist } from "@/lib/wishlist-cookie";
@@ -18,10 +18,10 @@ export default async function AccountPage() {
   const [orders, wishlist, cart, storefront] = await Promise.all([
     orderService.listMine(user.id, 1, 3),
     readWishlist(),
-    readCart(),
+    resolveAndPruneCart(),
     getStorefront(),
   ]);
-  const cartCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+  const cartCount = cart.count;
 
   return (
     <>

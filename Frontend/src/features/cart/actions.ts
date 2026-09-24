@@ -9,6 +9,9 @@ import { orderService } from "@/lib/api/orders";
 import { productService } from "@/lib/api/products";
 import { readCart, writeCart } from "@/lib/cart-cookie";
 import { parseSchema } from "@/lib/parse-schema";
+import { resolveAndPruneCart } from "@/lib/resolve-cart";
+import { readWishlist, writeWishlist } from "@/lib/wishlist-cookie";
+import { uuidSchema } from "@/schemas/common";
 import { cartItemSchema } from "@/schemas/order";
 
 export type CartActionResult = { ok?: boolean; error?: string };
@@ -114,9 +117,29 @@ export async function updateCartQuantityAction(formData: FormData): Promise<void
     return;
   }
   const products = await productService.getByIds([existing.productId]);
-  const stock = products[0]?.stock ?? 0;
-  existing.quantity = Math.min(20, quantity, Math.max(1, stock));
+  const product = products[0];
+  if (!product || product.status !== PRODUCT_STATUS.PUBLISHED || product.stock < 1) {
+    await writeCart({
+      items: cart.items.filter((item) => !sameLine(item, key)),
+    });
+    revalidatePath("/", "layout");
+    return;
+  }
+  existing.quantity = Math.min(20, quantity, Math.max(1, product.stock));
   await writeCart(cart);
+  revalidatePath("/", "layout");
+}
+
+export async function moveCartItemToWishlistAction(formData: FormData): Promise<void> {
+  const productId = parseSchema(uuidSchema, String(formData.get("productId") ?? ""));
+  const key = lineKey(formData);
+  const [cart, wishlist] = await Promise.all([readCart(), readWishlist()]);
+  await writeCart({
+    items: cart.items.filter((item) => !sameLine(item, key)),
+  });
+  if (!wishlist.ids.includes(productId)) {
+    await writeWishlist({ ids: [...wishlist.ids, productId] });
+  }
   revalidatePath("/", "layout");
 }
 
@@ -129,13 +152,14 @@ export async function buyNowAction(formData: FormData): Promise<CartActionResult
 }
 
 export async function getMiniCartAction(): Promise<MiniCartSnapshot> {
-  const [cart, commerce] = await Promise.all([readCart(), orderService.getCommerceSettings()]);
-  const products = await productService.getByIds(cart.items.map((item) => item.productId));
-  const map = new Map(products.map((product) => [product.id, product]));
-  const lines = cart.items
+  const [{ items, products }, commerce] = await Promise.all([
+    resolveAndPruneCart({ persist: true }),
+    orderService.getCommerceSettings(),
+  ]);
+  const lines = items
     .map((item) => {
-      const product = map.get(item.productId);
-      if (!product) {
+      const product = products.get(item.productId);
+      if (!product || product.status !== PRODUCT_STATUS.PUBLISHED) {
         return null;
       }
       const price = Number(product.effectivePrice ?? product.price ?? 0);

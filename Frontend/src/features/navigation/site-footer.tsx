@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ComponentType } from "react";
 
-import { IconFacebook, IconInstagram, IconPinterest, IconHorseshoe } from "@/components/icons/icons";
+import { IconFacebook, IconHorseshoe,IconInstagram, IconPinterest } from "@/components/icons/icons";
 import { brandName, footerSocialLabel, heroCtaHref, heroExploreLabel } from "@/constants/brand";
 import { FOOTER_NAV, FOOTER_SOCIAL } from "@/constants/site";
 import { type StorefrontContent, visibleNavLinks } from "@/constants/storefront";

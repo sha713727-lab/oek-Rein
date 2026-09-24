@@ -274,14 +274,30 @@ export class OrderRepository {
     return { orders, pagination: paginate(page, limit, Number(count.rows[0]?.total ?? 0), nextCursor) };
   }
 
-  async findByOrderNumber(orderNumber: string, accountId?: string | undefined): Promise<OrderRecord | null> {
+  async findByOrderNumber(orderNumber: string, accountId: string): Promise<OrderRecord | null> {
     const result = await query<OrderSqlRow>(
       `SELECT ${ORDER_COLUMNS} FROM sales_order
        WHERE deleted_at IS NULL
          AND order_number = $1
-         AND ($2::uuid IS NULL OR account_id IS NULL OR account_id = $2)
+         AND account_id = $2
        LIMIT 1`,
-      [orderNumber.toUpperCase(), accountId ?? null],
+      [orderNumber.toUpperCase(), accountId],
+    );
+    const row = result.rows[0];
+    if (!row) {
+      return null;
+    }
+    const [order] = await this.attachItems([row]);
+    return order ?? null;
+  }
+
+  async findByOrderNumberUnscoped(orderNumber: string): Promise<OrderRecord | null> {
+    const result = await query<OrderSqlRow>(
+      `SELECT ${ORDER_COLUMNS} FROM sales_order
+       WHERE deleted_at IS NULL
+         AND order_number = $1
+       LIMIT 1`,
+      [orderNumber.toUpperCase()],
     );
     const row = result.rows[0];
     if (!row) {

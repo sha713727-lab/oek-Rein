@@ -6,24 +6,20 @@ import { ConfirmSubmit } from "@/components/ui/confirm-submit";
 import { CATEGORY_LABELS } from "@/constants/catalog";
 import { calculateOrderTotals, getFreeShippingNote } from "@/constants/commerce";
 import { formatMoney } from "@/constants/storefront";
-import { removeFromCartAction, updateCartQuantityAction } from "@/features/cart/actions";
+import { moveCartItemToWishlistAction,removeFromCartAction, updateCartQuantityAction } from "@/features/cart/actions";
 import { OrderTotals } from "@/features/checkout/order-totals";
-import { toggleWishlistAction } from "@/features/wishlist/actions";
 import { orderService } from "@/lib/api/orders";
-import { productService } from "@/lib/api/products";
-import { readCart } from "@/lib/cart-cookie";
 import { resolvePublicAssetSrc } from "@/lib/public-assets";
+import { resolveAndPruneCart } from "@/lib/resolve-cart";
 
 export default async function CartPage() {
-  const cart = await readCart();
-  const [products, commerce] = await Promise.all([
-    productService.getByIds(cart.items.map((item) => item.productId)),
+  const [{ items, products }, commerce] = await Promise.all([
+    resolveAndPruneCart(),
     orderService.getCommerceSettings(),
   ]);
-  const map = new Map(products.map((product) => [product.id, product]));
-  const lines = cart.items
+  const lines = items
     .map((item) => {
-      const product = map.get(item.productId);
+      const product = products.get(item.productId);
       if (!product) {
         return null;
       }
@@ -119,8 +115,10 @@ export default async function CartPage() {
                           </div>
                         </div>
                         <div className="cart-item-actions">
-                          <form action={toggleWishlistAction}>
+                          <form action={moveCartItemToWishlistAction}>
                             <input type="hidden" name="productId" value={line.productId} />
+                            {line.size ? <input type="hidden" name="size" value={line.size} /> : null}
+                            {line.color ? <input type="hidden" name="color" value={line.color} /> : null}
                             <ConfirmSubmit
                               className="cart-item-link"
                               message="Move this item to your wishlist?"

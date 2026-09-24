@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 
 import { checkoutAction } from "@/features/checkout/actions";
 
@@ -17,13 +18,20 @@ type AddressOption = {
 
 type State = { error?: string | undefined };
 
+function PlaceOrderButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" className="luxury-button-solid" disabled={pending} aria-disabled={pending}>
+      {pending ? "Placing order..." : "Place order"}
+    </button>
+  );
+}
+
 export function CheckoutForm({
-  itemsJson,
   defaultName,
   defaultEmail,
   addresses = [],
 }: {
-  itemsJson: string;
   defaultName?: string | undefined;
   defaultEmail?: string | undefined;
   addresses?: AddressOption[];
@@ -35,7 +43,6 @@ export function CheckoutForm({
 
   return (
     <form id="checkout-form" action={action} className="checkout-form space-y-4">
-      <input type="hidden" name="items" value={itemsJson} />
       {addresses.length > 0 ? (
         <label className="auth-field">
           <span className="sr-only">Saved address</span>
@@ -99,9 +106,7 @@ export function CheckoutForm({
       <input type="hidden" name="paymentMethod" value="cod" />
       <p className="checkout-note">Cash on delivery only. You will pay when the order is delivered. Card checkout is not offered.</p>
       {state.error ? <p className="auth-form-error">{state.error}</p> : null}
-      <button type="submit" className="luxury-button-solid">
-        Place order
-      </button>
+      <PlaceOrderButton />
     </form>
   );
 }

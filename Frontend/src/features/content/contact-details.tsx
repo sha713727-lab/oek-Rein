@@ -1,8 +1,8 @@
 import { IconEnvelope, IconMap, IconPhone } from "@/components/icons/icons";
 import {
+  formatSupportPhoneDisplay,
   SUPPORT_ADDRESS,
   SUPPORT_EMAIL,
-  formatSupportPhoneDisplay,
   supportPhoneE164,
   supportWhatsAppUrlFromPhone,
 } from "@/constants/site";

@@ -1,41 +1,43 @@
 import { redirect } from "next/navigation";
 
 import { brandName } from "@/constants/brand";
+import { PRODUCT_STATUS } from "@/constants/catalog";
 import { calculateOrderTotals, getFreeShippingNote } from "@/constants/commerce";
 import { formatMoney } from "@/constants/storefront";
 import { CheckoutForm } from "@/features/checkout/checkout-form";
 import { OrderTotals } from "@/features/checkout/order-totals";
 import { addressService } from "@/lib/api/addresses";
 import { orderService } from "@/lib/api/orders";
-import { productService } from "@/lib/api/products";
-import { readCart } from "@/lib/cart-cookie";
+import { resolveAndPruneCart } from "@/lib/resolve-cart";
 import { getSessionUser } from "@/lib/session";
 
 export default async function CheckoutPage() {
-  const cart = await readCart();
-  if (cart.items.length === 0) {
-    redirect("/cart");
-  }
-  const [user, products, commerce] = await Promise.all([
+  const [{ items, products }, user, commerce] = await Promise.all([
+    resolveAndPruneCart(),
     getSessionUser(),
-    productService.getByIds(cart.items.map((item) => item.productId)),
     orderService.getCommerceSettings(),
   ]);
-  const addresses = user ? await addressService.list(user.id) : [];
-  const map = new Map(products.map((product) => [product.id, product]));
-  const availableItems = cart.items.filter((item) => map.has(item.productId));
-  if (availableItems.length === 0) {
+  if (items.length === 0) {
     redirect("/cart");
   }
-  const lines = availableItems.map((item) => {
-    const product = map.get(item.productId)!;
-    const price = Number(product.effectivePrice ?? product.price ?? 0);
-    return {
-      title: String(product.title),
-      quantity: item.quantity,
-      lineTotal: price * item.quantity,
-    };
-  });
+  const addresses = user ? await addressService.list(user.id) : [];
+  const lines = items
+    .map((item) => {
+      const product = products.get(item.productId);
+      if (!product || product.status !== PRODUCT_STATUS.PUBLISHED) {
+        return null;
+      }
+      const price = Number(product.effectivePrice ?? product.price ?? 0);
+      return {
+        title: String(product.title),
+        quantity: item.quantity,
+        lineTotal: price * item.quantity,
+      };
+    })
+    .filter((line): line is NonNullable<typeof line> => line !== null);
+  if (lines.length === 0) {
+    redirect("/cart");
+  }
   const subtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
   const totals = calculateOrderTotals(subtotal, commerce);
 
@@ -49,7 +51,6 @@ export default async function CheckoutPage() {
         </header>
         <div className="checkout-layout">
           <CheckoutForm
-            itemsJson={JSON.stringify(availableItems)}
             defaultName={user?.name}
             defaultEmail={user?.email}
             addresses={addresses}

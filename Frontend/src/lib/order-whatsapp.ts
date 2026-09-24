@@ -1,9 +1,9 @@
+import { brandName } from "@/constants/brand";
 import {
   formatSupportPhoneDisplay,
   supportPhoneE164,
   toWhatsAppDigits,
 } from "@/constants/site";
-import { brandName } from "@/constants/brand";
 import { formatMoney } from "@/constants/storefront";
 
 type OrderWhatsAppInput = {
