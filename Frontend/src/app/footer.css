@@ -177,12 +177,15 @@
   position: relative;
   z-index: 0;
   display: block;
+  box-sizing: border-box;
   width: 100%;
+  max-width: 100%;
   margin: 3.5rem 0 0;
-  padding: 0 0 0.06em;
+  padding: 0 0.5rem 0.06em;
   overflow: hidden;
   font-family: var(--font-heading);
-  font-size: clamp(4.25rem, 18vw, 15rem);
+  /* Sized to keep full brand name visible (no clip) across viewports */
+  font-size: clamp(2.35rem, 12.5vw, 15rem);
   font-weight: 600;
   letter-spacing: -0.04em;
   line-height: 0.84;
@@ -216,15 +219,17 @@
 
   .site-footer-mark {
     margin-top: 2.5rem;
-    font-size: clamp(3.6rem, 22vw, 8.5rem);
-    letter-spacing: -0.05em;
-    line-height: 0.86;
+    padding-inline: 0.75rem;
+    font-size: clamp(2.1rem, 11vw, 6.5rem);
+    letter-spacing: -0.045em;
+    line-height: 0.88;
   }
 }
 
 @media (max-width: 480px) {
   .site-footer-mark {
-    font-size: clamp(3.1rem, 24vw, 5.5rem);
+    font-size: clamp(1.85rem, 9.8vw, 3.25rem);
+    letter-spacing: -0.03em;
   }
 }
 
