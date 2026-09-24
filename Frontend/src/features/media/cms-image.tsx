@@ -2,24 +2,13 @@ import Image, { type ImageProps } from "next/image";
 
 import { resolvePublicAssetSrc } from "@/lib/public-assets";
 
-const RASTER_EXTENSIONS = /\.(png|jpe?g|webp|avif)(\?|#|$)/i;
-
 /**
- * Only bake-time public assets go through `/_next/image`.
- * CMS `/uploads/*` live on a Docker volume and return 400 from the optimizer
- * when the runtime file isn't in the image filesystem the way Next expects.
+ * CMS / storefront image — skips render when src is missing so Next/Image never gets "".
+ *
+ * Always `unoptimized`: production uploads live on a Docker volume and are served by
+ * the backend at `/uploads/*`. Next's `/_next/image` optimizer cannot read those files
+ * and returns 400. Static marketing assets under `/assets/` are small enough to ship as-is.
  */
-function shouldOptimize(src: string): boolean {
-  if (!RASTER_EXTENSIONS.test(src)) {
-    return false;
-  }
-  if (src.startsWith("/uploads/") || src.includes("/uploads/")) {
-    return false;
-  }
-  return src.startsWith("/assets/");
-}
-
-/** CMS / storefront image — skips render when src is missing so Next/Image never gets "". */
 export function CmsImage({
   src,
   alt,
@@ -47,7 +36,7 @@ export function CmsImage({
   const props: ImageProps = {
     src: resolved,
     alt,
-    unoptimized: !shouldOptimize(resolved),
+    unoptimized: true,
   };
   if (className) {
     props.className = className;

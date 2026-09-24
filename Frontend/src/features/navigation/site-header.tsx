@@ -181,6 +181,7 @@ function MegaCardImage({ src, alt }: { src?: string; alt: string }) {
       fill
       sizes="(max-width: 1024px) 40vw, 220px"
       className="header-mega-card-img"
+      unoptimized
     />
   );
 }
