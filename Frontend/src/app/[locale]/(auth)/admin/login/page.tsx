@@ -16,9 +16,9 @@ export default async function AdminLoginPage() {
   const seedHint =
     process.env.NODE_ENV === "development"
       ? {
-          email: process.env.SEED_ADMIN_EMAIL ?? "admin@example.com",
-          password: process.env.SEED_ADMIN_PASSWORD ?? "ChangeMeAdmin123!",
-          passcode: process.env.ADMIN_PASSCODE ?? "1234",
+          email: process.env.SEED_ADMIN_EMAIL ?? "admin@oakrein.com",
+          password: process.env.SEED_ADMIN_PASSWORD ?? "OakRein@0343",
+          passcode: process.env.ADMIN_PASSCODE ?? "0343",
         }
       : undefined;
   return (
