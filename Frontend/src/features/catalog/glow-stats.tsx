@@ -21,7 +21,7 @@ export function GlowStats({ image }: { image: string }) {
             src={image}
             alt={GLOW_STATS_ALT}
             fill
-            priority
+            preload
             sizes="100vw"
             className="glow-stats-image"
           />

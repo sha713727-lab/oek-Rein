@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { heroWaveText } from "@/constants/brand";
 
@@ -15,6 +15,8 @@ const WAVE_MID = 80;
 const WAVE_AMP = 26;
 const WAVE_PERIOD = 520;
 const WAVE_STEP = 24;
+/** Seed copies until we can measure path + unit length (~2–3× path coverage). */
+const SEED_REPEAT_COUNT = 3;
 
 function sampleWave(x: number): number {
   return WAVE_MID + WAVE_AMP * Math.sin((2 * Math.PI * x) / WAVE_PERIOD);
@@ -49,7 +51,10 @@ function buildSineGuide(): string {
 }
 
 const WAVE_GUIDE = buildSineGuide();
-const REPEAT_COUNT = 12;
+
+function unitPhrase(text: string): string {
+  return `${text}   ✦   `;
+}
 
 type RibbonMarqueeProps = {
   /** Ribbon fill: lime band with green type, or green band with white type. */
@@ -60,6 +65,15 @@ type RibbonMarqueeProps = {
   merged?: boolean;
 };
 
+function waitForWindowLoad(): Promise<void> {
+  if (typeof window === "undefined" || document.readyState === "complete") {
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => {
+    window.addEventListener("load", () => resolve(), { once: true });
+  });
+}
+
 export function RibbonMarquee({
   tone = "lime",
   text = heroWaveText,
@@ -68,18 +82,24 @@ export function RibbonMarquee({
 }: RibbonMarqueeProps) {
   const textPathRef = useRef<SVGTextPathElement>(null);
   const frameRef = useRef(0);
-  const copy = `${text}   ✦   `.repeat(REPEAT_COUNT);
+  const [repeatCount, setRepeatCount] = useState(SEED_REPEAT_COUNT);
+  const copy = unitPhrase(text).repeat(repeatCount);
 
   useEffect(() => {
     let cancelled = false;
     const root = textPathRef.current?.ownerSVGElement?.closest(".ribbon-marquee") as HTMLElement | null;
+    let stopIo: (() => void) | undefined;
+    let io: IntersectionObserver | null = null;
 
     const run = () => {
       const textPath = textPathRef.current;
+      const guide = document.getElementById(pathId) as SVGPathElement | null;
       if (cancelled || !textPath) {
         return;
       }
-      const unit = textPath.getComputedTextLength() / REPEAT_COUNT;
+
+      const totalLen = textPath.getComputedTextLength();
+      const unit = totalLen / Math.max(repeatCount, 1);
       if (unit <= 0) {
         window.requestAnimationFrame(() => {
           if (!cancelled) {
@@ -88,43 +108,62 @@ export function RibbonMarquee({
         });
         return;
       }
+
+      // Cover ~2.5× the path length with text copies (cap keeps DOM light).
+      const pathLen = guide?.getTotalLength?.() ?? 1440;
+      const needed = Math.min(6, Math.max(2, Math.ceil((pathLen * 2.5) / unit)));
+      if (needed !== repeatCount) {
+        setRepeatCount(needed);
+        return;
+      }
+
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       if (reducedMotion) {
         textPath.setAttribute("startOffset", "0");
         return;
       }
+
+      const coarse = window.matchMedia("(pointer: coarse)").matches;
       const speed = 0.052;
-      // Text-on-path relayout is costly; halve the rate on phones/tablets.
-      const minFrameMs = window.matchMedia("(pointer: coarse)").matches ? 32 : 0;
+      // Coarse pointer: throttle hard; also wait for hero ready when present.
+      const minFrameMs = coarse ? 48 : 0;
       let offset = 0;
       let last = performance.now();
       let painted = last;
-      let visible = true;
+      let inView = false;
+      let heroReady = !document.querySelector(".home-flow") || Boolean(document.querySelector(".home-flow.is-hero-ready"));
 
       const tick = (now: number) => {
         if (cancelled) return;
-        if (visible && now - painted >= minFrameMs) {
+        if (!heroReady && document.querySelector(".home-flow.is-hero-ready")) {
+          heroReady = true;
+        }
+        const mayPaint = inView && (heroReady || !coarse);
+        if (mayPaint && now - painted >= minFrameMs) {
           const delta = Math.min(now - last, 32);
           last = now;
           painted = now;
           offset = (offset + delta * speed) % unit;
           textPath.setAttribute("startOffset", String(offset - unit));
-        } else if (!visible) {
+        } else if (!mayPaint) {
           last = now;
         }
         frameRef.current = window.requestAnimationFrame(tick);
       };
 
-      const io =
+      io =
         root &&
         new IntersectionObserver(
           (entries) => {
-            visible = entries.some((entry) => entry.isIntersecting);
+            inView = entries.some((entry) => entry.isIntersecting);
           },
           { rootMargin: "120px 0px", threshold: 0 },
         );
       if (root && io) {
         io.observe(root);
+        // Sync initial visibility without waiting for a callback.
+        const rect = root.getBoundingClientRect();
+        inView = rect.bottom > 0 && rect.top < window.innerHeight;
       }
 
       frameRef.current = window.requestAnimationFrame(tick);
@@ -134,9 +173,8 @@ export function RibbonMarquee({
       };
     };
 
-    let stopIo: (() => void) | undefined;
     const fontsReady = document.fonts ? document.fonts.ready : Promise.resolve();
-    void fontsReady.then(() => {
+    void Promise.all([fontsReady, waitForWindowLoad()]).then(() => {
       if (!cancelled) {
         stopIo = run() ?? undefined;
       }
@@ -145,9 +183,10 @@ export function RibbonMarquee({
     return () => {
       cancelled = true;
       stopIo?.();
+      io?.disconnect();
       window.cancelAnimationFrame(frameRef.current);
     };
-  }, []);
+  }, [pathId, repeatCount, text]);
 
   return (
     <div

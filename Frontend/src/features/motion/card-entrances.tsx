@@ -4,17 +4,20 @@ import { useEffect } from "react";
 
 import {
   gsap,
+  isCoarsePointer,
+  isMobileViewport,
   prefersReducedMotion,
   registerGsapPlugins,
   ScrollTrigger,
 } from "@/features/motion/motion-config";
 
-/** M08 — GSAP entrance on card wrappers only (CSS owns hover). */
+/** M08 — GSAP entrance on card wrappers only (CSS owns hover). Desktop fine-pointer only. */
 export function useCardEntrances(rootSelector = ".home-flow") {
   useEffect(() => {
     registerGsapPlugins();
     const root = document.querySelector(rootSelector);
-    if (!(root instanceof HTMLElement) || prefersReducedMotion()) {
+    // Never leave cards at opacity 0 on mobile/touch — skip the scene entirely.
+    if (!(root instanceof HTMLElement) || prefersReducedMotion() || isMobileViewport() || isCoarsePointer()) {
       return;
     }
 

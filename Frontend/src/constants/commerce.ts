@@ -55,7 +55,7 @@ export function getFreeShippingNote(settings: CommerceSettings = DEFAULT_COMMERC
   if (!commerce.freeShippingEnabled) {
     return "Standard shipping applies to all orders.";
   }
-  return `Free shipping on orders above ${commerce.currency} ${commerce.freeShippingThreshold.toLocaleString()}.`;
+  return `Free shipping on orders above ${commerce.currency} ${commerce.freeShippingThreshold.toLocaleString("en-US", { maximumFractionDigits: 0 })}.`;
 }
 
 export function applyDiscount(subtotal: number, discount: number): number {

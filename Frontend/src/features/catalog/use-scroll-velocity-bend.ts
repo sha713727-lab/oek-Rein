@@ -18,7 +18,10 @@ type BendOptions = {
 export function useScrollVelocityBend({ sectionSelector, onBend }: BendOptions) {
   const rootRef = useRef<HTMLDivElement>(null);
   const onBendRef = useRef(onBend);
-  onBendRef.current = onBend;
+
+  useEffect(() => {
+    onBendRef.current = onBend;
+  }, [onBend]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -28,7 +31,9 @@ export function useScrollVelocityBend({ sectionSelector, onBend }: BendOptions) 
     }
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduced) {
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    const narrow = window.matchMedia("(max-width: 768px)").matches;
+    if (reduced || coarse || narrow) {
       onBendRef.current(SCROLL_CURVE_REST_BEND);
       return;
     }
@@ -42,9 +47,6 @@ export function useScrollVelocityBend({ sectionSelector, onBend }: BendOptions) 
     let idleMs = 0;
     let active = false;
     let emitted = bend;
-
-    const mobileQuery = window.matchMedia("(max-width: 768px)");
-    const mobile = () => mobileQuery.matches;
 
     const sectionNear = () => {
       const rect = section.getBoundingClientRect();
@@ -67,8 +69,8 @@ export function useScrollVelocityBend({ sectionSelector, onBend }: BendOptions) 
 
       velocity += (rawV - velocity) * 0.12;
 
-      const maxDelta = mobile() ? 0.45 : 0.7;
-      const gain = mobile() ? 0.055 : 0.07;
+      const maxDelta = 0.7;
+      const gain = 0.07;
       const fromVelocity = Math.max(
         SCROLL_CURVE_REST_BEND * 0.9,
         Math.min(SCROLL_CURVE_REST_BEND + maxDelta, SCROLL_CURVE_REST_BEND + velocity * gain),

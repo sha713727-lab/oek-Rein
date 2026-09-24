@@ -50,6 +50,7 @@ export async function apiRequest<T>(
   route: string,
   body?: unknown,
   extraHeaders: Record<string, string> = {},
+  options?: { timeoutMs?: number },
 ): Promise<T> {
   const env = getEnv();
   const queryIndex = route.indexOf("?");
@@ -87,12 +88,22 @@ export async function apiRequest<T>(
   if (rawBody) {
     requestHeaders["Content-Type"] = "application/json";
   }
-  const response = await fetch(`${env.API_URL}${pathname}${query}`, {
-    method,
-    headers: requestHeaders,
-    ...(rawBody ? { body: rawBody } : {}),
-    cache: "no-store",
-  });
+  const timeoutMs = options?.timeoutMs ?? 8000;
+  let response: Response;
+  try {
+    response = await fetch(`${env.API_URL}${pathname}${query}`, {
+      method,
+      headers: requestHeaders,
+      ...(rawBody ? { body: rawBody } : {}),
+      cache: "no-store",
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+  } catch (error) {
+    if (error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError")) {
+      throw new AppError("Request timed out. Please try again.", 504, ERROR_CODES.INTERNAL);
+    }
+    throw error;
+  }
   const setCookies = typeof response.headers.getSetCookie === "function" ? response.headers.getSetCookie() : [];
   for (const line of setCookies) {
     applySetCookie(store, line);

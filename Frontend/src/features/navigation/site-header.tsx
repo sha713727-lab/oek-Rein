@@ -33,6 +33,7 @@ import { SearchModal } from "@/features/navigation/search-modal";
 import { SiteToast } from "@/features/navigation/site-toast";
 import { BAG_EVENT } from "@/lib/bag-events";
 import { cn } from "@/lib/cn";
+import { lockScroll } from "@/lib/scroll-lock";
 
 type SiteHeaderProps = {
   isAuthenticated: boolean;
@@ -209,7 +210,7 @@ export function SiteHeader({
   const desktopNavRef = useRef<HTMLDivElement>(null);
   const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const bodyOverflowRef = useRef<string | null>(null);
+  const unlockScrollRef = useRef<(() => void) | null>(null);
   const menuGenerationRef = useRef(0);
   const isHome = isHomePath(path);
 
@@ -258,10 +259,8 @@ export function SiteHeader({
     if (generation !== menuGenerationRef.current) {
       return;
     }
-    if (bodyOverflowRef.current !== null) {
-      document.body.style.overflow = bodyOverflowRef.current;
-      bodyOverflowRef.current = null;
-    }
+    unlockScrollRef.current?.();
+    unlockScrollRef.current = null;
   }, []);
 
   useEffect(() => {
@@ -276,7 +275,6 @@ export function SiteHeader({
       isHome && hero instanceof HTMLElement ? Math.max(160, hero.getBoundingClientRect().height * 0.55) : 48;
     // Only touch state on the crossing, not on every scroll event.
     let past = window.scrollY > threshold;
-    setScrolled(past);
     const onScroll = () => {
       const next = window.scrollY > threshold;
       if (next === past) {
@@ -285,14 +283,23 @@ export function SiteHeader({
       past = next;
       setScrolled(next);
     };
+    // Sync initial scrolled state after mount (async) so we avoid setState in the effect body.
+    const frame = window.requestAnimationFrame(() => {
+      setScrolled(past);
+    });
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+    };
   }, [pathname, isHome]);
 
   const [navEpoch, setNavEpoch] = useState(pathname);
   if (navEpoch !== pathname) {
     setNavEpoch(pathname);
     setOpen(false);
+    setSearchOpen(false);
+    setBagOpen(false);
     setDesktopOpenId(null);
     setMobileOpenId(null);
   }
@@ -307,10 +314,9 @@ export function SiteHeader({
     }
 
     const generation = ++menuGenerationRef.current;
-    if (bodyOverflowRef.current === null) {
-      bodyOverflowRef.current = document.body.style.overflow;
+    if (!unlockScrollRef.current) {
+      unlockScrollRef.current = lockScroll();
     }
-    document.body.style.overflow = "hidden";
 
     const menu = menuRef.current;
     const focusables = () =>
@@ -370,10 +376,8 @@ export function SiteHeader({
 
   useEffect(
     () => () => {
-      if (bodyOverflowRef.current !== null) {
-        document.body.style.overflow = bodyOverflowRef.current;
-        bodyOverflowRef.current = null;
-      }
+      unlockScrollRef.current?.();
+      unlockScrollRef.current = null;
       clearIntentTimers();
     },
     [clearIntentTimers],

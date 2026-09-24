@@ -6,7 +6,12 @@ import { useCardEntrances } from "@/features/motion/card-entrances";
 import { useDrawAndParallax } from "@/features/motion/draw-parallax";
 import { useHeadingReveals } from "@/features/motion/heading-reveals";
 import { useHeroMotion } from "@/features/motion/hero-motion";
-import { prefersReducedMotion, registerGsapPlugins, ScrollTrigger } from "@/features/motion/motion-config";
+import {
+  armScrollTriggerLayoutRefresh,
+  isCoarsePointer,
+  prefersReducedMotion,
+  registerGsapPlugins,
+} from "@/features/motion/motion-config";
 
 function DeferredHomeScenes() {
   useHeadingReveals();
@@ -17,7 +22,8 @@ function DeferredHomeScenes() {
 
 /**
  * Homepage motion orchestrator — hero runs immediately; heavier scroll scenes
- * wait for an idle slot so first paint / hero video aren't competing for the main thread.
+ * wait for window `load` (or a 2s fallback) so first paint isn't competing.
+ * Coarse pointer: skip DeferredHomeScenes entirely.
  */
 export function HomeMotion() {
   useHeroMotion();
@@ -32,36 +38,49 @@ export function HomeMotion() {
       root.classList.add("is-hero-ready");
     }
 
-    const refresh = () => ScrollTrigger.refresh();
-    void document.fonts?.ready.then(refresh);
+    const disposeRefresh = armScrollTriggerLayoutRefresh();
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     const onReduced = () => {
-      refresh();
       if (reduced.matches && root instanceof HTMLElement) {
         root.classList.add("is-hero-ready");
       }
     };
     reduced.addEventListener("change", onReduced);
 
-    let idleId = 0;
+    // Touch / coarse: don't mount heavy scroll scenes at all.
+    if (isCoarsePointer()) {
+      return () => {
+        reduced.removeEventListener("change", onReduced);
+        document.documentElement.classList.remove("home-motion-ready");
+        disposeRefresh();
+      };
+    }
+
     let timeoutId = 0;
-    const arm = () => setDefer(true);
-    if (typeof window.requestIdleCallback === "function") {
-      idleId = window.requestIdleCallback(arm, { timeout: 900 });
+    let armed = false;
+    const arm = () => {
+      if (armed) return;
+      armed = true;
+      setDefer(true);
+    };
+
+    const onLoad = () => arm();
+    if (document.readyState === "complete") {
+      arm();
     } else {
-      timeoutId = window.setTimeout(arm, 200);
+      window.addEventListener("load", onLoad, { once: true });
+      timeoutId = window.setTimeout(arm, 2000);
     }
 
     return () => {
       reduced.removeEventListener("change", onReduced);
+      window.removeEventListener("load", onLoad);
       document.documentElement.classList.remove("home-motion-ready");
-      if (idleId && typeof window.cancelIdleCallback === "function") {
-        window.cancelIdleCallback(idleId);
-      }
       if (timeoutId) {
         window.clearTimeout(timeoutId);
       }
+      disposeRefresh();
     };
   }, []);
 

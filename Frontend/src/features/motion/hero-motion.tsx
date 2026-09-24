@@ -4,6 +4,7 @@ import { useEffect } from "react";
 
 import {
   gsap,
+  isCoarsePointer,
   isMobileViewport,
   prefersReducedMotion,
   registerGsapPlugins,
@@ -15,6 +16,7 @@ const SESSION_KEY = "saddlera-hero-seen";
 /**
  * M01 coordinated hero entrance + M02 scroll retreat.
  * Separate wrappers: .home-hero-entrance (decor scale), .home-hero-scroll (scroll).
+ * Mobile / coarse / reduced-motion: CSS-visible hero, no GSAP intro.
  */
 export function useHeroMotion() {
   useEffect(() => {
@@ -38,8 +40,17 @@ export function useHeroMotion() {
     }
 
     document.documentElement.classList.add("home-motion-ready");
+
     const reduced = prefersReducedMotion();
     const mobile = isMobileViewport();
+    const coarse = isCoarsePointer();
+
+    // Phones / touch / a11y: keep CSS defaults visible; skip the GSAP intro entirely.
+    if (reduced || mobile || coarse) {
+      root.classList.add("is-hero-ready");
+      return;
+    }
+
     let repeat = false;
     try {
       repeat = sessionStorage.getItem(SESSION_KEY) === "1";
@@ -50,22 +61,16 @@ export function useHeroMotion() {
     let removeEarlyScroll: (() => void) | undefined;
 
     const ctx = gsap.context(() => {
-      if (reduced) {
-        gsap.set([entrance, wordLines, subject, cta, decor].filter(Boolean), { clearProps: "all" });
-        root.classList.add("is-hero-ready");
-        return;
-      }
-
+      // Mild entrance only — never hide subject/CTA at 0 / 0.35 (FOUC risk on slow JS).
       if (entrance) {
-        gsap.set(entrance, { scale: 0.85, opacity: 0.4, transformOrigin: "50% 50%" });
+        gsap.set(entrance, { scale: 0.92, opacity: 0.85, transformOrigin: "50% 50%" });
       }
-      gsap.set(wordLines, { yPercent: 110, opacity: 0 });
+      gsap.set(wordLines, { yPercent: 110 });
       if (subject) {
-        // Keep the horse faintly visible so cold loads don't look empty.
-        gsap.set(subject, { y: 20, scale: 1.02, opacity: 0.35 });
+        gsap.set(subject, { y: 16, scale: 1.01 });
       }
       if (cta) {
-        gsap.set(cta, { y: 14, opacity: 0 });
+        gsap.set(cta, { y: 10 });
       }
 
       const durationScale = repeat ? 0.4 : 0.72;
@@ -91,7 +96,6 @@ export function useHeroMotion() {
         wordLines,
         {
           yPercent: 0,
-          opacity: 1,
           duration: 0.55 * durationScale,
           stagger: 0.05,
           ease: "revealEase",
@@ -101,12 +105,12 @@ export function useHeroMotion() {
       if (subject) {
         tl.to(
           subject,
-          { y: 0, scale: 1, opacity: 1, duration: 0.55 * durationScale, ease: "power3.out" },
+          { y: 0, scale: 1, duration: 0.55 * durationScale, ease: "power3.out" },
           0.06 * durationScale,
         );
       }
       if (cta) {
-        tl.to(cta, { y: 0, opacity: 1, duration: 0.4 * durationScale, ease: "power2.out" }, 0.22 * durationScale);
+        tl.to(cta, { y: 0, duration: 0.4 * durationScale, ease: "power2.out" }, 0.22 * durationScale);
       }
 
       let interrupted = false;
@@ -128,87 +132,68 @@ export function useHeroMotion() {
       window.addEventListener("scroll", onEarlyScroll, { passive: true });
       removeEarlyScroll = () => window.removeEventListener("scroll", onEarlyScroll);
 
-      if (!mobile) {
-        const scene = scrollWrap.querySelector(".home-hero-panel") ?? scrollWrap;
-        gsap.fromTo(
-          scene,
-          { scale: 1, opacity: 1 },
-          {
-            scale: 0.8,
-            opacity: 0.9,
-            ease: "none",
-            transformOrigin: "50% 100%",
-            scrollTrigger: {
-              trigger: hero,
-              start: "top top",
-              end: "+=700",
-              scrub: 0.55,
-              // Pin only when layout measurement warrants it — default off.
-              pin: false,
-              onUpdate: (self) => {
-                if (self.progress > 0.02) {
-                  settleIntro();
-                }
-              },
+      const scene = scrollWrap.querySelector(".home-hero-panel") ?? scrollWrap;
+      gsap.fromTo(
+        scene,
+        { scale: 1, opacity: 1 },
+        {
+          scale: 0.8,
+          opacity: 0.9,
+          ease: "none",
+          transformOrigin: "50% 100%",
+          scrollTrigger: {
+            trigger: hero,
+            start: "top top",
+            end: "+=700",
+            scrub: 0.55,
+            pin: false,
+            onUpdate: (self) => {
+              if (self.progress > 0.02) {
+                settleIntro();
+              }
             },
           },
-        );
+        },
+      );
 
-        const media = scrollWrap.querySelector(".home-hero-subject-motion") ?? scrollWrap.querySelector(".home-hero-subject");
-        const wordmark = scrollWrap.querySelector(".home-hero-wordmark");
-        if (wordmark) {
-          gsap.to(wordmark, {
-            y: -40,
-            ease: "none",
-            scrollTrigger: {
-              trigger: hero,
-              start: "top top",
-              end: "+=700",
-              scrub: 0.55,
-            },
-          });
-        }
-        if (media) {
-          gsap.to(media, {
-            y: 48,
-            ease: "none",
-            scrollTrigger: {
-              trigger: hero,
-              start: "top top",
-              end: "+=700",
-              scrub: 0.7,
-            },
-          });
-        }
-        if (entrance) {
-          gsap.to(entrance, {
-            y: -40,
-            rotate: 2,
-            ease: "none",
-            scrollTrigger: {
-              trigger: hero,
-              start: "top top",
-              end: "+=700",
-              scrub: 1.2,
-            },
-          });
-        }
-      } else {
-        const panel = scrollWrap.querySelector(".home-hero-panel");
-        if (panel) {
-          gsap.to(panel, {
-            scale: 0.94,
-            opacity: 0.95,
-            ease: "none",
-            transformOrigin: "50% 100%",
-            scrollTrigger: {
-              trigger: hero,
-              start: "top top",
-              end: "+=280",
-              scrub: true,
-            },
-          });
-        }
+      const media = scrollWrap.querySelector(".home-hero-subject-motion") ?? scrollWrap.querySelector(".home-hero-subject");
+      const wordmark = scrollWrap.querySelector(".home-hero-wordmark");
+      if (wordmark) {
+        gsap.to(wordmark, {
+          y: -40,
+          ease: "none",
+          scrollTrigger: {
+            trigger: hero,
+            start: "top top",
+            end: "+=700",
+            scrub: 0.55,
+          },
+        });
+      }
+      if (media) {
+        gsap.to(media, {
+          y: 48,
+          ease: "none",
+          scrollTrigger: {
+            trigger: hero,
+            start: "top top",
+            end: "+=700",
+            scrub: 0.7,
+          },
+        });
+      }
+      if (entrance) {
+        gsap.to(entrance, {
+          y: -40,
+          rotate: 2,
+          ease: "none",
+          scrollTrigger: {
+            trigger: hero,
+            start: "top top",
+            end: "+=700",
+            scrub: 1.2,
+          },
+        });
       }
     }, root);
 

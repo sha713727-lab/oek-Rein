@@ -4,6 +4,8 @@ import gsap from "gsap";
 import { useEffect } from "react";
 
 import {
+  isCoarsePointer,
+  isMobileViewport,
   prefersReducedMotion,
   registerGsapPlugins,
   ScrollTrigger,
@@ -86,7 +88,8 @@ export function useHeadingReveals(rootSelector = ".home-flow") {
       return;
     }
 
-    if (prefersReducedMotion()) {
+    // Word-split + GSAP is desktop-only; keep headings CSS-visible on phones/touch.
+    if (prefersReducedMotion() || isMobileViewport() || isCoarsePointer()) {
       return;
     }
 

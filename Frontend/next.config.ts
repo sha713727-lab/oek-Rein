@@ -25,9 +25,11 @@ const nextConfig: NextConfig = {
     root: directoryName,
   },
   images: {
-    formats: ["image/avif", "image/webp"],
+    formats: ["image/webp"],
     // CMS uploads keep unique filenames, so optimized variants can cache hard.
     minimumCacheTTL: 60 * 60 * 24 * 30,
+    // Allow optimizer to fetch backend media from Docker / private LAN IPs.
+    dangerouslyAllowLocalIP: true,
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com" },
       { protocol: "https", hostname: "oakrein.com" },
@@ -35,6 +37,19 @@ const nextConfig: NextConfig = {
       { protocol: "http", hostname: "localhost" },
       { protocol: "http", hostname: "127.0.0.1" },
     ],
+  },
+  async headers() {
+    return [
+      {
+        source: "/assets/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=604800",
+          },
+        ],
+      },
+    ];
   },
   async redirects() {
     return [

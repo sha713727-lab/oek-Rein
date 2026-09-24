@@ -75,4 +75,56 @@ export function isMobileViewport(): boolean {
   return window.matchMedia("(max-width: 767px)").matches;
 }
 
+export function isCoarsePointer(): boolean {
+  if (typeof window === "undefined") {
+    return true;
+  }
+  return window.matchMedia("(pointer: coarse)").matches;
+}
+
+/**
+ * Refresh ScrollTrigger after fonts + window load settle layout,
+ * and optionally when `.home-flow` resizes.
+ */
+export function armScrollTriggerLayoutRefresh(rootSelector = ".home-flow"): () => void {
+  if (typeof window === "undefined") {
+    return () => undefined;
+  }
+
+  registerGsapPlugins();
+
+  let cleaned = false;
+  let resizeObserver: ResizeObserver | null = null;
+  const refresh = () => {
+    if (!cleaned) {
+      ScrollTrigger.refresh();
+    }
+  };
+
+  const fontsReady = document.fonts?.ready ?? Promise.resolve();
+  const loadReady =
+    document.readyState === "complete"
+      ? Promise.resolve()
+      : new Promise<void>((resolve) => {
+          window.addEventListener("load", () => resolve(), { once: true });
+        });
+
+  void Promise.all([fontsReady, loadReady]).then(refresh);
+
+  const root = document.querySelector(rootSelector);
+  if (root instanceof HTMLElement && typeof ResizeObserver !== "undefined") {
+    let timer = 0;
+    resizeObserver = new ResizeObserver(() => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(refresh, 160);
+    });
+    resizeObserver.observe(root);
+  }
+
+  return () => {
+    cleaned = true;
+    resizeObserver?.disconnect();
+  };
+}
+
 export { gsap, ScrollTrigger };

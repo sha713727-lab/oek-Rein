@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { IconClose } from "@/components/icons/icons";
 import { CmsImage } from "@/features/media/cms-image";
+import { lockScroll } from "@/lib/scroll-lock";
 
 export function ProductGallery({ images, title }: { images: string[]; title: string }) {
   const [active, setActive] = useState(0);
@@ -18,8 +19,7 @@ export function ProductGallery({ images, title }: { images: string[]; title: str
     if (!zoomed) {
       return undefined;
     }
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlock = lockScroll();
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         closeZoom();
@@ -27,7 +27,7 @@ export function ProductGallery({ images, title }: { images: string[]; title: str
     };
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = previous;
+      unlock();
       window.removeEventListener("keydown", onKey);
     };
   }, [zoomed, closeZoom]);
@@ -63,7 +63,7 @@ export function ProductGallery({ images, title }: { images: string[]; title: str
               src={current}
               alt={title}
               fill
-              priority
+              preload
               sizes="(min-width: 1024px) 42vw, 90vw"
               className="product-main-still"
             />

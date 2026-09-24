@@ -4,7 +4,7 @@
  */
 
 /* —— Touch / small-viewport devices —— */
-@media (max-width: 900px) {
+@media (max-width: 900px), (pointer: coarse) {
   /*
    * A blurred backdrop under a fixed header makes the browser re-sample and
    * re-blur the page behind it on every scroll frame. Opaque tint instead.
@@ -42,7 +42,26 @@
   }
 
   .collection-hero-product {
-    filter: drop-shadow(0 18px 20px rgba(63, 55, 52, 0.14));
+    filter: none;
+  }
+
+  /* Kill infinite ambient loops that fight scroll on phones/tablets. */
+  .product-highlights-float,
+  .product-highlights-product,
+  .site-footer-badge-ring,
+  .home-custom-tack-cutout,
+  .home-hero-pill-track {
+    animation: none !important;
+  }
+
+  /* Drop-shadow filters on large media are expensive during scroll/composite. */
+  .home-hero-poster,
+  .home-hero-video-canvas,
+  .home-custom-tack-cutout,
+  .product-highlights-float img,
+  .collection-hero-product,
+  .glow-stats-image {
+    filter: none;
   }
 }
 
@@ -51,7 +70,12 @@
   .collection-hero::before,
   .collection-hero::after,
   .collection-hero-pill,
-  .collection-hero-product {
+  .collection-hero-product,
+  .product-highlights-float,
+  .product-highlights-product,
+  .site-footer-badge-ring,
+  .home-custom-tack-cutout,
+  .home-hero-pill-track {
     animation: none !important;
   }
 }

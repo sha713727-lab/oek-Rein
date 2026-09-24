@@ -1,4 +1,4 @@
-import { type NextRequest,NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 import { DEFAULT_LOCALE, LOCALES } from "@/constants/site";
 
@@ -6,7 +6,7 @@ function hasLocale(pathname: string): boolean {
   return LOCALES.some((locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`));
 }
 
-export function middleware(request: NextRequest): NextResponse {
+export function proxy(request: NextRequest): NextResponse {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const csp = [
     "default-src 'self'",
@@ -16,6 +16,7 @@ export function middleware(request: NextRequest): NextResponse {
     "media-src 'self' blob:",
     "font-src 'self'",
     "connect-src 'self'",
+    "worker-src 'self' blob:",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

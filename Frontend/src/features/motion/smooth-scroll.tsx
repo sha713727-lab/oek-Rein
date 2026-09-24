@@ -2,17 +2,29 @@
 
 import "lenis/dist/lenis.css";
 
-import Lenis from "lenis";
 import { useEffect } from "react";
 
 import { gsap, isDesktopFinePointer, prefersReducedMotion, registerGsapPlugins, ScrollTrigger } from "@/features/motion/motion-config";
+import { isScrollLocked, onScrollLockChange } from "@/lib/scroll-lock";
 
 const DESKTOP_MQ = "(min-width: 768px) and (pointer: fine)";
 const REDUCED_MQ = "(prefers-reduced-motion: reduce)";
 
+type LenisInstance = {
+  on: (event: "scroll", cb: () => void) => void;
+  raf: (time: number) => void;
+  destroy: () => void;
+  stop: () => void;
+  start: () => void;
+  scrollTo: (
+    target: HTMLElement,
+    opts: { offset: number; duration: number; easing: (value: number) => number },
+  ) => void;
+};
+
 /**
  * Desktop Lenis smooth scroll driven by the GSAP ticker (single RAF owner).
- * Contract baseline: lerp 0.06, wheelMultiplier 1.1.
+ * Lenis is dynamically imported so phones never parse the smooth-scroll bundle.
  */
 export function SmoothScroll() {
   useEffect(() => {
@@ -21,9 +33,10 @@ export function SmoothScroll() {
     const desktop = window.matchMedia(DESKTOP_MQ);
     const reduced = window.matchMedia(REDUCED_MQ);
 
-    let lenis: Lenis | null = null;
+    let lenis: LenisInstance | null = null;
     let tickerFn: ((time: number) => void) | null = null;
     let unbindAnchors: (() => void) | undefined;
+    let startGeneration = 0;
 
     const stop = () => {
       unbindAnchors?.();
@@ -40,7 +53,7 @@ export function SmoothScroll() {
       ScrollTrigger.refresh();
     };
 
-    const bindAnchors = (instance: Lenis) => {
+    const bindAnchors = (instance: LenisInstance) => {
       const onAnchorClick = (event: MouseEvent) => {
         if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
           return;
@@ -92,9 +105,15 @@ export function SmoothScroll() {
       return () => document.removeEventListener("click", onAnchorClick);
     };
 
-    const start = () => {
+    const start = async () => {
+      const generation = ++startGeneration;
       stop();
       if (!desktop.matches || reduced.matches || !isDesktopFinePointer() || prefersReducedMotion()) {
+        return;
+      }
+
+      const { default: Lenis } = await import("lenis");
+      if (generation !== startGeneration) {
         return;
       }
 
@@ -105,7 +124,7 @@ export function SmoothScroll() {
         smoothWheel: true,
         autoRaf: false,
         syncTouch: false,
-      });
+      }) as LenisInstance;
 
       lenis.on("scroll", ScrollTrigger.update);
 
@@ -118,22 +137,38 @@ export function SmoothScroll() {
 
       document.documentElement.classList.add("has-smooth-scroll");
       unbindAnchors = bindAnchors(lenis);
+      if (isScrollLocked()) {
+        lenis.stop();
+      }
       ScrollTrigger.refresh();
     };
 
     const sync = () => {
-      start();
+      void start();
     };
 
     // Let the hero decode / first paint win the first frames on cold loads.
-    let startTimer = window.setTimeout(sync, 120);
+    const startTimer = window.setTimeout(sync, 120);
     desktop.addEventListener("change", sync);
     reduced.addEventListener("change", sync);
 
+    const unsubscribeLock = onScrollLockChange((locked) => {
+      if (!lenis) {
+        return;
+      }
+      if (locked) {
+        lenis.stop();
+      } else {
+        lenis.start();
+      }
+    });
+
     return () => {
+      startGeneration += 1;
       window.clearTimeout(startTimer);
       desktop.removeEventListener("change", sync);
       reduced.removeEventListener("change", sync);
+      unsubscribeLock();
       stop();
     };
   }, []);

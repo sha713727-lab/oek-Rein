@@ -24,15 +24,13 @@ import { getStorefront } from "@/lib/storefront";
  * UI/body: Manrope — nav, buttons, prices, forms, product info.
  */
 const fraunces = Fraunces({
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600"],
+  subsets: ["latin"],
   variable: "--font-fraunces",
   display: "swap",
 });
 
 const manrope = Manrope({
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
   variable: "--font-manrope",
   display: "swap",
 });
@@ -45,6 +43,7 @@ export const metadata = {
   },
   description: brandDescription,
   applicationName: brandName,
+  formatDetection: { telephone: false, address: false, email: false },
   icons: {
     icon: [
       { url: "/favicon.svg?v=3", type: "image/svg+xml" },

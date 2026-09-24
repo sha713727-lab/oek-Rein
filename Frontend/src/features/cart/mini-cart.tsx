@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useId, useState, useTransition } from "react";
+import { useCallback, useEffect, useId, useRef, useState, useTransition } from "react";
 
 import { IconClose, IconTrash } from "@/components/icons/icons";
 import { ConfirmSubmit } from "@/components/ui/confirm-submit";
@@ -11,6 +11,7 @@ import { getMiniCartAction, type MiniCartSnapshot, removeFromCartAction } from "
 import { OrderTotals } from "@/features/checkout/order-totals";
 import { BAG_EVENT } from "@/lib/bag-events";
 import { resolvePublicAssetSrc } from "@/lib/public-assets";
+import { lockScroll } from "@/lib/scroll-lock";
 
 const EMPTY: MiniCartSnapshot = {
   lines: [],
@@ -24,6 +25,9 @@ const EMPTY: MiniCartSnapshot = {
   currency: "PKR",
 };
 
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export function MiniCart({
   open,
   onClose,
@@ -32,6 +36,7 @@ export function MiniCart({
   onClose: () => void;
 }) {
   const titleId = useId();
+  const panelRef = useRef<HTMLElement>(null);
   const [cart, setCart] = useState<MiniCartSnapshot>(EMPTY);
   const [pending, startTransition] = useTransition();
 
@@ -47,10 +52,9 @@ export function MiniCart({
       return undefined;
     }
     refresh();
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlock = lockScroll();
     return () => {
-      document.body.style.overflow = previous;
+      unlock();
     };
   }, [open, refresh]);
 
@@ -69,9 +73,39 @@ export function MiniCart({
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         onClose();
+        return;
+      }
+      if (event.key !== "Tab") {
+        return;
+      }
+      const panel = panelRef.current;
+      if (!panel) {
+        return;
+      }
+      const nodes = [...panel.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+        (el) => !el.hasAttribute("disabled") && el.tabIndex !== -1,
+      );
+      if (nodes.length < 2) {
+        return;
+      }
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      if (!first || !last) {
+        return;
+      }
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
       }
     };
     window.addEventListener("keydown", onKey);
+    window.requestAnimationFrame(() => {
+      const closeBtn = panelRef.current?.querySelector<HTMLElement>(".mini-cart-close");
+      (closeBtn ?? panelRef.current?.querySelector<HTMLElement>(FOCUSABLE))?.focus();
+    });
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
@@ -82,7 +116,7 @@ export function MiniCart({
   return (
     <div className="mini-cart">
       <button type="button" className="mini-cart-backdrop" aria-label="Close bag" onClick={onClose} />
-      <aside className="mini-cart-panel" role="dialog" aria-modal="true" aria-labelledby={titleId}>
+      <aside ref={panelRef} className="mini-cart-panel" role="dialog" aria-modal="true" aria-labelledby={titleId}>
         <header className="mini-cart-head">
           <h2 id={titleId} className="mini-cart-title">
             Your Bag

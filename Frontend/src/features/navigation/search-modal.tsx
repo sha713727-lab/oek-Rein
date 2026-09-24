@@ -8,19 +8,26 @@ import { IconClose, IconSearch } from "@/components/icons/icons";
 import { formatMoney } from "@/constants/storefront";
 import { type SearchHit, searchProductsAction } from "@/features/navigation/search-actions";
 import { resolvePublicAssetSrc } from "@/lib/public-assets";
+import { lockScroll } from "@/lib/scroll-lock";
 
 const MIN_QUERY = 2;
 const DEBOUNCE_MS = 280;
 
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export function SearchModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const titleId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchHit[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const requestIdRef = useRef(0);
 
   const handleClose = useCallback(() => {
+    requestIdRef.current += 1;
     setQuery("");
     setResults([]);
     setLoading(false);
@@ -32,11 +39,10 @@ export function SearchModal({ open, onClose }: { open: boolean; onClose: () => v
     if (!open) {
       return undefined;
     }
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlock = lockScroll();
     const focusTimer = window.setTimeout(() => inputRef.current?.focus(), 80);
     return () => {
-      document.body.style.overflow = previous;
+      unlock();
       window.clearTimeout(focusTimer);
     };
   }, [open]);
@@ -48,6 +54,32 @@ export function SearchModal({ open, onClose }: { open: boolean; onClose: () => v
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         handleClose();
+        return;
+      }
+      if (event.key !== "Tab") {
+        return;
+      }
+      const panel = panelRef.current;
+      if (!panel) {
+        return;
+      }
+      const nodes = [...panel.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+        (el) => !el.hasAttribute("disabled") && el.tabIndex !== -1,
+      );
+      if (nodes.length < 2) {
+        return;
+      }
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      if (!first || !last) {
+        return;
+      }
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -63,8 +95,12 @@ export function SearchModal({ open, onClose }: { open: boolean; onClose: () => v
       return undefined;
     }
     const timer = window.setTimeout(() => {
+      const requestId = ++requestIdRef.current;
       setLoading(true);
       void searchProductsAction(trimmed).then((hits) => {
+        if (requestId !== requestIdRef.current) {
+          return;
+        }
         setResults(hits);
         setLoading(false);
         setHasSearched(true);
@@ -84,7 +120,13 @@ export function SearchModal({ open, onClose }: { open: boolean; onClose: () => v
     <div className="search-modal">
       <button type="button" className="search-modal-backdrop" aria-label="Close search" onClick={handleClose} />
       <div className="search-modal-shell">
-        <div role="dialog" aria-modal="true" aria-labelledby={titleId} className="search-modal-panel">
+        <div
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+          className="search-modal-panel"
+        >
           <h2 id={titleId} className="sr-only">
             Search products
           </h2>
