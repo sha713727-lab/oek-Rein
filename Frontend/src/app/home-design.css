@@ -2440,7 +2440,12 @@ html.home-motion-ready .home-flow .home-reveal {
   padding: 0;
   object-fit: cover;
   object-position: center;
-  transition: transform 320ms var(--motion-out, ease);
+  pointer-events: none;
+  background: #142221;
+  transition:
+    opacity 420ms var(--motion-out, ease),
+    transform 320ms var(--motion-out, ease);
+  will-change: opacity;
 }
 
 .home-rider-gallery-item--photo .home-rider-gallery-img {
@@ -2450,6 +2455,8 @@ html.home-motion-ready .home-flow .home-reveal {
 
 .home-rider-gallery-item--video .home-rider-gallery-media {
   background: #142221;
+  content-visibility: auto;
+  contain-intrinsic-size: 280px 300px;
 }
 
 .home-rider-gallery-label {
@@ -2462,9 +2469,13 @@ html.home-motion-ready .home-flow .home-reveal {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .home-rider-gallery-card:hover .home-rider-gallery-img,
-  .home-rider-gallery-card:hover .home-rider-gallery-video {
+  .home-rider-gallery-card:hover .home-rider-gallery-img {
     transform: scale(1.04);
+  }
+
+  /* Avoid scaling decoding videos — cheaper hover cue via opacity only */
+  .home-rider-gallery-card:hover .home-rider-gallery-video[data-ready="1"] {
+    opacity: 1;
   }
 }
 
@@ -2486,12 +2497,17 @@ html.home-motion-ready .home-flow .home-reveal {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-rider-gallery-img {
+  .home-rider-gallery-img,
+  .home-rider-gallery-video {
     transition: none;
   }
 
   .home-rider-gallery-card:hover .home-rider-gallery-img {
     transform: none;
+  }
+
+  .home-rider-gallery-video {
+    opacity: 1 !important;
   }
 }
 
