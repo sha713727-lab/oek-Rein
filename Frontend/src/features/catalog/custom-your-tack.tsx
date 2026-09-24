@@ -25,33 +25,11 @@ export function CustomYourTack({ content = DEFAULT_CUSTOM_TACK, image }: CustomY
       <ProgressCurve from="white" to="forest" />
       <div className="home-custom-tack-body">
         <div className="home-custom-tack-inner">
-          <div className="home-custom-tack-copy">
-            <h2 id="custom-tack-title" className="home-custom-tack-title">
-              {data.title}{" "}
-              <span className="home-custom-tack-title-accent">{data.titleAccent}</span>
-            </h2>
-            <p className="home-custom-tack-lead">{data.lead}</p>
-            <ol className="home-custom-tack-rail">
-              {data.options.map((item, index) => (
-                <li key={item.id} className="home-custom-tack-rail-item">
-                  <Link href={item.href} className="home-custom-tack-rail-link">
-                    <span className="home-custom-tack-rail-index" aria-hidden="true">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <span className="home-custom-tack-rail-text">
-                      <span className="home-custom-tack-rail-title">{item.title}</span>
-                      <span className="home-custom-tack-rail-desc">{item.description}</span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ol>
-            <div className="home-custom-tack-actions">
-              <PillCta href={data.ctaHref} className="home-custom-tack-cta">
-                {data.ctaLabel}
-              </PillCta>
-            </div>
-          </div>
+          <h2 id="custom-tack-title" className="home-custom-tack-title">
+            {data.title}{" "}
+            <span className="home-custom-tack-title-accent">{data.titleAccent}</span>
+          </h2>
+          <p className="home-custom-tack-lead">{data.lead}</p>
 
           <div className="home-custom-tack-stage">
             <span className="home-custom-tack-orb" aria-hidden="true" />
@@ -63,11 +41,33 @@ export function CustomYourTack({ content = DEFAULT_CUSTOM_TACK, image }: CustomY
                   alt={`${brandName} custom handcrafted saddle`}
                   width={640}
                   height={640}
-                  sizes="(max-width: 899px) 72vw, 28rem"
+                  sizes="(max-width: 899px) 78vw, 28rem"
                   className="home-custom-tack-cutout"
                 />
               ) : null}
             </div>
+          </div>
+
+          <ol className="home-custom-tack-rail">
+            {data.options.map((item, index) => (
+              <li key={item.id} className="home-custom-tack-rail-item">
+                <Link href={item.href} className="home-custom-tack-rail-link">
+                  <span className="home-custom-tack-rail-index" aria-hidden="true">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <span className="home-custom-tack-rail-text">
+                    <span className="home-custom-tack-rail-title">{item.title}</span>
+                    <span className="home-custom-tack-rail-desc">{item.description}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ol>
+
+          <div className="home-custom-tack-actions">
+            <PillCta href={data.ctaHref} className="home-custom-tack-cta">
+              {data.ctaLabel}
+            </PillCta>
           </div>
         </div>
       </div>

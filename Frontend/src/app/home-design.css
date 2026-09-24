@@ -2089,35 +2089,29 @@ html.home-motion-ready .home-flow .home-reveal {
 .home-custom-tack-body {
   position: relative;
   z-index: 2;
-  padding-block: clamp(2.5rem, 5vw, 4.5rem);
+  padding-block: clamp(2.25rem, 5vw, 4.5rem);
 }
 
+/* Mobile-first: single column — title → lead → product → options → CTA */
 .home-custom-tack-inner {
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  align-items: center;
-  gap: clamp(1.75rem, 4vw, 3.5rem);
-  width: min(1180px, calc(100% - 2rem));
-  margin-inline: auto;
-}
-
-.home-custom-tack-copy {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 1.15rem;
-  min-width: 0;
+  width: min(1180px, calc(100% - 2.3rem));
+  margin-inline: auto;
 }
 
 .home-custom-tack-title {
   margin: 0;
-  max-width: 16ch;
+  max-width: none;
   font-family: var(--font-display, Georgia, serif);
-  font-size: clamp(2rem, 4.2vw, 3.15rem);
+  font-size: clamp(1.85rem, 7.5vw, 2.55rem);
   font-weight: 500;
   letter-spacing: -0.03em;
   line-height: 1.12;
   color: #fff;
+  text-wrap: balance;
 }
 
 .home-custom-tack-title-accent {
@@ -2126,9 +2120,9 @@ html.home-motion-ready .home-flow .home-reveal {
 
 .home-custom-tack-lead {
   margin: 0;
-  max-width: 34rem;
+  max-width: 36rem;
   font-family: var(--font-body);
-  font-size: 0.98rem;
+  font-size: 0.95rem;
   font-weight: 400;
   line-height: 1.65;
   color: color-mix(in srgb, var(--vd-cream, #f4f1eb) 78%, transparent);
@@ -2138,8 +2132,8 @@ html.home-motion-ready .home-flow .home-reveal {
   display: grid;
   gap: 0.35rem;
   width: 100%;
-  max-width: 28rem;
-  margin: 0.35rem 0 0;
+  max-width: none;
+  margin: 0.15rem 0 0;
   padding: 0;
   list-style: none;
 }
@@ -2154,7 +2148,7 @@ html.home-motion-ready .home-flow .home-reveal {
   gap: 0.85rem;
   align-items: start;
   min-height: 44px;
-  padding: 0.7rem 0.85rem;
+  padding: 0.75rem 0.9rem;
   border-radius: 0.85rem;
   text-decoration: none;
   color: inherit;
@@ -2209,7 +2203,7 @@ html.home-motion-ready .home-flow .home-reveal {
 }
 
 .home-custom-tack-actions {
-  margin-top: 0.65rem;
+  margin-top: 0.35rem;
 }
 
 .home-custom-tack-cta.vd-pill-cta {
@@ -2224,13 +2218,15 @@ html.home-motion-ready .home-flow .home-reveal {
   position: relative;
   display: grid;
   place-items: center;
-  min-height: clamp(18rem, 42vw, 28rem);
+  width: 100%;
+  min-height: clamp(15rem, 72vw, 20rem);
+  margin-block: 0.35rem 0.15rem;
   isolation: isolate;
 }
 
 .home-custom-tack-orb {
   position: absolute;
-  inset: 12% 10%;
+  inset: 14% 12%;
   z-index: 0;
   border-radius: 50%;
   background:
@@ -2242,7 +2238,7 @@ html.home-motion-ready .home-flow .home-reveal {
 
 .home-custom-tack-ring {
   position: absolute;
-  inset: 4% 2%;
+  inset: 6% 4%;
   z-index: 0;
   border-radius: 50%;
   border: 1.5px solid color-mix(in srgb, var(--home-accent, #e1e53f) 45%, transparent);
@@ -2253,7 +2249,7 @@ html.home-motion-ready .home-flow .home-reveal {
 .home-custom-tack-product {
   position: relative;
   z-index: 1;
-  width: min(100%, 26rem);
+  width: min(100%, 18.5rem);
   aspect-ratio: 1;
   display: grid;
   place-items: center;
@@ -2278,41 +2274,57 @@ html.home-motion-ready .home-flow .home-reveal {
   }
 }
 
-@media (max-width: 899px) {
+/* Desktop: copy left, product right */
+@media (min-width: 900px) {
   .home-custom-tack-inner {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1.35rem;
-  }
-
-  /* Flatten copy so stage can sit between lead and rail */
-  .home-custom-tack-copy {
-    display: contents;
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    grid-template-areas:
+      "title stage"
+      "lead stage"
+      "rail stage"
+      "actions stage";
+    align-items: center;
+    gap: clamp(1.75rem, 4vw, 3.5rem);
+    width: min(1180px, calc(100% - 2rem));
   }
 
   .home-custom-tack-title {
-    order: 1;
-    max-width: none;
+    grid-area: title;
+    max-width: 16ch;
+    font-size: clamp(2rem, 4.2vw, 3.15rem);
   }
 
   .home-custom-tack-lead {
-    order: 2;
-  }
-
-  .home-custom-tack-stage {
-    order: 3;
-    min-height: clamp(16rem, 68vw, 22rem);
+    grid-area: lead;
   }
 
   .home-custom-tack-rail {
-    order: 4;
-    max-width: none;
+    grid-area: rail;
+    max-width: 28rem;
   }
 
   .home-custom-tack-actions {
-    order: 5;
-    margin-top: 0.15rem;
+    grid-area: actions;
+    margin-top: 0.65rem;
+  }
+
+  .home-custom-tack-stage {
+    grid-area: stage;
+    min-height: clamp(18rem, 42vw, 28rem);
+    margin-block: 0;
+  }
+
+  .home-custom-tack-product {
+    width: min(100%, 26rem);
+  }
+
+  .home-custom-tack-orb {
+    inset: 12% 10%;
+  }
+
+  .home-custom-tack-ring {
+    inset: 4% 2%;
   }
 }
 
