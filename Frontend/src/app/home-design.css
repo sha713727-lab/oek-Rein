@@ -2492,3 +2492,77 @@ html.home-motion-ready .home-flow .home-reveal {
     transform: none;
   }
 }
+
+/*
+ * Crafted for every ride — mobile stack first.
+ * Phone / large phone: 1 column (never a cramped 4-across row).
+ * Tablet: 2 × 2. Desktop: 4 across.
+ */
+.home-flow .home-disciplines .home-disciplines-grid,
+.home-disciplines .home-disciplines-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
+  width: 100%;
+}
+
+.home-disciplines-card-cta a {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  color: var(--home-ink, #204e4a);
+}
+
+.home-disciplines-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 767px) {
+  .home-flow .home-disciplines .home-disciplines-grid,
+  .home-disciplines .home-disciplines-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .home-disciplines .home-disciplines-header {
+    margin-bottom: 1.25rem;
+  }
+
+  .home-disciplines .home-disciplines-card {
+    padding: 1.2rem 1.15rem 1.35rem;
+  }
+
+  .home-disciplines .feature-title {
+    font-size: 1.05rem;
+  }
+
+  .home-disciplines .feature-desc {
+    font-size: 0.94rem;
+  }
+
+  .home-disciplines-actions {
+    margin-top: 1.25rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1099px) {
+  .home-flow .home-disciplines .home-disciplines-grid,
+  .home-disciplines .home-disciplines-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 1100px) {
+  .home-flow .home-disciplines .home-disciplines-grid,
+  .home-disciplines .home-disciplines-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .home-disciplines-actions {
+    margin-top: 2rem;
+  }
+}
