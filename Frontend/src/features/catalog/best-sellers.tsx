@@ -10,159 +10,59 @@ import { PillCta } from "@/features/motion/pill-cta";
 
 const BEST_SELLERS_LIMIT = 3;
 
-/** M09 — outer peek rail around ProductCard (card internals untouched). */
+/**
+ * Best-sellers rail — same native scroll-snap feel as category cards on mobile.
+ * No JS transform drag: the browser owns the swipe, which stays smooth on iOS/Android.
+ */
 export function BestSellers({ items, currency = "PKR" }: { items: ResolvedBestSeller[]; currency?: string }) {
   const products = items.slice(0, BEST_SELLERS_LIMIT);
   const empty = products.length === 0;
   const viewportRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const [index, setIndex] = useState(0);
-  const dragRef = useRef({
-    active: false,
-    startX: 0,
-    startY: 0,
-    origin: 0,
-    moved: false,
-    axis: null as null | "x" | "y",
-    pointerId: -1,
-  });
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(false);
 
-  const maxIndex = Math.max(0, products.length - 1);
-
-  const cardStep = useCallback(() => {
-    const track = trackRef.current;
-    const card = track?.querySelector<HTMLElement>(".vd-card-entrance");
-    if (!card || !track) {
-      return 320;
+  const sync = useCallback(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) {
+      return;
     }
-    const style = window.getComputedStyle(track);
-    const gap = Number.parseFloat(style.columnGap || style.gap || "24") || 24;
-    return card.getBoundingClientRect().width + gap;
+    const max = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+    // When every card fits (desktop centered row), arrows stay off.
+    if (max <= 4) {
+      setCanPrev(false);
+      setCanNext(false);
+      return;
+    }
+    setCanPrev(viewport.scrollLeft > 4);
+    setCanNext(viewport.scrollLeft < max - 4);
   }, []);
-
-  const applyTransform = useCallback(
-    (next: number, animate = true) => {
-      const clamped = Math.max(0, Math.min(maxIndex, next));
-      const track = trackRef.current;
-      if (!track) {
-        return clamped;
-      }
-      const x = -clamped * cardStep();
-      track.style.transition = animate ? "transform 400ms ease" : "none";
-      track.style.transform = `translate3d(${x}px, 0, 0)`;
-      return clamped;
-    },
-    [cardStep, maxIndex],
-  );
-
-  const goTo = useCallback(
-    (next: number, animate = true) => {
-      setIndex(applyTransform(next, animate));
-    },
-    [applyTransform],
-  );
-
-  useEffect(() => {
-    applyTransform(index, false);
-    const onResize = () => applyTransform(index, false);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, [applyTransform, index, products.length]);
 
   useEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport || empty) {
       return;
     }
-
-    const onPointerDown = (event: PointerEvent) => {
-      if (event.button !== 0) {
-        return;
-      }
-      dragRef.current = {
-        active: true,
-        startX: event.clientX,
-        startY: event.clientY,
-        origin: index * cardStep(),
-        moved: false,
-        axis: null,
-        pointerId: event.pointerId,
-      };
-      const track = trackRef.current;
-      if (track) {
-        track.style.transition = "none";
-      }
-    };
-
-    const onPointerMove = (event: PointerEvent) => {
-      const drag = dragRef.current;
-      if (!drag.active) {
-        return;
-      }
-      const dx = event.clientX - drag.startX;
-      const dy = event.clientY - drag.startY;
-      if (!drag.axis) {
-        if (Math.abs(dx) < 6 && Math.abs(dy) < 6) {
-          return;
-        }
-        drag.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
-        if (drag.axis === "y") {
-          // Vertical intent belongs to the page — never capture it.
-          drag.active = false;
-          return;
-        }
-        viewport.classList.add("is-dragging");
-        viewport.setPointerCapture(drag.pointerId);
-      }
-      if (drag.axis !== "x") {
-        return;
-      }
-      event.preventDefault();
-      drag.moved = Math.abs(dx) > 8;
-      const track = trackRef.current;
-      if (track) {
-        track.style.transform = `translate3d(${-(drag.origin - dx)}px, 0, 0)`;
-      }
-    };
-
-    const onPointerUp = (event: PointerEvent) => {
-      const drag = dragRef.current;
-      if (!drag.active && drag.axis !== "x") {
-        viewport.classList.remove("is-dragging");
-        return;
-      }
-      drag.active = false;
-      viewport.classList.remove("is-dragging");
-      const dx = event.clientX - drag.startX;
-      const threshold = window.matchMedia("(max-width: 767px)").matches ? 40 : 20;
-      let next = index;
-      if (drag.moved && Math.abs(dx) > threshold) {
-        next = dx < 0 ? index + 1 : index - 1;
-      }
-      goTo(next, true);
-
-      if (drag.moved) {
-        const blockClick = (e: Event) => {
-          e.preventDefault();
-          e.stopPropagation();
-          viewport.removeEventListener("click", blockClick, true);
-        };
-        viewport.addEventListener("click", blockClick, true);
-      }
-    };
-
-    viewport.addEventListener("pointerdown", onPointerDown);
-    viewport.addEventListener("pointermove", onPointerMove);
-    viewport.addEventListener("pointerup", onPointerUp);
-    viewport.addEventListener("pointercancel", onPointerUp);
-
+    sync();
+    viewport.addEventListener("scroll", sync, { passive: true });
+    window.addEventListener("resize", sync);
     return () => {
-      viewport.removeEventListener("pointerdown", onPointerDown);
-      viewport.removeEventListener("pointermove", onPointerMove);
-      viewport.removeEventListener("pointerup", onPointerUp);
-      viewport.removeEventListener("pointercancel", onPointerUp);
+      viewport.removeEventListener("scroll", sync);
+      window.removeEventListener("resize", sync);
     };
-  }, [cardStep, empty, goTo, index]);
+  }, [sync, empty, products.length]);
+
+  const scrollByCard = (direction: -1 | 1) => {
+    const viewport = viewportRef.current;
+    if (!viewport) {
+      return;
+    }
+    const card = viewport.querySelector<HTMLElement>(".vd-card-entrance");
+    const track = viewport.querySelector<HTMLElement>(".best-sellers-rail-track");
+    const style = track ? window.getComputedStyle(track) : null;
+    const gap = style ? Number.parseFloat(style.columnGap || style.gap || "28") || 28 : 28;
+    const step = card ? card.getBoundingClientRect().width + gap : viewport.clientWidth * 0.85;
+    viewport.scrollBy({ left: direction * step, behavior: "smooth" });
+  };
 
   return (
     <section className="best-sellers" aria-labelledby="best-sellers-title">
@@ -196,8 +96,8 @@ export function BestSellers({ items, currency = "PKR" }: { items: ResolvedBestSe
                   type="button"
                   className="best-sellers-rail-btn"
                   aria-label="Previous products"
-                  disabled={index <= 0}
-                  onClick={() => goTo(index - 1)}
+                  disabled={!canPrev}
+                  onClick={() => scrollByCard(-1)}
                 >
                   ‹
                 </button>
@@ -205,8 +105,8 @@ export function BestSellers({ items, currency = "PKR" }: { items: ResolvedBestSe
                   type="button"
                   className="best-sellers-rail-btn"
                   aria-label="Next products"
-                  disabled={index >= maxIndex}
-                  onClick={() => goTo(index + 1)}
+                  disabled={!canNext}
+                  onClick={() => scrollByCard(1)}
                 >
                   ›
                 </button>
@@ -214,13 +114,11 @@ export function BestSellers({ items, currency = "PKR" }: { items: ResolvedBestSe
               <div
                 ref={viewportRef}
                 className="best-sellers-rail-viewport"
-                data-cursor-drag
                 role="region"
                 aria-roledescription="carousel"
                 aria-label="Best sellers"
               >
                 <div
-                  ref={trackRef}
                   className={`best-sellers-rail-track${products.length <= 3 ? " is-centered" : ""}`}
                 >
                   {products.map((item) => (

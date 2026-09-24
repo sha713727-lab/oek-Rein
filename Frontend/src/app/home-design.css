@@ -949,6 +949,7 @@ html.home-motion-ready .home-flow .home-reveal {
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
     scroll-padding-inline: 1.15rem;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
@@ -1042,22 +1043,32 @@ html.home-motion-ready .home-flow .home-reveal {
 }
 
 .best-sellers-rail-viewport {
-  overflow: hidden;
-  touch-action: pan-y;
-  cursor: grab;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x pan-y;
+  scrollbar-width: none;
   margin-inline: calc(-1 * clamp(0.5rem, 2vw, 1rem));
   padding-inline: clamp(0.5rem, 2vw, 1rem);
+  scroll-padding-inline: clamp(0.5rem, 2vw, 1rem);
 }
 
-.best-sellers-rail-viewport.is-dragging {
-  cursor: grabbing;
+.best-sellers-rail-viewport::-webkit-scrollbar {
+  display: none;
 }
 
 .best-sellers-rail-track {
   display: flex;
   gap: 1.75rem;
   width: max-content;
-  will-change: transform;
+}
+
+.best-sellers-rail-track .vd-card-entrance {
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
 }
 
 /* When only a few cards fit the homepage slot, center the row on wide screens */
@@ -1072,6 +1083,12 @@ html.home-motion-ready .home-flow .home-reveal {
     flex-basis: min(22rem, 28vw);
     width: min(22rem, 28vw);
   }
+
+  /* No swipe chrome when the whole row already fits */
+  .best-sellers-rail-viewport:has(.best-sellers-rail-track.is-centered) {
+    overflow: visible;
+    scroll-snap-type: none;
+  }
 }
 
 .best-sellers-rail-track .vd-card-entrance,
@@ -1080,11 +1097,42 @@ html.home-motion-ready .home-flow .home-reveal {
   width: min(22rem, 78vw);
 }
 
+@media (max-width: 767px) {
+  .best-sellers-rail-controls {
+    gap: 0.45rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .best-sellers-rail-viewport {
+    margin-inline: -1.15rem;
+    padding-inline: 1.15rem;
+    scroll-padding-inline: 1.15rem;
+  }
+
+  .best-sellers-rail-track {
+    gap: 0.85rem;
+    padding-block: 0.15rem 0.35rem;
+  }
+
+  .best-sellers-rail-track .vd-card-entrance,
+  .best-sellers-rail-track .product-card {
+    flex: 0 0 min(78vw, 17.75rem);
+    width: min(78vw, 17.75rem);
+  }
+}
+
 @media (min-width: 768px) {
   .best-sellers-rail-track .vd-card-entrance,
   .best-sellers-rail-track .product-card {
     flex-basis: min(26rem, 42vw);
     width: min(26rem, 42vw);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .best-sellers-rail-viewport,
+  .shop-range-rail-viewport {
+    scroll-behavior: auto;
   }
 }
 
