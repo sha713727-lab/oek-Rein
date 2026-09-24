@@ -1,4 +1,4 @@
-import dynamic from "next/dynamic";
+import nextDynamic from "next/dynamic";
 
 import { visibleShopCategories } from "@/constants/storefront";
 import { BestSellers } from "@/features/catalog/best-sellers";
@@ -16,28 +16,28 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 /** Below-the-fold chunks hydrate after the hero — keeps cold navigations snappy. */
-const Features = dynamic(() => import("@/features/catalog/features").then((m) => m.Features));
-const ProductHighlights = dynamic(() =>
+const Features = nextDynamic(() => import("@/features/catalog/features").then((m) => m.Features));
+const ProductHighlights = nextDynamic(() =>
   import("@/features/catalog/product-highlights").then((m) => m.ProductHighlights),
 );
-const CraftedForEveryRide = dynamic(() =>
+const CraftedForEveryRide = nextDynamic(() =>
   import("@/features/catalog/crafted-for-every-ride").then((m) => m.CraftedForEveryRide),
 );
-const CustomYourTack = dynamic(() =>
+const CustomYourTack = nextDynamic(() =>
   import("@/features/catalog/custom-your-tack").then((m) => m.CustomYourTack),
 );
-const BrandStory = dynamic(() => import("@/features/catalog/brand-story").then((m) => m.BrandStory));
-const SeenInTheSaddle = dynamic(() =>
+const BrandStory = nextDynamic(() => import("@/features/catalog/brand-story").then((m) => m.BrandStory));
+const SeenInTheSaddle = nextDynamic(() =>
   import("@/features/catalog/seen-in-the-saddle").then((m) => m.SeenInTheSaddle),
 );
-const HomeTestimonials = dynamic(() =>
+const HomeTestimonials = nextDynamic(() =>
   import("@/features/catalog/home-testimonials").then((m) => m.HomeTestimonials),
 );
-const SizeFitGuide = dynamic(() =>
+const SizeFitGuide = nextDynamic(() =>
   import("@/features/catalog/size-fit-guide").then((m) => m.SizeFitGuide),
 );
-const HomeFaq = dynamic(() => import("@/features/catalog/home-faq").then((m) => m.HomeFaq));
-const GlowStats = dynamic(() => import("@/features/catalog/glow-stats").then((m) => m.GlowStats));
+const HomeFaq = nextDynamic(() => import("@/features/catalog/home-faq").then((m) => m.HomeFaq));
+const GlowStats = nextDynamic(() => import("@/features/catalog/glow-stats").then((m) => m.GlowStats));
 
 export default async function HomePage() {
   const [storefront, wishlist] = await Promise.all([getStorefront(), readWishlist()]);
