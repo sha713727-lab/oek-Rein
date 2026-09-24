@@ -63,6 +63,8 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
     const [
       heroProductSrc,
       heroVideoSrc,
+      heroVideoMobileSrc,
+      heroVideoPosterSrc,
       brandStoryPrimarySrc,
       brandStorySecondarySrc,
       brandStoryPortraitSrc,
@@ -81,6 +83,8 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
     ] = await Promise.all([
       readImage(formData, "heroProductSrc"),
       readImage(formData, "heroVideoSrc"),
+      readImage(formData, "heroVideoMobileSrc"),
+      readImage(formData, "heroVideoPosterSrc"),
       readImage(formData, "brandStoryPrimarySrc"),
       readImage(formData, "brandStorySecondarySrc"),
       readImage(formData, "brandStoryPortraitSrc"),
@@ -113,6 +117,8 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
     const published = storefrontPublishFromForm(formData, {
       heroProductSrc,
       heroVideoSrc,
+      heroVideoMobileSrc,
+      heroVideoPosterSrc,
       brandStoryPrimarySrc,
       brandStorySecondarySrc,
       brandStoryPortraitSrc,
@@ -133,6 +139,10 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
     // cannot resurrect stock FAQ / homepage art after Remove.
     published.content.heroProductSrc = heroProductSrc;
     published.content.heroVideoSrc = heroVideoSrc || DEFAULT_STOREFRONT_CONTENT.heroVideoSrc;
+    published.content.heroVideoMobileSrc =
+      heroVideoMobileSrc || DEFAULT_STOREFRONT_CONTENT.heroVideoMobileSrc || "";
+    published.content.heroVideoPosterSrc =
+      heroVideoPosterSrc || DEFAULT_STOREFRONT_CONTENT.heroVideoPosterSrc || "";
     published.content.brandStoryPrimarySrc = brandStoryPrimarySrc;
     published.content.brandStorySecondarySrc = brandStorySecondarySrc;
     published.content.brandStoryPortraitSrc = brandStoryPortraitSrc;
@@ -178,7 +188,14 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
         .toLowerCase();
       category.hidden = hiddenRaw === "1" || hiddenRaw === "on" || hiddenRaw === "true";
       const nextImage = String(categoryImages[index] ?? "").trim();
-      if (nextImage) {
+      const cleared = String(formData.get(`categoryImage_${index}Cleared`) ?? "") === "1";
+      if (cleared || !nextImage) {
+        // Required shop tiles: clear → reset to default asset.
+        category.image =
+          DEFAULT_STOREFRONT_CONTENT.shopCategories.find((item) => item.id === category.id)?.image ??
+          DEFAULT_STOREFRONT_CONTENT.shopCategories[index]?.image ??
+          "";
+      } else {
         category.image = nextImage;
       }
     });
@@ -194,7 +211,14 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
       published.content.megaMenus[menuId] = {
         ...published.content.megaMenus[menuId],
         cards: published.content.megaMenus[menuId].cards.map((card, index) => {
+          const cleared = String(formData.get(`megaCardImage_${menuId}_${index}Cleared`) ?? "") === "1";
           const explicit = String(images[index] ?? "").trim();
+          if (cleared) {
+            return {
+              ...card,
+              image: DEFAULT_STOREFRONT_CONTENT.megaMenus[menuId].cards[index]?.image ?? card.image,
+            };
+          }
           if (explicit) {
             return { ...card, image: explicit };
           }

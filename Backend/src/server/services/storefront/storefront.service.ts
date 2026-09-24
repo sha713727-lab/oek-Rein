@@ -2,7 +2,6 @@ import { type CommerceSettings, DEFAULT_COMMERCE_SETTINGS, resolveCommerceSettin
 import {
   DEFAULT_STOREFRONT_CONTENT,
   DEFAULT_STOREFRONT_THEME,
-  resolveStorefrontContent,
   resolveStorefrontTheme,
   type StorefrontContent,
   type StorefrontTheme,
@@ -28,6 +27,7 @@ export class StorefrontService {
       if (!row) {
         return FALLBACK_STOREFRONT;
       }
+      // Return DB content as stored. Frontend getStorefront runs resolveStorefrontContent.
       return {
         commerce: resolveCommerceSettings({
           currency: row.currency,
@@ -39,7 +39,7 @@ export class StorefrontService {
           taxLabel: row.tax_label,
         }),
         theme: resolveStorefrontTheme(row.theme),
-        content: resolveStorefrontContent(row.content),
+        content: (row.content ?? DEFAULT_STOREFRONT_CONTENT) as StorefrontContent,
       };
     } catch {
       return FALLBACK_STOREFRONT;

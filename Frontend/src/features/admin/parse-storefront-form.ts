@@ -16,6 +16,8 @@ import {
 export type StorefrontFormImages = {
   heroProductSrc: string;
   heroVideoSrc: string;
+  heroVideoMobileSrc: string;
+  heroVideoPosterSrc: string;
   brandStoryPrimarySrc: string;
   brandStorySecondarySrc: string;
   brandStoryPortraitSrc: string;
@@ -44,11 +46,23 @@ export function storefrontPublishFromForm(formData: FormData, images: Storefront
   const categoryCount = Math.min(7, Math.max(0, Number(formData.get("categoryCount") ?? 0)));
   const navCount = Math.min(12, Math.max(0, Number(formData.get("navCount") ?? 0)));
   const categoryIndexes = Array.from({ length: categoryCount }, (_, index) => index);
-  const faqItems = DEFAULT_STOREFRONT_CONTENT.faqItems.map((item, index) => ({
-    id: item.id,
-    question: String(formData.get(`faqQuestion_${index}`) ?? item.question),
-    answer: String(formData.get(`faqAnswer_${index}`) ?? item.answer),
-  }));
+  const faqItems = Array.from({ length: 16 }, (_, index) => {
+    if (!formData.has(`faqQuestion_${index}`)) {
+      return null;
+    }
+    return {
+      id: String(
+        formData.get(`faqId_${index}`) ??
+          DEFAULT_STOREFRONT_CONTENT.faqItems[index]?.id ??
+          `faq-${index + 1}`,
+      ),
+      question: String(formData.get(`faqQuestion_${index}`) ?? ""),
+      answer: String(formData.get(`faqAnswer_${index}`) ?? ""),
+    };
+  }).filter(
+    (item): item is { id: string; question: string; answer: string } =>
+      Boolean(item && item.question.trim() && item.answer.trim()),
+  );
   const features = DEFAULT_STOREFRONT_CONTENT.features.map((item, index) => ({
     title: String(formData.get(`featureTitle_${index}`) ?? item.title),
     description: String(formData.get(`featureDescription_${index}`) ?? item.description),
@@ -183,6 +197,8 @@ export function storefrontPublishFromForm(formData: FormData, images: Storefront
       heroSupport: formData.get("heroSupport"),
       heroProductSrc: images.heroProductSrc,
       heroVideoSrc: images.heroVideoSrc,
+      heroVideoMobileSrc: images.heroVideoMobileSrc,
+      heroVideoPosterSrc: images.heroVideoPosterSrc,
       heroProductAlt: formData.get("heroProductAlt") || heroHeadline,
       brandStoryPrimarySrc: images.brandStoryPrimarySrc,
       brandStorySecondarySrc: images.brandStorySecondarySrc,

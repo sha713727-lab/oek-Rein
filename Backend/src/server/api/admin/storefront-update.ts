@@ -1,10 +1,9 @@
+import { z } from "zod";
+
 import { resolveCommerceSettings } from "@/constants/commerce";
-import {
-  MEGA_MENU_IDS,
-  resolveStorefrontContent,
-  resolveStorefrontTheme,
-} from "@/constants/storefront";
+import { resolveStorefrontTheme, type StorefrontContent } from "@/constants/storefront";
 import { AppError } from "@/lib/app-error";
+import { parseSchema } from "@/lib/parse-schema";
 import type { RouteDefinition } from "@/server/http/load-routes";
 import type { RequestContext } from "@/server/http/respond";
 import { requireAdmin } from "@/server/middleware/authorize";
@@ -16,118 +15,51 @@ export const definition: RouteDefinition = {
   path: "/admin/storefront",
 };
 
+const CONTENT_MAX_JSON_BYTES = 1_500_000;
+
+const REQUIRED_CONTENT_KEYS = [
+  "heroHeadline",
+  "shopCategories",
+  "faqItems",
+  "megaMenus",
+  "customTack",
+] as const;
+
+const storefrontUpdateSchema = z.object({
+  commerce: z.unknown().optional(),
+  theme: z.unknown().optional(),
+  content: z
+    .record(z.string(), z.unknown())
+    .refine((value) => value !== null && typeof value === "object" && !Array.isArray(value), {
+      message: "content must be an object",
+    }),
+});
+
 function asRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw AppError.validation([{ field: "body", message: "Invalid storefront payload" }]);
+    return {};
   }
   return value as Record<string, unknown>;
 }
 
 export async function handler(ctx: RequestContext) {
   await requireAdmin(await authService.getUserFromSession(ctx.sessionToken));
-  const body = asRecord(ctx.body);
-  const rawContent = asRecord(body.content);
-  const content = resolveStorefrontContent(rawContent);
-  // Keep intentional empty image clears from admin (do not revive stock assets).
-  for (const key of [
-    "heroProductSrc",
-    "heroVideoSrc",
-    "brandStoryPrimarySrc",
-    "brandStorySecondarySrc",
-    "brandStoryPortraitSrc",
-    "productHighlightsImage",
-    "glowStatsImage",
-    "faqImage",
-    "authLoginSrc",
-    "authRegisterSrc",
-    "authAdminSrc",
-  ] as const) {
-    if (Object.prototype.hasOwnProperty.call(rawContent, key)) {
-      content[key] = String(rawContent[key] ?? "").trim();
+  const body = parseSchema(storefrontUpdateSchema, ctx.body);
+
+  const serialized = JSON.stringify(body.content);
+  if (serialized.length > CONTENT_MAX_JSON_BYTES) {
+    throw AppError.validation([{ field: "content", message: "Storefront content payload is too large" }]);
+  }
+
+  for (const key of REQUIRED_CONTENT_KEYS) {
+    if (!Object.prototype.hasOwnProperty.call(body.content, key)) {
+      throw AppError.validation([{ field: `content.${key}`, message: `Missing required content key: ${key}` }]);
     }
   }
-  if (rawContent.collectionImages && typeof rawContent.collectionImages === "object") {
-    const images = rawContent.collectionImages as Record<string, unknown>;
-    for (const key of Object.keys(content.collectionImages)) {
-      if (Object.prototype.hasOwnProperty.call(images, key)) {
-        content.collectionImages[key] = String(images[key] ?? "").trim();
-      }
-    }
-  }
-  if (rawContent.productHighlightsFloats && typeof rawContent.productHighlightsFloats === "object") {
-    const floats = rawContent.productHighlightsFloats as Record<string, unknown>;
-    for (const key of Object.keys(content.productHighlightsFloats)) {
-      if (Object.prototype.hasOwnProperty.call(floats, key)) {
-        content.productHighlightsFloats[key as keyof typeof content.productHighlightsFloats] = String(
-          floats[key] ?? "",
-        ).trim();
-      }
-    }
-  }
-  // Preserve shop category tile images + hide flags from the admin payload.
-  if (Array.isArray(rawContent.shopCategories)) {
-    const rawCats = rawContent.shopCategories as Record<string, unknown>[];
-    const byId = new Map(
-      rawCats
-        .filter((item) => item && typeof item === "object")
-        .map((item) => [String(item.id ?? "").trim(), item]),
-    );
-    content.shopCategories = content.shopCategories.map((category) => {
-      const raw = byId.get(category.id);
-      if (!raw) {
-        return category;
-      }
-      const next = { ...category };
-      if (Object.prototype.hasOwnProperty.call(raw, "image")) {
-        const image = String(raw.image ?? "").trim();
-        if (image) {
-          next.image = image;
-        }
-      }
-      if (Object.prototype.hasOwnProperty.call(raw, "hidden")) {
-        const hiddenRaw = raw.hidden;
-        next.hidden =
-          hiddenRaw === true ||
-          hiddenRaw === 1 ||
-          ["1", "on", "true", "yes"].includes(String(hiddenRaw ?? "").trim().toLowerCase());
-      }
-      return next;
-    });
-    content.shopImages = Object.fromEntries(content.shopCategories.map((item) => [item.id, item.image]));
-  }
-  if (rawContent.megaMenus && typeof rawContent.megaMenus === "object") {
-    const rawMenus = rawContent.megaMenus as Record<string, unknown>;
-    for (const menuId of MEGA_MENU_IDS) {
-      const rawMenu = rawMenus[menuId];
-      if (!rawMenu || typeof rawMenu !== "object") {
-        continue;
-      }
-      const rawCards = Array.isArray((rawMenu as { cards?: unknown }).cards)
-        ? ((rawMenu as { cards: Record<string, unknown>[] }).cards)
-        : [];
-      const current = content.megaMenus[menuId];
-      content.megaMenus[menuId] = {
-        ...current,
-        cards: current.cards.map((card, index) => {
-          const rawCard = rawCards[index];
-          if (!rawCard || !Object.prototype.hasOwnProperty.call(rawCard, "image")) {
-            return card;
-          }
-          const image = String(rawCard.image ?? "").trim();
-          return image ? { ...card, image } : card;
-        }),
-      };
-    }
-  }
-  if (rawContent.customTack && typeof rawContent.customTack === "object") {
-    const rawTack = rawContent.customTack as Record<string, unknown>;
-    if (Object.prototype.hasOwnProperty.call(rawTack, "image")) {
-      const image = String(rawTack.image ?? "").trim();
-      if (image) {
-        content.customTack = { ...content.customTack, image };
-      }
-    }
-  }
+
+  // Frontend resolveStorefrontContent is authoritative — persist content as sent.
+  const content = body.content as StorefrontContent;
+
   await storefrontService.updatePublished(
     resolveCommerceSettings(asRecord(body.commerce)),
     resolveStorefrontTheme(body.theme),

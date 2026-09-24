@@ -24,35 +24,53 @@ export function AdminPasscodeModal({
   onClose: () => void;
   onSubmit: (formData: FormData) => void;
 }) {
+  if (!open) {
+    return null;
+  }
+
+  // Remount on each open/challenge so digit state starts clean without setState-in-effect.
+  return (
+    <AdminPasscodeModalInner
+      key={challengeId}
+      challengeId={challengeId}
+      error={error}
+      onClose={onClose}
+      onSubmit={onSubmit}
+    />
+  );
+}
+
+function AdminPasscodeModalInner({
+  challengeId,
+  error,
+  onClose,
+  onSubmit,
+}: {
+  challengeId: string;
+  error?: string | undefined;
+  onClose: () => void;
+  onSubmit: (formData: FormData) => void;
+}) {
   const formRef = useRef<HTMLFormElement>(null);
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
   const lastAttemptRef = useRef("");
   const [digits, setDigits] = useState<string[]>(() => digitsFromValue(""));
 
   useEffect(() => {
-    if (!open) {
-      lastAttemptRef.current = "";
-      setDigits(digitsFromValue(""));
-      return;
-    }
-    inputsRef.current[0]?.focus();
-  }, [open]);
+    const frame = window.requestAnimationFrame(() => {
+      inputsRef.current[0]?.focus();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   useEffect(() => {
-    if (!open) {
-      return;
-    }
     const passcode = digits.join("");
     if (passcode.length !== PASSCODE_LENGTH || passcode === lastAttemptRef.current) {
       return;
     }
     lastAttemptRef.current = passcode;
     formRef.current?.requestSubmit();
-  }, [digits, open]);
-
-  if (!open) {
-    return null;
-  }
+  }, [digits]);
 
   const passcode = digits.join("");
 

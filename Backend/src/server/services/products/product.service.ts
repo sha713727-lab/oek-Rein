@@ -154,52 +154,18 @@ export class ProductService {
   }
 
   async getBySkus(skus: string[]): Promise<SerializedProduct[]> {
-    const catalog = new Map(BEST_SELLERS.map((slot) => [slot.sku.toUpperCase(), slot]));
-    const items: SerializedProduct[] = [];
-    for (const raw of skus) {
-      const sku = String(raw ?? "").trim().toUpperCase();
-      if (!sku) {
-        continue;
-      }
-      let record = await productRepository.findBySku(sku);
-      if (!record) {
-        const slot = catalog.get(sku);
-        if (slot) {
-          const existing = await productRepository.findBySkuIncludingDeleted(sku);
-          if (!existing) {
-            const slug = await productRepository.generateUniqueSlug(slot.title);
-            record = await productRepository.create({
-              title: slot.title,
-              slug,
-              sku: slot.sku,
-              category: slot.category,
-              price: slot.price,
-              originalPrice: null,
-              discount: 0,
-              discountType: DISCOUNT_TYPES.PERCENTAGE,
-              descriptionIntro: slot.description,
-              descriptionDetail: slot.description,
-              descriptionHighlights: [],
-              specComposition: "",
-              specCare: "",
-              specIncludes: slot.sku === "ZM-SHO-001" ? "Pair" : "Full",
-              returnPolicy: DEFAULT_RETURN_POLICY,
-              sizes: [],
-              tileColor: null,
-              bestSeller: true,
-              stock: 80,
-              status: PRODUCT_STATUS.PUBLISHED,
-              images: [{ url: slot.image, alt: slot.alt, order: 0 }],
-              colors: [],
-            });
-          }
-        }
-      }
-      if (record && record.status === PRODUCT_STATUS.PUBLISHED) {
-        items.push(serializeProduct(record));
-      }
+    const normalized = [
+      ...new Set(skus.map((sku) => String(sku ?? "").trim().toUpperCase()).filter(Boolean)),
+    ];
+    if (normalized.length === 0) {
+      return [];
     }
-    return items;
+    const docs = await productRepository.findBySkus(normalized);
+    const bySku = new Map(docs.map((doc) => [doc.sku.toUpperCase(), doc]));
+    return normalized
+      .map((sku) => bySku.get(sku))
+      .filter((record): record is ProductRecord => Boolean(record && record.status === PRODUCT_STATUS.PUBLISHED))
+      .map(serializeProduct);
   }
 
   async assertPublished(id: string, client?: DbClient): Promise<ProductRecord> {

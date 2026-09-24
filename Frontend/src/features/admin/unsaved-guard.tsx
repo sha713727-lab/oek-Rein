@@ -2,6 +2,16 @@
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
+export const ADMIN_FORM_DIRTY_EVENT = "admin-form-dirty";
+
+/** Notify UnsavedGuard that a programmatic field change dirtied the form. */
+export function markAdminFormDirty() {
+  if (typeof document === "undefined") {
+    return;
+  }
+  document.dispatchEvent(new CustomEvent(ADMIN_FORM_DIRTY_EVENT));
+}
+
 export function UnsavedGuard({ children }: { children: ReactNode }) {
   const [dirty, setDirty] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
@@ -11,14 +21,18 @@ export function UnsavedGuard({ children }: { children: ReactNode }) {
     if (!node) {
       return undefined;
     }
-    const onInput = () => setDirty(true);
+    const onDirty = () => setDirty(true);
     // Publishing navigates away on purpose — the leave prompt must not block it.
     const onSubmit = () => setDirty(false);
-    node.addEventListener("input", onInput);
+    node.addEventListener("input", onDirty);
+    node.addEventListener("change", onDirty);
     node.addEventListener("submit", onSubmit);
+    document.addEventListener(ADMIN_FORM_DIRTY_EVENT, onDirty);
     return () => {
-      node.removeEventListener("input", onInput);
+      node.removeEventListener("input", onDirty);
+      node.removeEventListener("change", onDirty);
       node.removeEventListener("submit", onSubmit);
+      document.removeEventListener(ADMIN_FORM_DIRTY_EVENT, onDirty);
     };
   }, []);
 

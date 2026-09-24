@@ -109,6 +109,21 @@ export class ProductRepository {
     return mapped ?? null;
   }
 
+  async findBySkus(skus: string[], client?: PoolClient): Promise<ProductRecord[]> {
+    const normalized = [
+      ...new Set(skus.map((sku) => String(sku ?? "").trim().toUpperCase()).filter(Boolean)),
+    ];
+    if (normalized.length === 0) {
+      return [];
+    }
+    const result = await query<ProductSqlRow>(
+      `SELECT ${PRODUCT_COLUMNS} FROM product WHERE sku = ANY($1::text[]) AND deleted_at IS NULL`,
+      [normalized],
+      client,
+    );
+    return attachProductRelations(result.rows, client);
+  }
+
   async findBySkuIncludingDeleted(sku: string, client?: PoolClient): Promise<ProductRecord | null> {
     const result = await query<ProductSqlRow>(
       `SELECT ${PRODUCT_COLUMNS} FROM product WHERE sku = $1 ORDER BY deleted_at NULLS FIRST, created_at DESC LIMIT 1`,

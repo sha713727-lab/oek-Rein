@@ -337,22 +337,70 @@ export const HOME_FAQ_IMAGE_ALT = `${brandName} leather care kit`;
 
 export const HOME_FAQ = [
   {
-    id: "saddle-fit",
-    question: `How do I know the saddle will fit my horse?`,
+    id: "leather",
+    question: "What leather is used?",
     answer:
-      `${brandName} saddles are handcrafted with fit-minded construction for North American riding. We recommend working with a professional saddle fitter for first adjustments on your horse.`,
+      `${brandName} uses full-grain Pakistani leather selected for strength and a rich hand. Care for it with routine cleaning and leather balm.`,
   },
   {
-    id: "leather-care",
-    question: `How should I care for my ${brandName} leather goods?`,
+    id: "handcrafted",
+    question: "Are products handcrafted?",
     answer:
-      "Pakistani leather loves routine care. Use our leather balm every few weeks, store tack dry and cool, and wipe sweat and dirt after each ride.",
+      "Yes. Pieces are handcrafted in Pakistan by skilled leatherworkers — stitched, tooled, and finished with care.",
+  },
+  {
+    id: "custom-colors",
+    question: "Can I customize colors?",
+    answer:
+      "Custom colorways are available on select pieces. Browse the Custom Colors collection or contact us to discuss options for your order.",
+  },
+  {
+    id: "name-logo",
+    question: "Can I add a name or logo?",
+    answer:
+      "Yes. Personalized name and logo options are available on select products. See Personalized pieces or contact us with your artwork.",
+  },
+  {
+    id: "engraving",
+    question: "Can I request engraving?",
+    answer:
+      "Engraving is offered as a custom request on select handcrafted pieces. Contact us with the product and text or design you have in mind so we can confirm before production.",
+  },
+  {
+    id: "matching-sets",
+    question: "Can I order matching tack?",
+    answer:
+      "Yes. Matching Tack Sets coordinate pieces such as bridle, breast collar, reins, and saddle pad where available. You can also request custom matching combinations.",
+  },
+  {
+    id: "saddle-fit",
+    question: "How do I choose the right saddle size?",
+    answer:
+      "We recommend working with a professional saddle fitter for first adjustments. Visit our Size Guide for an overview, or contact us with your horse’s measurements and the saddle you are considering.",
   },
   {
     id: "shipping-na",
-    question: "Do you ship to North America?",
+    question: "Where do you ship?",
     answer:
-      `Yes. ${brandName} is made in Pakistan and ships to riders across the United States and Canada. Tracking details arrive after your order is confirmed.`,
+      "Orders ship from Pakistan to addresses across the United States and Canada. Tracking details arrive after your order is confirmed.",
+  },
+  {
+    id: "shipping-times",
+    question: "What are the shipping times?",
+    answer:
+      "Transit times vary by destination and carrier. You will receive an order reference after checkout so you can follow up with client care if needed. Free shipping may apply above the published order threshold shown at checkout.",
+  },
+  {
+    id: "returns",
+    question: "What is the return or exchange policy?",
+    answer:
+      "Unused saddles, bridles, and tack may be exchanged within 14 days of delivery. Used, fitted, or leather-conditioned items cannot be returned. Contact us with your order reference before sending anything back.",
+  },
+  {
+    id: "contact",
+    question: `How can I contact ${brandName}?`,
+    answer:
+      "Reach us through the Contact page for questions about orders, fit, customization, or shipping to the US and Canada. Guest orders can also be looked up at Order Lookup with your email and order number.",
   },
   {
     id: "tracking",

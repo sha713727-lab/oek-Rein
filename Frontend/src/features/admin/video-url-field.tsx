@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, useTransition } from "react";
+
+import { markAdminFormDirty } from "@/features/admin/unsaved-guard";
+import { uploadAdminMediaAction } from "@/features/admin/upload-admin-media";
+import { useAdminUploadBusy } from "@/features/admin/upload-busy";
 
 const MAX_BYTES = 25 * 1024 * 1024;
 const ACCEPT = "video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov";
@@ -16,6 +20,7 @@ function isAllowed(file: File) {
   return name.endsWith(".mp4") || name.endsWith(".webm") || name.endsWith(".mov");
 }
 
+/** Generic video URL field (upload-on-select). Prefer HeroVideoField for the homepage hero. */
 export function VideoUrlField({
   name,
   label,
@@ -29,12 +34,13 @@ export function VideoUrlField({
 }) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const { registerPending, clearPending } = useAdminUploadBusy();
   const [url, setUrl] = useState(defaultValue);
   const [preview, setPreview] = useState(defaultValue);
   const [cleared, setCleared] = useState(false);
-  const [hasNewFile, setHasNewFile] = useState(false);
   const [error, setError] = useState("");
   const [dragOver, setDragOver] = useState(false);
+  const [pending, startTransition] = useTransition();
 
   useEffect(() => {
     return () => {
@@ -53,20 +59,45 @@ export function VideoUrlField({
       setError("Video must be 25MB or smaller.");
       return;
     }
-    const transfer = new DataTransfer();
-    transfer.items.add(file);
     if (inputRef.current) {
-      inputRef.current.files = transfer.files;
+      inputRef.current.value = "";
     }
     setError("");
     setCleared(false);
-    setHasNewFile(true);
-    // Keep previous URL as fallback if upload fails on Publish; file field wins when present.
     setPreview((current) => {
       if (current.startsWith("blob:")) {
         URL.revokeObjectURL(current);
       }
       return URL.createObjectURL(file);
+    });
+
+    const body = new FormData();
+    body.set("file", file);
+    registerPending();
+    startTransition(async () => {
+      try {
+        const result = await uploadAdminMediaAction(body);
+        if (result.error || !result.url) {
+          setError(result.error || "Upload failed.");
+          setPreview((current) => {
+            if (current.startsWith("blob:")) {
+              URL.revokeObjectURL(current);
+            }
+            return url || defaultValue;
+          });
+          return;
+        }
+        setUrl(result.url);
+        markAdminFormDirty();
+        setPreview((current) => {
+          if (current.startsWith("blob:")) {
+            URL.revokeObjectURL(current);
+          }
+          return result.url!;
+        });
+      } finally {
+        clearPending();
+      }
     });
   }
 
@@ -75,9 +106,9 @@ export function VideoUrlField({
       inputRef.current.value = "";
     }
     setCleared(true);
-    setHasNewFile(false);
     setUrl("");
     setError("");
+    markAdminFormDirty();
     setPreview((current) => {
       if (current.startsWith("blob:")) {
         URL.revokeObjectURL(current);
@@ -99,7 +130,6 @@ export function VideoUrlField({
         ref={inputRef}
         className="admin-product-upload-input"
         type="file"
-        name={hasNewFile ? `${name}File` : undefined}
         accept={ACCEPT}
         onChange={(event) => {
           const file = event.target.files?.[0];
@@ -110,7 +140,7 @@ export function VideoUrlField({
       />
       <button
         type="button"
-        className={`admin-storefront-stage${dragOver ? " is-over" : ""}`}
+        className={`admin-storefront-stage${dragOver ? " is-over" : ""}${pending ? " is-uploading" : ""}`}
         onClick={() => inputRef.current?.click()}
         onDragOver={(event) => {
           event.preventDefault();
@@ -126,19 +156,22 @@ export function VideoUrlField({
           }
         }}
         aria-label={preview ? `Replace ${label}` : `Upload ${label}`}
+        disabled={pending}
       >
         {preview ? (
-          <video src={preview} className="admin-storefront-preview-img" muted playsInline controls={false} />
+          <video src={preview} className="admin-storefront-preview-img" muted playsInline loop autoPlay controls={false} />
         ) : (
-          <span className="admin-storefront-preview--empty">Drop an MP4 or MOV here or click to upload</span>
+          <span className="admin-storefront-preview--empty">
+            {pending ? "Uploading…" : "Drop an MP4 or MOV here or click to upload"}
+          </span>
         )}
       </button>
       <div className="admin-storefront-image-actions">
-        <button type="button" className="admin-orders-open" onClick={() => inputRef.current?.click()}>
-          {preview ? "Replace" : "Upload"}
+        <button type="button" className="admin-orders-open" onClick={() => inputRef.current?.click()} disabled={pending}>
+          {pending ? "Uploading…" : preview ? "Replace" : "Upload"}
         </button>
         {preview ? (
-          <button type="button" className="admin-product-delete" onClick={clear}>
+          <button type="button" className="admin-product-delete" onClick={clear} disabled={pending}>
             Remove
           </button>
         ) : null}
@@ -148,7 +181,11 @@ export function VideoUrlField({
           {error}
         </p>
       ) : (
-        <p className="admin-product-kicker">MP4, MOV, or WEBM. Up to 25MB. Publish to update the live hero.</p>
+        <p className="admin-product-kicker">
+          {pending
+            ? "Uploading video…"
+            : "MP4, MOV, or WEBM. Up to 25MB. Wait for upload, then Publish to update the live shop."}
+        </p>
       )}
     </div>
   );

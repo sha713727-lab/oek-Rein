@@ -3,49 +3,44 @@
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 
 import { markAdminFormDirty } from "@/features/admin/unsaved-guard";
-import { uploadAdminMediaAction } from "@/features/admin/upload-admin-media";
+import { uploadAdminHeroVideoAction } from "@/features/admin/upload-admin-media";
 import { useAdminUploadBusy } from "@/features/admin/upload-busy";
 import { CmsImage } from "@/features/media/cms-image";
-import { isVideoSrc } from "@/lib/media-src";
 
-const IMAGE_MAX_BYTES = 5 * 1024 * 1024;
-const VIDEO_MAX_BYTES = 25 * 1024 * 1024;
-const ACCEPT =
-  "image/png,image/jpeg,image/webp,video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov";
+const MAX_BYTES = 25 * 1024 * 1024;
+const ACCEPT = "video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov";
 
-const IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
-const VIDEO_TYPES = new Set(["video/mp4", "video/webm", "video/quicktime", "video/x-quicktime"]);
+const ALLOWED_TYPES = new Set(["video/mp4", "video/webm", "video/quicktime", "video/x-quicktime"]);
 
-function isImageFile(file: File) {
-  if (IMAGE_TYPES.has(file.type)) return true;
-  const name = file.name.toLowerCase();
-  return name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".webp");
-}
-
-function isVideoFile(file: File) {
-  if (VIDEO_TYPES.has(file.type)) return true;
+function isAllowed(file: File) {
+  if (ALLOWED_TYPES.has(file.type)) {
+    return true;
+  }
   const name = file.name.toLowerCase();
   return name.endsWith(".mp4") || name.endsWith(".webm") || name.endsWith(".mov");
 }
 
-/** Image or video upload for gallery tiles (Seen in the saddle, etc.). */
-export function MediaUrlField({
-  name,
+/** Homepage hero: upload → chroma-key prerender → desktop / mobile / poster URLs. */
+export function HeroVideoField({
   label,
-  defaultValue,
+  defaultSrc,
+  defaultMobileSrc,
+  defaultPosterSrc,
   hint,
 }: {
-  name: string;
   label: string;
-  defaultValue: string;
+  defaultSrc: string;
+  defaultMobileSrc?: string;
+  defaultPosterSrc?: string;
   hint?: string;
 }) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const { registerPending, clearPending } = useAdminUploadBusy();
-  const [url, setUrl] = useState(defaultValue);
-  const [preview, setPreview] = useState(defaultValue);
-  const [previewKind, setPreviewKind] = useState<"image" | "video">(isVideoSrc(defaultValue) ? "video" : "image");
+  const [src, setSrc] = useState(defaultSrc);
+  const [mobileSrc, setMobileSrc] = useState(defaultMobileSrc ?? "");
+  const [posterSrc, setPosterSrc] = useState(defaultPosterSrc ?? "");
+  const [preview, setPreview] = useState(defaultSrc);
   const [cleared, setCleared] = useState(false);
   const [error, setError] = useState("");
   const [dragOver, setDragOver] = useState(false);
@@ -60,17 +55,11 @@ export function MediaUrlField({
   }, [preview]);
 
   function assignFile(file: File) {
-    const asImage = isImageFile(file);
-    const asVideo = isVideoFile(file);
-    if (!asImage && !asVideo) {
-      setError("Use PNG, JPG, WEBP, MP4, MOV, or WEBM.");
+    if (!isAllowed(file)) {
+      setError("Use MP4, MOV, or WEBM.");
       return;
     }
-    if (asImage && file.size > IMAGE_MAX_BYTES) {
-      setError("Image must be 5MB or smaller.");
-      return;
-    }
-    if (asVideo && file.size > VIDEO_MAX_BYTES) {
+    if (file.size > MAX_BYTES) {
       setError("Video must be 25MB or smaller.");
       return;
     }
@@ -79,7 +68,6 @@ export function MediaUrlField({
     }
     setError("");
     setCleared(false);
-    setPreviewKind(asVideo ? "video" : "image");
     setPreview((current) => {
       if (current.startsWith("blob:")) {
         URL.revokeObjectURL(current);
@@ -92,26 +80,26 @@ export function MediaUrlField({
     registerPending();
     startTransition(async () => {
       try {
-        const result = await uploadAdminMediaAction(body);
-        if (result.error || !result.url) {
-          setError(result.error || "Upload failed.");
+        const result = await uploadAdminHeroVideoAction(body);
+        if (result.error || !result.src) {
+          setError(result.error || "Hero video processing failed.");
           setPreview((current) => {
             if (current.startsWith("blob:")) {
               URL.revokeObjectURL(current);
             }
-            return url || defaultValue;
+            return src || defaultSrc;
           });
-          setPreviewKind(isVideoSrc(url || defaultValue) ? "video" : "image");
           return;
         }
-        setUrl(result.url);
+        setSrc(result.src);
+        setMobileSrc(result.mobileSrc ?? "");
+        setPosterSrc(result.posterSrc ?? "");
         markAdminFormDirty();
-        setPreviewKind(asVideo ? "video" : "image");
         setPreview((current) => {
           if (current.startsWith("blob:")) {
             URL.revokeObjectURL(current);
           }
-          return result.url!;
+          return result.src!;
         });
       } finally {
         clearPending();
@@ -124,9 +112,10 @@ export function MediaUrlField({
       inputRef.current.value = "";
     }
     setCleared(true);
-    setUrl("");
+    setSrc("");
+    setMobileSrc("");
+    setPosterSrc("");
     setError("");
-    setPreviewKind("image");
     markAdminFormDirty();
     setPreview((current) => {
       if (current.startsWith("blob:")) {
@@ -136,14 +125,18 @@ export function MediaUrlField({
     });
   }
 
+  const showPosterFallback = Boolean(posterSrc) && !preview;
+
   return (
-    <div className="admin-product-field">
+    <div className="admin-product-field admin-product-field--full">
       <label className="admin-product-label" htmlFor={inputId}>
         {label}
       </label>
       {hint ? <p className="admin-product-kicker">{hint}</p> : null}
-      <input type="hidden" name={name} value={url} />
-      <input type="hidden" name={`${name}Cleared`} value={cleared ? "1" : "0"} />
+      <input type="hidden" name="heroVideoSrc" value={src} />
+      <input type="hidden" name="heroVideoMobileSrc" value={mobileSrc} />
+      <input type="hidden" name="heroVideoPosterSrc" value={posterSrc} />
+      <input type="hidden" name="heroVideoSrcCleared" value={cleared ? "1" : "0"} />
       <input
         id={inputId}
         ref={inputRef}
@@ -151,9 +144,9 @@ export function MediaUrlField({
         type="file"
         accept={ACCEPT}
         onChange={(event) => {
-          const next = event.target.files?.[0];
-          if (next) {
-            assignFile(next);
+          const file = event.target.files?.[0];
+          if (file) {
+            assignFile(file);
           }
         }}
       />
@@ -169,34 +162,38 @@ export function MediaUrlField({
         onDrop={(event) => {
           event.preventDefault();
           setDragOver(false);
-          const dropped = event.dataTransfer.files[0];
-          if (dropped) {
-            assignFile(dropped);
+          const file = event.dataTransfer.files[0];
+          if (file) {
+            assignFile(file);
           }
         }}
-        aria-label={preview ? `Replace ${label}` : `Upload ${label}`}
+        aria-label={preview || posterSrc ? `Replace ${label}` : `Upload ${label}`}
         disabled={pending}
       >
-        {preview ? (
-          previewKind === "video" ? (
-            <video src={preview} className="admin-storefront-preview-img" muted playsInline loop autoPlay controls={false} />
-          ) : preview.startsWith("blob:") ? (
-            // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
-            <img src={preview} alt="" className="admin-storefront-preview-img" />
-          ) : (
-            <CmsImage src={preview} alt="" width={160} height={160} className="admin-storefront-preview-img" />
-          )
+        {pending ? (
+          <span className="admin-storefront-preview--empty">Processing…</span>
+        ) : preview ? (
+          <video
+            src={preview}
+            poster={posterSrc || undefined}
+            className="admin-storefront-preview-img"
+            muted
+            playsInline
+            loop
+            autoPlay
+            controls={false}
+          />
+        ) : showPosterFallback ? (
+          <CmsImage src={posterSrc} alt="" width={160} height={160} className="admin-storefront-preview-img" />
         ) : (
-          <span className="admin-storefront-preview--empty">
-            {pending ? "Uploading…" : "Drop a photo or video here or click to upload"}
-          </span>
+          <span className="admin-storefront-preview--empty">Drop an MP4 or MOV here or click to upload</span>
         )}
       </button>
       <div className="admin-storefront-image-actions">
         <button type="button" className="admin-orders-open" onClick={() => inputRef.current?.click()} disabled={pending}>
-          {pending ? "Uploading…" : preview ? "Replace" : "Upload"}
+          {pending ? "Processing…" : preview || posterSrc ? "Replace" : "Upload"}
         </button>
-        {preview ? (
+        {preview || posterSrc ? (
           <button type="button" className="admin-product-delete" onClick={clear} disabled={pending}>
             Remove
           </button>
@@ -209,8 +206,8 @@ export function MediaUrlField({
       ) : (
         <p className="admin-product-kicker">
           {pending
-            ? "Uploading media…"
-            : "PNG, JPG, WEBP (5MB) or MP4, MOV, WEBM (25MB). Wait for upload, then Publish to update the live shop."}
+            ? "Processing transparent hero video… this can take a minute."
+            : "MP4, MOV, or WEBM. Up to 25MB. Wait for processing, then Publish to update the live hero."}
         </p>
       )}
     </div>

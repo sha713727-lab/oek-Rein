@@ -869,7 +869,7 @@ function asFaqItems(value: unknown): StorefrontFaqItem[] {
     return fallback;
   }
   const seen = new Set<string>();
-  return value
+  const items = value
     .map((item, index) => {
       const record = asRecord(item);
       const preferred = asText(record.id, fallback[index]?.id ?? `faq-${index + 1}`);
@@ -885,7 +885,13 @@ function asFaqItems(value: unknown): StorefrontFaqItem[] {
       };
     })
     .filter((item) => item.question && item.answer)
-    .slice(0, 8);
+    .slice(0, 16);
+
+  // Empty → defaults only. Do not revive the full default set when CMS has a shorter list.
+  if (items.length === 0) {
+    return fallback;
+  }
+  return items;
 }
 
 function asFeatures(value: unknown): StorefrontFeature[] {

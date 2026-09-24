@@ -6,6 +6,9 @@ import { productService } from "@/lib/api/products";
 import { getSessionUser } from "@/lib/session";
 import { getStorefront } from "@/lib/storefront";
 
+/** Hero video prerender (server action → backend) can take up to ~2 minutes. */
+export const maxDuration = 180;
+
 export default async function AdminCustomerSidePage() {
   const user = await getSessionUser();
   if (!user || !ADMIN_ROLES.includes(user.role)) {

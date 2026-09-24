@@ -19,11 +19,12 @@ import {
 } from "@/constants/storefront";
 import { IconStorefront } from "@/features/admin/admin-nav-icons";
 import { ColorField } from "@/features/admin/color-field";
+import { HeroVideoField } from "@/features/admin/hero-video-field";
 import { ImageUrlField } from "@/features/admin/image-url-field";
 import { MediaUrlField } from "@/features/admin/media-url-field";
 import { publishStorefrontAction } from "@/features/admin/storefront-actions";
 import { UnsavedGuard } from "@/features/admin/unsaved-guard";
-import { VideoUrlField } from "@/features/admin/video-url-field";
+import { AdminUploadBusyProvider, useAdminUploadBusy } from "@/features/admin/upload-busy";
 import type { StorefrontState } from "@/lib/api/storefront";
 
 const COLLECTION_LABELS: Record<string, string> = {
@@ -96,8 +97,16 @@ function SoftArea({
 
 function PublishButton() {
   const { pending } = useFormStatus();
+  const { isBusy } = useAdminUploadBusy();
+  const blocked = pending || isBusy;
   return (
-    <button type="submit" className="admin-product-cta" disabled={pending}>
+    <button
+      type="submit"
+      className="admin-product-cta"
+      disabled={blocked}
+      aria-busy={isBusy || undefined}
+      title={isBusy ? "Wait for uploads to finish" : undefined}
+    >
       {pending ? "Publishing..." : "Publish"}
     </button>
   );
@@ -181,6 +190,7 @@ export function StorefrontEditor({
   }
 
   return (
+    <AdminUploadBusyProvider>
     <UnsavedGuard>
       <form action={publishAction} noValidate className="admin-product-page admin-product-form">
         <header className="admin-product-toolbar">
@@ -307,10 +317,11 @@ export function StorefrontEditor({
               Homepage hero
             </h2>
             <div className="admin-product-fields">
-              <VideoUrlField
-                name="heroVideoSrc"
+              <HeroVideoField
                 label="Hero video"
-                defaultValue={content.heroVideoSrc}
+                defaultSrc={content.heroVideoSrc}
+                {...(content.heroVideoMobileSrc ? { defaultMobileSrc: content.heroVideoMobileSrc } : {})}
+                {...(content.heroVideoPosterSrc ? { defaultPosterSrc: content.heroVideoPosterSrc } : {})}
                 hint="Transparent-background MP4 or MOV of the horse and rider. Replace to update the live homepage hero."
               />
               <ImageUrlField name="heroProductSrc" label="Hero product" defaultValue={content.heroProductSrc} />
@@ -963,5 +974,6 @@ export function StorefrontEditor({
         </section>
       </form>
     </UnsavedGuard>
+    </AdminUploadBusyProvider>
   );
 }

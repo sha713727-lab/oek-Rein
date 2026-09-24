@@ -2,7 +2,9 @@
 
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 
+import { markAdminFormDirty } from "@/features/admin/unsaved-guard";
 import { uploadAdminMediaAction } from "@/features/admin/upload-admin-media";
+import { useAdminUploadBusy } from "@/features/admin/upload-busy";
 import { CmsImage } from "@/features/media/cms-image";
 
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -25,6 +27,7 @@ export function ImageUrlField({
 }) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const { registerPending, clearPending } = useAdminUploadBusy();
   const [url, setUrl] = useState(defaultValue);
   const [preview, setPreview] = useState(defaultValue);
   const [cleared, setCleared] = useState(false);
@@ -64,25 +67,31 @@ export function ImageUrlField({
 
     const body = new FormData();
     body.set("file", file);
+    registerPending();
     startTransition(async () => {
-      const result = await uploadAdminMediaAction(body);
-      if (result.error || !result.url) {
-        setError(result.error || "Upload failed.");
+      try {
+        const result = await uploadAdminMediaAction(body);
+        if (result.error || !result.url) {
+          setError(result.error || "Upload failed.");
+          setPreview((current) => {
+            if (current.startsWith("blob:")) {
+              URL.revokeObjectURL(current);
+            }
+            return url || defaultValue;
+          });
+          return;
+        }
+        setUrl(result.url);
+        markAdminFormDirty();
         setPreview((current) => {
           if (current.startsWith("blob:")) {
             URL.revokeObjectURL(current);
           }
-          return url || defaultValue;
+          return result.url!;
         });
-        return;
+      } finally {
+        clearPending();
       }
-      setUrl(result.url);
-      setPreview((current) => {
-        if (current.startsWith("blob:")) {
-          URL.revokeObjectURL(current);
-        }
-        return result.url!;
-      });
     });
   }
 
@@ -93,6 +102,7 @@ export function ImageUrlField({
     setCleared(true);
     setUrl("");
     setError("");
+    markAdminFormDirty();
     setPreview((current) => {
       if (current.startsWith("blob:")) {
         URL.revokeObjectURL(current);

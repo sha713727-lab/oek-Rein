@@ -14,6 +14,8 @@ import {
   heroProductAlt,
   heroProductSrc,
   heroSupport,
+  heroVideoMobileSrc,
+  heroVideoPosterSrc,
   heroVideoSrc,
 } from "@/constants/brand";
 import { MEGA_FEATURED } from "@/constants/navigation-ia";
@@ -168,6 +170,10 @@ export type StorefrontContent = {
   heroProductAlt: string;
   /** Homepage hero cutout video (MP4/MOV/WEBM). */
   heroVideoSrc: string;
+  /** Lower-res stacked-alpha hero for coarse / narrow / low-core devices. */
+  heroVideoMobileSrc?: string;
+  /** Instant LCP poster until the first live WebGL frame. */
+  heroVideoPosterSrc?: string;
   brandStoryPrimarySrc: string;
   brandStorySecondarySrc: string;
   brandStoryPortraitSrc: string;
@@ -467,6 +473,8 @@ export const DEFAULT_STOREFRONT_CONTENT: StorefrontContent = {
   heroProductSrc,
   heroProductAlt,
   heroVideoSrc,
+  heroVideoMobileSrc,
+  heroVideoPosterSrc,
   brandStoryPrimarySrc,
   brandStorySecondarySrc,
   brandStoryPortraitSrc,
@@ -824,8 +832,8 @@ function asFaqItems(value: unknown): StorefrontFaqItem[] {
     .filter((item) => item.question && item.answer)
     .slice(0, 16);
 
-  // Prefer canonical default FAQ set when CMS has stale/duplicate entries from older publishes.
-  if (items.length === 0 || items.length < fallback.length) {
+  // Empty → defaults only. Keep shorter edited FAQ lists (do not revive full defaults).
+  if (items.length === 0) {
     return fallback;
   }
   return items;
@@ -870,6 +878,16 @@ function asCollectionTitles(value: unknown): Record<string, StorefrontCollection
   return next;
 }
 
+const LEGACY_HERO_VIDEO = "/assets/videos/heroVideo.mp4";
+
+function resolveHeroVideoSrc(value: unknown, fallback: string): string {
+  const src = asAssetSrc(value, fallback);
+  if (src === LEGACY_HERO_VIDEO || src.endsWith("/heroVideo.mp4")) {
+    return DEFAULT_STOREFRONT_CONTENT.heroVideoSrc;
+  }
+  return src;
+}
+
 export function resolveStorefrontContent(raw: unknown): StorefrontContent {
   const record = asRecord(raw);
   const LEGACY_BEST_SELLER_SKUS: Record<string, string> = {
@@ -895,7 +913,15 @@ export function resolveStorefrontContent(raw: unknown): StorefrontContent {
     heroSupport: asStoredText(record.heroSupport, DEFAULT_STOREFRONT_CONTENT.heroSupport),
     heroProductSrc: asAssetSrc(record.heroProductSrc, DEFAULT_STOREFRONT_CONTENT.heroProductSrc),
     heroProductAlt: asStoredText(record.heroProductAlt, DEFAULT_STOREFRONT_CONTENT.heroProductAlt),
-    heroVideoSrc: asAssetSrc(record.heroVideoSrc, DEFAULT_STOREFRONT_CONTENT.heroVideoSrc),
+    heroVideoSrc: resolveHeroVideoSrc(record.heroVideoSrc, DEFAULT_STOREFRONT_CONTENT.heroVideoSrc),
+    heroVideoMobileSrc: asAssetSrc(
+      record.heroVideoMobileSrc,
+      DEFAULT_STOREFRONT_CONTENT.heroVideoMobileSrc ?? heroVideoMobileSrc,
+    ),
+    heroVideoPosterSrc: asAssetSrc(
+      record.heroVideoPosterSrc,
+      DEFAULT_STOREFRONT_CONTENT.heroVideoPosterSrc ?? heroVideoPosterSrc,
+    ),
     brandStoryPrimarySrc: asAssetSrc(record.brandStoryPrimarySrc, DEFAULT_STOREFRONT_CONTENT.brandStoryPrimarySrc),
     brandStorySecondarySrc: asAssetSrc(record.brandStorySecondarySrc, DEFAULT_STOREFRONT_CONTENT.brandStorySecondarySrc),
     brandStoryPortraitSrc: asAssetSrc(record.brandStoryPortraitSrc, DEFAULT_STOREFRONT_CONTENT.brandStoryPortraitSrc),
@@ -945,7 +971,7 @@ export function themeToCss(theme: StorefrontTheme): string {
 }
 
 export function formatMoney(amount: number, currency = "PKR"): string {
-  return `${currency} ${amount.toLocaleString()}`;
+  return `${currency} ${amount.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 }
 
 export function tileStyle(color: string): CSSProperties {
