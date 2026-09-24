@@ -44,6 +44,16 @@ services:
       - proxy
     expose:
       - "5000"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:5000/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
 
   frontend:
     build:
@@ -64,7 +74,8 @@ services:
     volumes:
       - oakrein_uploads:/app/Frontend/public/uploads
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       oakrein_internal:
       proxy:
@@ -72,6 +83,16 @@ services:
           - oakrein-frontend
     expose:
       - "3020"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:3020/').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
 
 volumes:
   oakrein_pgdata:

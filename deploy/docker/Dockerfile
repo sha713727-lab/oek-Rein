@@ -12,6 +12,10 @@ RUN npm ci --omit=dev
 
 FROM base AS backend
 WORKDIR /app/Backend
+# System ffmpeg is more reliable in Docker; npm ffmpeg-static remains as fallback.
+# Sharp ships a prebuilt libvips binary (@img/sharp-*) — no system libvips required.
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg \
+  && rm -rf /var/lib/apt/lists/*
 COPY --from=backend-deps /app/Backend/node_modules ./node_modules
 COPY Backend ./
 COPY Database /app/Database
@@ -32,7 +36,7 @@ COPY Frontend ./
 ARG APP_URL=https://oakrein.com
 ENV NODE_ENV=production \
     APP_URL=${APP_URL} \
-    API_URL=http://oakrein-backend:5000 \
+    API_URL=http://oakrein-backend-1:5000 \
     API_PREFIX=/api/v1 \
     HMAC_SIGNING_SECRET=build-placeholder-hmac-signing-secret-32chars-min \
     SESSION_SECRET=build-placeholder-session-secret-value-32chars-min \

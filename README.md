@@ -55,6 +55,25 @@ NODE_ENV=production npm start
 
 Put Nginx/Caddy in front with TLS for `oakrein.com` → Next `:3000`, and proxy `/api` → Backend `:5000` if needed.
 
+### Deploy after this fix
+
+Docker Compose deploy on the VPS (migrations run automatically on backend start):
+
+```bash
+ssh root@2.25.83.90
+cd /var/www/oakrein  # or actual path
+git pull
+cd deploy/docker && docker compose build && docker compose up -d
+# Include the upgrade map in nginx http{} (once):
+#   include /var/www/oakrein/deploy/nginx/oakrein-map.conf;
+# Ensure site config uses deploy/nginx/oakrein.com.conf (TLS) or the http-only bootstrap.
+nginx -t && systemctl reload nginx
+# Optional one-time: if hero source was uploaded without mobile/poster siblings
+#   docker compose exec backend npm run prerender:hero
+# (Prerendered hero assets under Frontend/public are baked into the image on build.)
+# Optional env on backend: PRERENDER_HERO_ON_START=1 queues conversion for a raw /uploads hero at boot (default off).
+```
+
 ## Local development
 
 ```bash

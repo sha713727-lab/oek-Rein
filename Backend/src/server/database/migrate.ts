@@ -52,8 +52,10 @@ export async function applyMigrations(): Promise<void> {
   }
 }
 
+const entryScript = process.argv[1];
 const invokedDirectly =
-  Boolean(process.argv[1]) && path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1]);
+  Boolean(entryScript) &&
+  path.resolve(fileURLToPath(import.meta.url)) === path.resolve(entryScript as string);
 
 if (invokedDirectly) {
   void applyMigrations();

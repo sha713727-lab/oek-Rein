@@ -1,6 +1,6 @@
 import type { RouteDefinition } from "@/server/http/load-routes";
-import { requireAdmin } from "@/server/middleware/authorize";
 import type { RequestContext } from "@/server/http/respond";
+import { requireAdmin } from "@/server/middleware/authorize";
 import { authService } from "@/server/services/auth/auth.service";
 import { productService } from "@/server/services/products/product.service";
 

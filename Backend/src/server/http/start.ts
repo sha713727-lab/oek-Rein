@@ -8,6 +8,7 @@ import { logger } from "@/lib/logger";
 import { applyMigrations } from "@/server/database/migrate";
 import { closePool, databaseHealth, pool } from "@/server/database/pool";
 import { handleApiRequest } from "@/server/http/handle-api-request";
+import { prerenderHeroOnStartIfNeeded } from "@/server/jobs/prerender-hero-on-start";
 import { pruneExpiredNonces } from "@/server/jobs/prune-nonces";
 import { authService } from "@/server/services/auth/auth.service";
 
@@ -15,15 +16,34 @@ loadDotEnv();
 
 const PRUNE_INTERVAL_MS = 5 * 60 * 1000;
 
+process.on("unhandledRejection", (reason) => {
+  logger.error(
+    { err: reason instanceof Error ? reason.message : String(reason) },
+    "Unhandled promise rejection",
+  );
+});
+
 async function main(): Promise<void> {
   const env = getEnv();
-  if (env.NODE_ENV === "development") {
-    await applyMigrations();
-  }
+  // Always migrate on container/process start (schema_migration table skips already-applied files).
+  logger.info("Applying database migrations");
+  await applyMigrations();
+  logger.info("Database migrations complete");
+
   const health = await databaseHealth();
   if (health.status !== "connected") {
     throw new Error("PostgreSQL is not reachable");
   }
+
+  // Optional: PRERENDER_HERO_ON_START=1 queues stacked-alpha siblings for a raw /uploads hero.
+  // Default off so boots stay fast; safe to enable once after uploading a source video.
+  void prerenderHeroOnStartIfNeeded().catch((error) => {
+    logger.error(
+      { err: error instanceof Error ? error.message : String(error) },
+      "PRERENDER_HERO_ON_START job failed",
+    );
+  });
+
   if (env.NODE_ENV === "development") {
     const admin = await authService.seedAdmin();
     logger.info({ email: admin.email }, "Seed admin synced from environment");
@@ -37,7 +57,16 @@ async function main(): Promise<void> {
     }
   }
   const server = createServer((req, res) => {
-    void handleApiRequest(req, res);
+    void handleApiRequest(req, res).catch((err) => {
+      logger.error(
+        { err: err instanceof Error ? err.message : String(err) },
+        "Unhandled API request error",
+      );
+      if (!res.headersSent) {
+        res.writeHead(500, { "Content-Type": "application/json; charset=utf-8" });
+        res.end(JSON.stringify({ error: { code: "INTERNAL", message: "Internal server error" } }));
+      }
+    });
   });
   server.listen(env.API_PORT, env.API_HOST, () => {
     logger.info({ host: env.API_HOST, port: env.API_PORT }, "Native HTTP API listening");

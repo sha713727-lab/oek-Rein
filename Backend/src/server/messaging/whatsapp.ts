@@ -1,10 +1,10 @@
+import { brandName } from "@/constants/brand";
 import {
   formatSupportPhoneDisplay,
   resolveSupportPhoneDigits,
   supportPhoneE164,
   toWhatsAppDigits,
 } from "@/constants/site";
-import { brandName } from "@/constants/brand";
 import { formatMoney } from "@/constants/storefront";
 import { getEnv } from "@/lib/env";
 import { logger } from "@/lib/logger";
