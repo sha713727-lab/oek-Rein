@@ -1,7 +1,6 @@
 import { resolveCommerceSettings } from "@/constants/commerce";
 import {
   MEGA_MENU_IDS,
-  type MegaMenuId,
   resolveStorefrontContent,
   resolveStorefrontTheme,
 } from "@/constants/storefront";
