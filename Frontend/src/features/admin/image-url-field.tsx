@@ -56,8 +56,7 @@ export function ImageUrlField({
     setError("");
     setCleared(false);
     setHasNewFile(true);
-    // Clear persisted URL so publish uses the new file upload, not the previous path.
-    setUrl("");
+    // Keep previous URL as fallback if upload fails on Publish; file field wins when present.
     setPreview((current) => {
       if (current.startsWith("blob:")) {
         URL.revokeObjectURL(current);

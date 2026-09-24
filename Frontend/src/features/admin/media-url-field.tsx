@@ -78,7 +78,7 @@ export function MediaUrlField({
     setError("");
     setCleared(false);
     setHasNewFile(true);
-    setUrl("");
+    // Keep previous URL as fallback if upload fails on Publish; file field wins when present.
     setPreviewKind(asVideo ? "video" : "image");
     setPreview((current) => {
       if (current.startsWith("blob:")) {

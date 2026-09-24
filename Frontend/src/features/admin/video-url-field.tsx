@@ -61,7 +61,7 @@ export function VideoUrlField({
     setError("");
     setCleared(false);
     setHasNewFile(true);
-    setUrl("");
+    // Keep previous URL as fallback if upload fails on Publish; file field wins when present.
     setPreview((current) => {
       if (current.startsWith("blob:")) {
         URL.revokeObjectURL(current);

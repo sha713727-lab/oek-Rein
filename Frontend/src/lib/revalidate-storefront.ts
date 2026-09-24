@@ -16,6 +16,7 @@ const STOREFRONT_PATHS = [
   "/craftsmanship",
   "/custom",
   "/disciplines",
+  "/tack",
   "/admin/customer-side",
   "/admin/promos",
   "/admin/inventory",

@@ -141,16 +141,6 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
       ...published.content.customTack,
       image: customTackImage || DEFAULT_STOREFRONT_CONTENT.customTack.image,
     };
-    for (const menuId of MEGA_MENU_IDS) {
-      const images = megaCardImages[menuId] ?? [];
-      published.content.megaMenus[menuId] = {
-        ...published.content.megaMenus[menuId],
-        cards: published.content.megaMenus[menuId].cards.map((card, index) => ({
-          ...card,
-          image: images[index] || card.image,
-        })),
-      };
-    }
     published.content.riderGallery = {
       ...published.content.riderGallery,
       items: published.content.riderGallery.items.map((item, index) => ({
@@ -164,10 +154,38 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
     };
     categoryIndexes.forEach((index) => {
       const category = published.content.shopCategories[index];
-      if (category) {
-        category.image = categoryImages[index] ?? "";
+      if (!category) {
+        return;
+      }
+      const nextImage = String(categoryImages[index] ?? "").trim();
+      if (nextImage) {
+        category.image = nextImage;
       }
     });
+    // Keep shopImages map in sync with category tiles (homepage + mega lookups).
+    published.content.shopImages = Object.fromEntries(
+      published.content.shopCategories.map((item) => [item.id, item.image]),
+    );
+    // Shop mega-menu cards that share a category href inherit the tile image when
+    // the mega card itself was not given a new upload this publish.
+    const shopByHref = new Map(published.content.shopCategories.map((item) => [item.href, item.image]));
+    for (const menuId of MEGA_MENU_IDS) {
+      const images = megaCardImages[menuId] ?? [];
+      published.content.megaMenus[menuId] = {
+        ...published.content.megaMenus[menuId],
+        cards: published.content.megaMenus[menuId].cards.map((card, index) => {
+          const explicit = String(images[index] ?? "").trim();
+          if (explicit) {
+            return { ...card, image: explicit };
+          }
+          const fromShop = shopByHref.get(card.href);
+          if (fromShop) {
+            return { ...card, image: fromShop };
+          }
+          return card;
+        }),
+      };
+    }
     await storefrontService.updatePublished(published.commerce, published.theme, published.content);
     revalidateStorefront();
     redirect("/admin/customer-side");
