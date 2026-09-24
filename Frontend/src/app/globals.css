@@ -256,13 +256,13 @@
 }
 
 .brand-logo-mark--nav .brand-logo-mark-img {
-  width: clamp(2.55rem, 4.2vw, 3.25rem);
-  height: clamp(2.55rem, 4.2vw, 3.25rem);
+  width: clamp(3.75rem, 6.5vw, 5.25rem);
+  height: clamp(3.75rem, 6.5vw, 5.25rem);
 }
 
 .brand-logo-mark--auth .brand-logo-mark-img {
-  width: 4.5rem;
-  height: 4.5rem;
+  width: 5.5rem;
+  height: 5.5rem;
 }
 
 .brand-logo-mark--inline .brand-logo-mark-img {

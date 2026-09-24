@@ -28,11 +28,11 @@ const SIZE_CLASS: Record<LogoSize, string> = {
 };
 
 const SIZE_PX: Record<LogoSize, number> = {
-  nav: 52,
+  nav: 88,
   watermark: 28,
   inline: 36,
   product: 28,
-  auth: 72,
+  auth: 96,
 };
 
 export function Logo({

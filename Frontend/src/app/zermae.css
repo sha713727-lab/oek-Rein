@@ -561,6 +561,17 @@
     object-position: left center;
   }
 
+  /* Circular Oak & Rein mark — allow the large centered header treatment */
+  .site-header-shell .brand-logo .brand-logo-mark-img,
+  .footer-brand-row .brand-logo .brand-logo-mark-img,
+  .admin-header .brand-logo .brand-logo-mark-img {
+    height: auto;
+    max-height: none;
+    width: clamp(3.75rem, 6.5vw, 5.25rem);
+    max-width: none;
+    object-position: center;
+  }
+
   @media (min-width: 768px) {
     .site-header-shell .brand-logo img,
     .site-header-shell .brand-logo-img,
@@ -570,6 +581,15 @@
       height: 1.35rem;
       max-height: 1.35rem;
       max-width: 8.25rem;
+    }
+
+    .site-header-shell .brand-logo .brand-logo-mark-img,
+    .footer-brand-row .brand-logo .brand-logo-mark-img,
+    .admin-header .brand-logo .brand-logo-mark-img {
+      height: auto;
+      max-height: none;
+      width: clamp(4rem, 7vw, 5.5rem);
+      max-width: none;
     }
   }
 
