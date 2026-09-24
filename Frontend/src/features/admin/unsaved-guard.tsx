@@ -12,8 +12,14 @@ export function UnsavedGuard({ children }: { children: ReactNode }) {
       return undefined;
     }
     const onInput = () => setDirty(true);
+    // Publishing navigates away on purpose — the leave prompt must not block it.
+    const onSubmit = () => setDirty(false);
     node.addEventListener("input", onInput);
-    return () => node.removeEventListener("input", onInput);
+    node.addEventListener("submit", onSubmit);
+    return () => {
+      node.removeEventListener("input", onInput);
+      node.removeEventListener("submit", onSubmit);
+    };
   }, []);
 
   useEffect(() => {

@@ -21,7 +21,7 @@ import { IconStorefront } from "@/features/admin/admin-nav-icons";
 import { ColorField } from "@/features/admin/color-field";
 import { ImageUrlField } from "@/features/admin/image-url-field";
 import { MediaUrlField } from "@/features/admin/media-url-field";
-import { updateCommerceSettingsAction } from "@/features/admin/storefront-actions";
+import { publishStorefrontAction } from "@/features/admin/storefront-actions";
 import { UnsavedGuard } from "@/features/admin/unsaved-guard";
 import { VideoUrlField } from "@/features/admin/video-url-field";
 import type { StorefrontState } from "@/lib/api/storefront";
@@ -147,10 +147,7 @@ export function StorefrontEditor({
   const [shopCategories, setShopCategories] = useState<StorefrontShopCategory[]>(() =>
     content.shopCategories.map((item) => ({ ...item })),
   );
-  const [publishState, publishAction] = useActionState(
-    async (_prev: { error?: string }, formData: FormData) => updateCommerceSettingsAction(formData),
-    {},
-  );
+  const [publishState, publishAction] = useActionState(publishStorefrontAction, {});
   const homepageImages = [
     content.heroProductSrc,
     content.brandStoryPrimarySrc,

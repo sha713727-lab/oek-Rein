@@ -36,6 +36,19 @@ async function readImageMap(formData: FormData, prefix: string, keys: string[]):
   return Object.fromEntries(entries);
 }
 
+/**
+ * Form-state entry point for the storefront editor.
+ *
+ * `useActionState` must receive this server action directly — wrapping it in a client
+ * closure drops progressive enhancement and leaves Publish dead if hydration fails.
+ */
+export async function publishStorefrontAction(
+  _previous: { error?: string },
+  formData: FormData,
+): Promise<{ error?: string }> {
+  return updateCommerceSettingsAction(formData);
+}
+
 export async function updateCommerceSettingsAction(formData: FormData): Promise<{ error?: string }> {
   try {
     const user = await getSessionUser();
