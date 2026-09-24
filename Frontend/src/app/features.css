@@ -35,16 +35,14 @@
 }
 
 /*
- * Mobile-first grid:
- * phone  → 1 column
- * tablet → 2 × 2
- * desktop → 4 across
+ * Match desktop on every viewport: 4 cards in one row.
+ * Type and padding scale down on narrow screens.
  */
 .features-grid,
 .home-flow .features-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.85rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(0.4rem, 1.2vw, 1rem);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -53,36 +51,11 @@
   border-radius: 0;
 }
 
-@media (min-width: 640px) {
-  .features-grid,
-  .home-flow .features-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .features-grid,
-  .home-flow .features-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 1rem;
-  }
-}
-
-/* Size & fit home section — three tips, centered as a group */
-@media (min-width: 640px) {
-  .home-size-guide .features-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    justify-content: center;
-  }
-}
-
-@media (min-width: 1024px) {
-  .home-size-guide .features-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    max-width: 52rem;
-    margin-inline: auto;
-  }
+/* Size & fit — three tips, same row composition as desktop */
+.home-size-guide .features-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 52rem;
+  margin-inline: auto;
 }
 
 .feature-item {
@@ -90,7 +63,8 @@
   min-width: 0;
   flex-direction: column;
   align-items: flex-start;
-  padding: 1.15rem 1.15rem 1.35rem;
+  padding: clamp(0.65rem, 1.6vw, 1.15rem) clamp(0.55rem, 1.4vw, 1.15rem)
+    clamp(0.75rem, 1.8vw, 1.35rem);
   text-align: left;
   border-radius: var(--vd-radius-card);
   background: var(--vd-cream);
@@ -100,71 +74,67 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  margin-bottom: 0.85rem;
+  width: clamp(1.75rem, 4.5vw, 2.5rem);
+  height: clamp(1.75rem, 4.5vw, 2.5rem);
+  margin-bottom: clamp(0.45rem, 1.2vw, 0.85rem);
   border-radius: 9999px;
   background: var(--vd-ribbon);
   color: var(--vd-ribbon-text);
+  flex-shrink: 0;
 }
 
 .feature-icon svg {
-  width: 1.05rem;
-  height: 1.05rem;
+  width: clamp(0.8rem, 2.2vw, 1.05rem);
+  height: clamp(0.8rem, 2.2vw, 1.05rem);
 }
 
 .feature-title {
   margin: 0;
   font-family: var(--vd-font);
-  font-size: 0.95rem;
+  font-size: clamp(0.68rem, 1.7vw, 0.95rem);
   font-weight: 600;
   letter-spacing: normal;
-  line-height: 1.4;
+  line-height: 1.35;
   color: var(--vd-green);
 }
 
 .feature-desc {
-  margin: 0.4rem 0 0;
+  margin: 0.35rem 0 0;
   max-width: none;
   font-family: var(--vd-font);
-  font-size: 0.88rem;
+  font-size: clamp(0.62rem, 1.5vw, 0.88rem);
   font-weight: 400;
-  line-height: 1.65;
+  line-height: 1.45;
   color: var(--vd-body);
 }
 
-@media (max-width: 639px) {
+@media (max-width: 767px) {
   .features-section {
-    padding: 3rem 0 3.5rem;
+    padding: 2.75rem 0 3rem;
   }
 
   .features-inner {
-    padding-left: 1.15rem;
-    padding-right: 1.15rem;
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
   }
 
   .features-header {
-    margin-bottom: 1.35rem;
+    margin-bottom: 1.15rem;
   }
 
-  .feature-item {
-    padding: 1.25rem 1.2rem 1.4rem;
+  .features-support {
+    font-size: 0.82rem;
+    line-height: 1.5;
   }
 
-  .feature-title {
-    font-size: 1.02rem;
-  }
-
-  .feature-desc {
-    font-size: 0.92rem;
-  }
-
-  /* Soften the desktop-scale ribbon so it doesn't dominate a stacked layout */
+  /* Keep the ribbon behind cards without dominating the row */
   .features-section .ribbon-curve {
-    inset: 52% -8% 4%;
+    inset: 58% -20% -8%;
+    opacity: 0.55;
+    pointer-events: none;
   }
 
   .features-section .ribbon-curve-band {
-    stroke-width: 48;
+    stroke-width: 36;
   }
 }

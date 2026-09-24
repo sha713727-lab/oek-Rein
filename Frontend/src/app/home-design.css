@@ -2077,6 +2077,7 @@ html.home-motion-ready .home-flow .home-reveal {
 }
 
 /* —— Custom tack showcase (forest / footer palette) —— */
+/* Same composition as desktop on every viewport: copy left, product right. */
 .home-flow .home-custom-tack {
   position: relative;
   z-index: 2;
@@ -2089,24 +2090,29 @@ html.home-motion-ready .home-flow .home-reveal {
 .home-custom-tack-body {
   position: relative;
   z-index: 2;
-  padding-block: clamp(2.25rem, 5vw, 4.5rem);
+  padding-block: clamp(1.75rem, 4vw, 4.5rem);
 }
 
-/* Mobile-first: single column — title → lead → product → options → CTA */
 .home-custom-tack-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 1.15rem;
-  width: min(1180px, calc(100% - 2.3rem));
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  grid-template-areas:
+    "title stage"
+    "lead stage"
+    "rail stage"
+    "actions stage";
+  align-items: center;
+  gap: clamp(0.75rem, 2.5vw, 3.5rem) clamp(0.65rem, 2vw, 3.5rem);
+  width: min(1180px, calc(100% - 1.5rem));
   margin-inline: auto;
 }
 
 .home-custom-tack-title {
+  grid-area: title;
   margin: 0;
-  max-width: none;
+  max-width: 16ch;
   font-family: var(--font-display, Georgia, serif);
-  font-size: clamp(1.85rem, 7.5vw, 2.55rem);
+  font-size: clamp(1.15rem, 4.2vw, 3.15rem);
   font-weight: 500;
   letter-spacing: -0.03em;
   line-height: 1.12;
@@ -2119,21 +2125,23 @@ html.home-motion-ready .home-flow .home-reveal {
 }
 
 .home-custom-tack-lead {
+  grid-area: lead;
   margin: 0;
   max-width: 36rem;
   font-family: var(--font-body);
-  font-size: 0.95rem;
+  font-size: clamp(0.72rem, 1.8vw, 0.95rem);
   font-weight: 400;
-  line-height: 1.65;
+  line-height: 1.5;
   color: color-mix(in srgb, var(--vd-cream, #f4f1eb) 78%, transparent);
 }
 
 .home-custom-tack-rail {
+  grid-area: rail;
   display: grid;
-  gap: 0.35rem;
+  gap: clamp(0.1rem, 0.6vw, 0.35rem);
   width: 100%;
-  max-width: none;
-  margin: 0.15rem 0 0;
+  max-width: 28rem;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -2145,10 +2153,10 @@ html.home-motion-ready .home-flow .home-reveal {
 .home-custom-tack-rail-link {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 0.85rem;
+  gap: clamp(0.4rem, 1.2vw, 0.85rem);
   align-items: start;
-  min-height: 44px;
-  padding: 0.75rem 0.9rem;
+  min-height: 0;
+  padding: clamp(0.35rem, 1vw, 0.75rem) clamp(0.4rem, 1.1vw, 0.9rem);
   border-radius: 0.85rem;
   text-decoration: none;
   color: inherit;
@@ -2171,39 +2179,40 @@ html.home-motion-ready .home-flow .home-reveal {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2rem;
-  height: 2rem;
+  min-width: clamp(1.35rem, 3.5vw, 2rem);
+  height: clamp(1.35rem, 3.5vw, 2rem);
   margin-top: 0.1rem;
   border-radius: 999px;
   background: var(--home-accent, #e1e53f);
   color: var(--vd-footer, #204e4a);
   font-family: var(--font-body);
-  font-size: 0.72rem;
+  font-size: clamp(0.58rem, 1.5vw, 0.72rem);
   font-weight: 700;
   letter-spacing: 0.04em;
 }
 
 .home-custom-tack-rail-text {
   display: grid;
-  gap: 0.2rem;
+  gap: 0.15rem;
 }
 
 .home-custom-tack-rail-title {
   font-family: var(--font-body);
-  font-size: 1rem;
+  font-size: clamp(0.72rem, 1.9vw, 1rem);
   font-weight: 700;
   color: #fff;
 }
 
 .home-custom-tack-rail-desc {
   font-family: var(--font-body);
-  font-size: 0.88rem;
-  line-height: 1.45;
+  font-size: clamp(0.62rem, 1.55vw, 0.88rem);
+  line-height: 1.4;
   color: color-mix(in srgb, var(--vd-cream, #f4f1eb) 68%, transparent);
 }
 
 .home-custom-tack-actions {
-  margin-top: 0.35rem;
+  grid-area: actions;
+  margin-top: clamp(0.25rem, 1vw, 0.65rem);
 }
 
 .home-custom-tack-cta.vd-pill-cta {
@@ -2212,21 +2221,24 @@ html.home-motion-ready .home-flow .home-reveal {
   background: var(--vd-cream, #f4f1eb);
   color: var(--cta-fg);
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+  font-size: clamp(0.65rem, 1.7vw, 0.82rem);
+  padding-inline: clamp(0.85rem, 2vw, 1.35rem);
 }
 
 .home-custom-tack-stage {
+  grid-area: stage;
   position: relative;
   display: grid;
   place-items: center;
   width: 100%;
-  min-height: clamp(15rem, 72vw, 20rem);
-  margin-block: 0.35rem 0.15rem;
+  min-height: clamp(9.5rem, 42vw, 28rem);
+  margin-block: 0;
   isolation: isolate;
 }
 
 .home-custom-tack-orb {
   position: absolute;
-  inset: 14% 12%;
+  inset: 12% 10%;
   z-index: 0;
   border-radius: 50%;
   background:
@@ -2238,7 +2250,7 @@ html.home-motion-ready .home-flow .home-reveal {
 
 .home-custom-tack-ring {
   position: absolute;
-  inset: 6% 4%;
+  inset: 4% 2%;
   z-index: 0;
   border-radius: 50%;
   border: 1.5px solid color-mix(in srgb, var(--home-accent, #e1e53f) 45%, transparent);
@@ -2249,7 +2261,7 @@ html.home-motion-ready .home-flow .home-reveal {
 .home-custom-tack-product {
   position: relative;
   z-index: 1;
-  width: min(100%, 18.5rem);
+  width: min(100%, 26rem);
   aspect-ratio: 1;
   display: grid;
   place-items: center;
@@ -2271,60 +2283,6 @@ html.home-motion-ready .home-flow .home-reveal {
   }
   50% {
     transform: translateY(-10px);
-  }
-}
-
-/* Desktop: copy left, product right */
-@media (min-width: 900px) {
-  .home-custom-tack-inner {
-    display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-    grid-template-areas:
-      "title stage"
-      "lead stage"
-      "rail stage"
-      "actions stage";
-    align-items: center;
-    gap: clamp(1.75rem, 4vw, 3.5rem);
-    width: min(1180px, calc(100% - 2rem));
-  }
-
-  .home-custom-tack-title {
-    grid-area: title;
-    max-width: 16ch;
-    font-size: clamp(2rem, 4.2vw, 3.15rem);
-  }
-
-  .home-custom-tack-lead {
-    grid-area: lead;
-  }
-
-  .home-custom-tack-rail {
-    grid-area: rail;
-    max-width: 28rem;
-  }
-
-  .home-custom-tack-actions {
-    grid-area: actions;
-    margin-top: 0.65rem;
-  }
-
-  .home-custom-tack-stage {
-    grid-area: stage;
-    min-height: clamp(18rem, 42vw, 28rem);
-    margin-block: 0;
-  }
-
-  .home-custom-tack-product {
-    width: min(100%, 26rem);
-  }
-
-  .home-custom-tack-orb {
-    inset: 12% 10%;
-  }
-
-  .home-custom-tack-ring {
-    inset: 4% 2%;
   }
 }
 
@@ -2493,16 +2451,12 @@ html.home-motion-ready .home-flow .home-reveal {
   }
 }
 
-/*
- * Crafted for every ride — mobile stack first.
- * Phone / large phone: 1 column (never a cramped 4-across row).
- * Tablet: 2 × 2. Desktop: 4 across.
- */
+/* Crafted for every ride — same 4-across row as desktop on every viewport */
 .home-flow .home-disciplines .home-disciplines-grid,
 .home-disciplines .home-disciplines-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.85rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(0.4rem, 1.2vw, 1rem);
   width: 100%;
 }
 
@@ -2516,53 +2470,15 @@ html.home-motion-ready .home-flow .home-reveal {
 .home-disciplines-actions {
   display: flex;
   justify-content: center;
-  margin-top: 1.5rem;
+  margin-top: clamp(1.15rem, 3vw, 2rem);
 }
 
 @media (max-width: 767px) {
-  .home-flow .home-disciplines .home-disciplines-grid,
-  .home-disciplines .home-disciplines-grid {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
   .home-disciplines .home-disciplines-header {
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.1rem;
   }
 
-  .home-disciplines .home-disciplines-card {
-    padding: 1.2rem 1.15rem 1.35rem;
-  }
-
-  .home-disciplines .feature-title {
-    font-size: 1.05rem;
-  }
-
-  .home-disciplines .feature-desc {
-    font-size: 0.94rem;
-  }
-
-  .home-disciplines-actions {
-    margin-top: 1.25rem;
-  }
-}
-
-@media (min-width: 768px) and (max-width: 1099px) {
-  .home-flow .home-disciplines .home-disciplines-grid,
-  .home-disciplines .home-disciplines-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
-  }
-}
-
-@media (min-width: 1100px) {
-  .home-flow .home-disciplines .home-disciplines-grid,
-  .home-disciplines .home-disciplines-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 1rem;
-  }
-
-  .home-disciplines-actions {
-    margin-top: 2rem;
+  .home-disciplines .home-disciplines-card-cta {
+    margin-top: 0.45rem;
   }
 }

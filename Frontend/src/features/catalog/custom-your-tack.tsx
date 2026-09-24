@@ -41,7 +41,7 @@ export function CustomYourTack({ content = DEFAULT_CUSTOM_TACK, image }: CustomY
                   alt={`${brandName} custom handcrafted saddle`}
                   width={640}
                   height={640}
-                  sizes="(max-width: 899px) 78vw, 28rem"
+                  sizes="(max-width: 640px) 42vw, 28rem"
                   className="home-custom-tack-cutout"
                 />
               ) : null}
