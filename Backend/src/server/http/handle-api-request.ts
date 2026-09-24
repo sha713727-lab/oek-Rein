@@ -61,7 +61,10 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
 
     /* Hero/storefront videos are posted as base64 JSON and exceed the default 8MB JSON cap. */
     const uploadBody =
-      apiPath === "/admin/uploads" || apiPath === "/admin/uploads/"
+      apiPath === "/admin/uploads" ||
+      apiPath === "/admin/uploads/" ||
+      apiPath === "/admin/uploads/hero-video" ||
+      apiPath === "/admin/uploads/hero-video/"
         ? MAX_UPLOAD_JSON_BYTES
         : undefined;
     const rawBody = await readBody(req, uploadBody);

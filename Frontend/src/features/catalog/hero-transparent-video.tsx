@@ -3,57 +3,48 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
-import { heroVideoStartSec as defaultHeroVideoStartSec } from "@/constants/brand";
 import {
-  createHeroKeyBuffers,
-  keyHeroFrame,
-  type HeroKeyBuffers,
-  type HeroKeyQuality,
-} from "@/features/catalog/hero-key";
-import type { HeroKeyResponse } from "@/features/catalog/hero-key.worker";
+  heroVideoMobileSrc as defaultHeroVideoMobileSrc,
+  heroVideoPosterSrc as defaultHeroVideoPosterSrc,
+} from "@/constants/brand";
 
 type HeroTransparentVideoProps = {
   src: string;
-  className?: string;
-  /** Instant LCP cutout shown until the first keyed video frame lands. */
+  mobileSrc?: string;
   posterSrc?: string;
-  /** Playback starts here and loops back here (skips clipped side-face intro). */
+  className?: string;
+  /** @deprecated Ignored — stacked-alpha assets are pre-cut to the loop. */
   startSec?: number;
 };
 
-const WORKER_QUALITY: HeroKeyQuality = {
-  workWidth: 560,
-  intervalMs: 40,
-  fringePasses: 3,
-  healPasses: 3,
-  despill: true,
+type VideoWithFrameCallback = HTMLVideoElement & {
+  requestVideoFrameCallback?: (cb: (now: number) => void) => number;
+  cancelVideoFrameCallback?: (handle: number) => void;
 };
 
-const WORKER_QUALITY_SMALL: HeroKeyQuality = {
-  workWidth: 420,
-  intervalMs: 50,
-  fringePasses: 3,
-  healPasses: 3,
-  despill: true,
-};
+const VERT_SRC = `
+attribute vec2 a_pos;
+varying vec2 v_uv;
+void main() {
+  v_uv = a_pos * 0.5 + 0.5;
+  gl_Position = vec4(a_pos, 0.0, 1.0);
+}
+`;
 
-const FALLBACK_QUALITY: HeroKeyQuality = {
-  workWidth: 520,
-  intervalMs: 60,
-  fringePasses: 3,
-  healPasses: 3,
-  despill: true,
-};
+const FRAG_SRC = `
+precision mediump float;
+uniform sampler2D u_video;
+varying vec2 v_uv;
+void main() {
+  vec2 vTex = vec2(v_uv.x, v_uv.y * 0.5 + 0.5);
+  vec2 aTex = vec2(v_uv.x, v_uv.y * 0.5);
+  vec3 rgb = texture2D(u_video, vTex).rgb;
+  float a = texture2D(u_video, aTex).r;
+  gl_FragColor = vec4(rgb, a);
+}
+`;
 
-const FALLBACK_QUALITY_SMALL: HeroKeyQuality = {
-  workWidth: 360,
-  intervalMs: 80,
-  fringePasses: 2,
-  healPasses: 2,
-  despill: false,
-};
-
-function isSmallDevice(): boolean {
+function preferMobileSrc(): boolean {
   return (
     window.matchMedia("(pointer: coarse)").matches ||
     window.matchMedia("(max-width: 900px)").matches ||
@@ -61,180 +52,190 @@ function isSmallDevice(): boolean {
   );
 }
 
+function compileShader(gl: WebGLRenderingContext, type: number, source: string): WebGLShader | null {
+  const shader = gl.createShader(type);
+  if (!shader) return null;
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    gl.deleteShader(shader);
+    return null;
+  }
+  return shader;
+}
+
+function createStackedAlphaProgram(gl: WebGLRenderingContext): WebGLProgram | null {
+  const vs = compileShader(gl, gl.VERTEX_SHADER, VERT_SRC);
+  const fs = compileShader(gl, gl.FRAGMENT_SHADER, FRAG_SRC);
+  if (!vs || !fs) {
+    if (vs) gl.deleteShader(vs);
+    if (fs) gl.deleteShader(fs);
+    return null;
+  }
+  const program = gl.createProgram();
+  if (!program) {
+    gl.deleteShader(vs);
+    gl.deleteShader(fs);
+    return null;
+  }
+  gl.attachShader(program, vs);
+  gl.attachShader(program, fs);
+  gl.linkProgram(program);
+  gl.deleteShader(vs);
+  gl.deleteShader(fs);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    gl.deleteProgram(program);
+    return null;
+  }
+  return program;
+}
+
 /**
- * Transparent hero cutout. A static poster paints immediately for LCP; the first
- * live frame is keyed on the page thread as soon as the decoder seeks to the
- * loop start; later frames go through a worker that returns ImageBitmaps so the
- * visible canvas never waits on OffscreenCanvas transfer.
+ * Transparent hero cutout from a stacked-alpha MP4 (color on top, alpha bottom).
+ * Poster paints for LCP; WebGL composites live frames onto a canvas.
  */
 export function HeroTransparentVideo({
   src,
+  mobileSrc = defaultHeroVideoMobileSrc,
+  posterSrc = defaultHeroVideoPosterSrc,
   className = "",
-  posterSrc,
-  startSec = defaultHeroVideoStartSec,
 }: HeroTransparentVideoProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoSrc = String(src ?? "").trim();
-  const loopStart = Number.isFinite(startSec) && startSec > 0 ? startSec : 0;
+  const mobileVideoSrc = String(mobileSrc ?? "").trim();
   const [live, setLive] = useState(false);
-
-  // Media fragment nudges Safari/Chrome to begin decoding near the loop start.
-  const playbackSrc =
-    loopStart > 0 && !videoSrc.includes("#")
-      ? `${videoSrc}#t=${loopStart}`
-      : videoSrc;
 
   useEffect(() => {
     const root = rootRef.current;
-    const video = videoRef.current;
+    const video = videoRef.current as VideoWithFrameCallback | null;
     const canvas = canvasRef.current;
     if (!videoSrc || !root || !video || !canvas) {
       return;
     }
 
-    const small = isSmallDevice();
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let quality = small ? WORKER_QUALITY_SMALL : WORKER_QUALITY;
-
-    let running = true;
-    let inView = true;
-    let pageVisible = document.visibilityState === "visible";
-    let raf = 0;
-    let lastKey = 0;
-    let worker: Worker | null = null;
-    let workerReady = false;
-    let workerBusy = false;
-    let firstPaintDone = false;
-
-    const work = document.createElement("canvas");
-    const workCtx = work.getContext("2d", { willReadFrequently: true, alpha: true });
-    const viewCtx = canvas.getContext("2d", { alpha: true });
-    let buffers: HeroKeyBuffers | null = null;
-
-    if (!workCtx || !viewCtx) {
+    if (reduced) {
       return;
     }
 
-    const targetSize = () => {
+    const activeSrc = preferMobileSrc() && mobileVideoSrc ? mobileVideoSrc : videoSrc;
+    if (video.getAttribute("src") !== activeSrc) {
+      video.src = activeSrc;
+    }
+
+    const gl =
+      canvas.getContext("webgl", { alpha: true, premultipliedAlpha: false, antialias: false }) ||
+      canvas.getContext("experimental-webgl", {
+        alpha: true,
+        premultipliedAlpha: false,
+        antialias: false,
+      });
+    if (!gl || !(gl instanceof WebGLRenderingContext)) {
+      return;
+    }
+
+    const program = createStackedAlphaProgram(gl);
+    if (!program) {
+      return;
+    }
+
+    const posLoc = gl.getAttribLocation(program, "a_pos");
+    const videoLoc = gl.getUniformLocation(program, "u_video");
+    const buffer = gl.createBuffer();
+    const texture = gl.createTexture();
+    if (!buffer || !texture || posLoc < 0 || !videoLoc) {
+      return;
+    }
+
+    gl.useProgram(program);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(posLoc);
+    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.uniform1i(videoLoc, 0);
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.clearColor(0, 0, 0, 0);
+
+    let running = true;
+    let inView = true;
+    let pageVisible = !document.hidden;
+    let firstPaintDone = false;
+    let raf = 0;
+    let vfc = 0;
+    const useVfc = typeof video.requestVideoFrameCallback === "function";
+
+    const syncCanvasSize = () => {
       const vw = video.videoWidth;
       const vh = video.videoHeight;
-      if (!vw || !vh) return null;
-      const scale = vw > quality.workWidth ? quality.workWidth / vw : 1;
-      return {
-        width: Math.max(1, Math.round(vw * scale)),
-        height: Math.max(1, Math.round(vh * scale)),
-      };
-    };
-
-    const paintBitmap = (bitmap: ImageBitmap) => {
-      if (canvas.width !== bitmap.width || canvas.height !== bitmap.height) {
-        canvas.width = bitmap.width;
-        canvas.height = bitmap.height;
-      }
-      viewCtx.clearRect(0, 0, bitmap.width, bitmap.height);
-      viewCtx.drawImage(bitmap, 0, 0);
-      bitmap.close();
-      if (!firstPaintDone) {
-        firstPaintDone = true;
-        setLive(true);
-      }
-    };
-
-    const keyOnPageThread = () => {
-      const size = targetSize();
-      if (!size || video.readyState < 2) return false;
-      const { width, height } = size;
-      if (work.width !== width || work.height !== height) {
-        work.width = width;
-        work.height = height;
-        workCtx.imageSmoothingQuality = "medium";
-      }
-      workCtx.drawImage(video, 0, 0, width, height);
-      const pixels = width * height;
-      if (!buffers || buffers.pixels !== pixels) {
-        buffers = createHeroKeyBuffers(pixels);
-      }
-      const frame = workCtx.getImageData(0, 0, width, height);
-      const box = keyHeroFrame(frame, buffers, quality);
-      if (!box) return false;
-      workCtx.putImageData(frame, 0, 0);
-      const cw = box.maxX - box.minX + 1;
-      const ch = box.maxY - box.minY + 1;
-      if (canvas.width !== cw || canvas.height !== ch) {
-        canvas.width = cw;
-        canvas.height = ch;
-      }
-      viewCtx.clearRect(0, 0, cw, ch);
-      viewCtx.drawImage(work, box.minX, box.minY, cw, ch, 0, 0, cw, ch);
-      if (!firstPaintDone) {
-        firstPaintDone = true;
-        setLive(true);
+      if (!vw || !vh) return false;
+      const outW = vw;
+      const outH = Math.max(1, Math.round(vh / 2));
+      if (canvas.width !== outW || canvas.height !== outH) {
+        canvas.width = outW;
+        canvas.height = outH;
+        gl.viewport(0, 0, outW, outH);
       }
       return true;
     };
 
-    const requestKey = () => {
+    const drawFrame = () => {
       if (!running || video.readyState < 2) return;
-      if (worker && workerReady && !workerBusy && firstPaintDone) {
-        const size = targetSize();
-        if (!size) return;
-        workerBusy = true;
-        createImageBitmap(video)
-          .then((bitmap) => {
-            if (!running || !worker) {
-              bitmap.close();
-              workerBusy = false;
-              return;
-            }
-            worker.postMessage({ type: "frame", bitmap, ...size }, [bitmap]);
-          })
-          .catch(() => {
-            workerBusy = false;
-            keyOnPageThread();
-          });
+      if (!syncCanvasSize()) return;
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      try {
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+      } catch {
         return;
       }
-      keyOnPageThread();
-    };
-
-    const clampToLoopStart = () => {
-      if (loopStart <= 0) return;
-      const duration = video.duration;
-      if (Number.isFinite(duration) && duration > 0 && loopStart >= duration - 0.05) {
-        return;
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      if (!firstPaintDone) {
+        firstPaintDone = true;
+        setLive(true);
       }
-      if (video.currentTime < loopStart - 0.04) {
-        video.currentTime = loopStart;
-      }
-    };
-
-    const tick = (now: number) => {
-      if (!running) {
-        raf = 0;
-        return;
-      }
-      raf = window.requestAnimationFrame(tick);
-      clampToLoopStart();
-      if (now - lastKey < quality.intervalMs) return;
-      lastKey = now;
-      requestKey();
-    };
-
-    const startLoop = () => {
-      if (raf || reduced) return;
-      lastKey = 0;
-      raf = window.requestAnimationFrame(tick);
     };
 
     const stopLoop = () => {
-      if (!raf) return;
-      window.cancelAnimationFrame(raf);
-      raf = 0;
+      if (raf) {
+        window.cancelAnimationFrame(raf);
+        raf = 0;
+      }
+      if (vfc && video.cancelVideoFrameCallback) {
+        video.cancelVideoFrameCallback(vfc);
+        vfc = 0;
+      }
     };
 
-    const shouldPlay = () => running && !reduced && inView && pageVisible;
+    const scheduleNext = () => {
+      if (!running || !shouldPlay()) return;
+      if (useVfc && video.requestVideoFrameCallback) {
+        vfc = video.requestVideoFrameCallback(() => {
+          vfc = 0;
+          drawFrame();
+          scheduleNext();
+        });
+        return;
+      }
+      raf = window.requestAnimationFrame(() => {
+        raf = 0;
+        drawFrame();
+        scheduleNext();
+      });
+    };
+
+    const shouldPlay = () => running && inView && pageVisible;
 
     const syncPlayback = () => {
       if (!shouldPlay()) {
@@ -242,67 +243,22 @@ export function HeroTransparentVideo({
         video.pause();
         return;
       }
-      clampToLoopStart();
-      void video.play().catch(() => undefined);
-      startLoop();
-    };
-
-    const restartLoop = () => {
-      video.currentTime = loopStart > 0 ? loopStart : 0;
-      syncPlayback();
-    };
-
-    const onWorkerMessage = (event: MessageEvent<HeroKeyResponse>) => {
-      if (event.data.type === "ready") {
-        workerReady = true;
-        worker?.postMessage({ type: "init", quality });
-        return;
-      }
-      if (event.data.type === "frame") {
-        workerBusy = false;
-        paintBitmap(event.data.bitmap);
-        return;
-      }
-      if (event.data.type === "empty") {
-        workerBusy = false;
-      }
-    };
-
-    if (typeof Worker !== "undefined" && typeof createImageBitmap === "function") {
-      try {
-        worker = new Worker(new URL("./hero-key.worker.ts", import.meta.url), { type: "module" });
-        worker.addEventListener("message", onWorkerMessage);
-        worker.addEventListener("error", () => {
-          workerReady = false;
-          worker = null;
-          quality = small ? FALLBACK_QUALITY_SMALL : FALLBACK_QUALITY;
-        });
-      } catch {
-        worker = null;
-        quality = small ? FALLBACK_QUALITY_SMALL : FALLBACK_QUALITY;
-      }
-    } else {
-      quality = small ? FALLBACK_QUALITY_SMALL : FALLBACK_QUALITY;
-    }
-
-    const onSeeked = () => {
-      lastKey = 0;
-      // First paint always on the page thread so the horse appears immediately.
-      keyOnPageThread();
-      syncPlayback();
-    };
-
-    const onReady = () => {
-      if (loopStart > 0 && video.currentTime < loopStart - 0.04) {
-        video.currentTime = loopStart;
-      } else {
-        keyOnPageThread();
-        syncPlayback();
-      }
+      void video.play().then(
+        () => {
+          if (!running || !shouldPlay()) return;
+          stopLoop();
+          scheduleNext();
+        },
+        () => {
+          /* Keep poster only when autoplay is blocked. */
+          stopLoop();
+          setLive(false);
+        },
+      );
     };
 
     const onVisibility = () => {
-      pageVisible = document.visibilityState === "visible";
+      pageVisible = !document.hidden;
       syncPlayback();
     };
 
@@ -315,20 +271,17 @@ export function HeroTransparentVideo({
     );
     io.observe(root);
 
+    const onReady = () => {
+      syncPlayback();
+    };
+
     video.addEventListener("loadeddata", onReady);
     video.addEventListener("canplay", onReady);
-    video.addEventListener("seeked", onSeeked);
-    video.addEventListener("ended", restartLoop);
     document.addEventListener("visibilitychange", onVisibility);
 
-    // Kick decoding immediately — critical for iOS/Android cold loads.
     video.setAttribute("playsinline", "true");
     video.setAttribute("webkit-playsinline", "true");
-    try {
-      video.load();
-    } catch {
-      /* ignore */
-    }
+
     if (video.readyState >= 2) {
       onReady();
     }
@@ -340,26 +293,29 @@ export function HeroTransparentVideo({
       document.removeEventListener("visibilitychange", onVisibility);
       video.removeEventListener("loadeddata", onReady);
       video.removeEventListener("canplay", onReady);
-      video.removeEventListener("seeked", onSeeked);
-      video.removeEventListener("ended", restartLoop);
       video.pause();
-      worker?.terminate();
-      worker = null;
+      gl.deleteTexture(texture);
+      gl.deleteBuffer(buffer);
+      gl.deleteProgram(program);
+      const lose = gl.getExtension("WEBGL_lose_context");
+      lose?.loseContext();
     };
-  }, [videoSrc, loopStart]);
+  }, [videoSrc, mobileVideoSrc]);
 
   if (!videoSrc) return null;
 
   return (
     <div ref={rootRef} className={`home-hero-subject ${className}`.trim()}>
       <div className={`home-hero-subject-motion${live ? " is-live" : ""}`}>
+        <span className="home-hero-ground-shadow" aria-hidden="true" />
         {posterSrc ? (
           <Image
             src={posterSrc}
             alt=""
             width={563}
             height={343}
-            priority
+            preload
+            fetchPriority="high"
             unoptimized
             className={`home-hero-poster${live ? " is-hidden" : ""}`}
             aria-hidden="true"
@@ -368,10 +324,10 @@ export function HeroTransparentVideo({
         <video
           ref={videoRef}
           className="home-hero-video-source"
-          src={playbackSrc}
           muted
           playsInline
-          preload="auto"
+          loop
+          preload="metadata"
           aria-hidden="true"
         />
         <canvas

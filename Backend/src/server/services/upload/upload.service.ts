@@ -1,10 +1,11 @@
 import { randomBytes } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import { AppError } from "@/lib/app-error";
 import { getEnv } from "@/lib/env";
 import { uploadDirectory } from "@/server/http/serve-upload";
+import { transcodeUploadVideo } from "@/server/media/prerender-hero";
 
 const ALLOWED = new Map([
   ["image/png", "png"],
@@ -17,8 +18,10 @@ const ALLOWED = new Map([
   ["video/x-quicktime", "mov"],
 ]);
 
+const VIDEO_EXTS = new Set(["mp4", "webm", "mov"]);
+
 export class UploadService {
-  async saveImage(input: { mimeType: string; data: string }): Promise<{ url: string }> {
+  async saveImage(input: { mimeType: string; data: string }): Promise<{ url: string; posterUrl?: string }> {
     const env = getEnv();
     const ext = ALLOWED.get(input.mimeType);
     if (!ext) {
@@ -36,7 +39,8 @@ export class UploadService {
     if (buffer.length > env.UPLOAD_MAX_FILE_SIZE) {
       throw AppError.payloadTooLarge();
     }
-    const name = `${Date.now()}-${randomBytes(6).toString("hex")}.${ext}`;
+    const stamp = `${Date.now()}-${randomBytes(6).toString("hex")}`;
+    const name = `${stamp}.${ext}`;
     if (name.includes("..") || name.includes("/") || name.includes("\\")) {
       throw AppError.validation([{ field: "data", message: "Invalid filename" }]);
     }
@@ -47,7 +51,28 @@ export class UploadService {
       throw AppError.validation([{ field: "data", message: "Invalid upload path" }]);
     }
     await writeFile(target, buffer);
-    return { url: `/uploads/${name}` };
+
+    if (!VIDEO_EXTS.has(ext)) {
+      return { url: `/uploads/${name}` };
+    }
+
+    const outName = `${stamp}.mp4`;
+    const posterName = `${stamp}-poster.webp`;
+    const outPath = path.join(directory, outName);
+    const posterPath = path.join(directory, posterName);
+    try {
+      await transcodeUploadVideo(target, outPath, posterPath);
+      if (outName !== name) {
+        await unlink(target).catch(() => undefined);
+      }
+      return { url: `/uploads/${outName}`, posterUrl: `/uploads/${posterName}` };
+    } catch (error) {
+      await unlink(outPath).catch(() => undefined);
+      await unlink(posterPath).catch(() => undefined);
+      throw AppError.unprocessable(
+        error instanceof Error ? `Video transcode failed: ${error.message}` : "Video transcode failed",
+      );
+    }
   }
 }
 

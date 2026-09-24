@@ -3,26 +3,28 @@ import {
   heroCtaHref,
   heroCtaLabel,
   heroHeadline,
+  heroVideoMobileSrc as defaultHeroVideoMobileSrc,
+  heroVideoPosterSrc as defaultHeroVideoPosterSrc,
   heroVideoSrc as defaultHeroVideoSrc,
-  heroVideoStartSec,
 } from "@/constants/brand";
 import type { StorefrontContent } from "@/constants/storefront";
 import { HeroTransparentVideo } from "@/features/catalog/hero-transparent-video";
 import { RibbonMarquee } from "@/features/catalog/ribbon-marquee";
 import { PillCta } from "@/features/motion/pill-cta";
 
-const DEFAULT_POSTER = "/assets/images/hero-poster.webp";
-
 export function HeroHome({ content }: { content: StorefrontContent }) {
   const title = content.heroHeadline || heroHeadline;
   const videoSrc = content.heroVideoSrc || defaultHeroVideoSrc;
-  const usesBundledVideo = !videoSrc || videoSrc === defaultHeroVideoSrc;
+  const mobileSrc = content.heroVideoMobileSrc || defaultHeroVideoMobileSrc;
+  const posterSrc = content.heroVideoPosterSrc || defaultHeroVideoPosterSrc;
+  const usesBundledPoster =
+    !posterSrc || posterSrc === defaultHeroVideoPosterSrc;
 
   return (
     <section className="home-hero" aria-label={title}>
       {/* Preload poster only — `as="video"` is unsupported by browsers. */}
-      {usesBundledVideo ? (
-        <link rel="preload" as="image" href={DEFAULT_POSTER} type="image/webp" />
+      {usesBundledPoster ? (
+        <link rel="preload" as="image" href={posterSrc} type="image/webp" />
       ) : null}
       <div className="home-hero-layout">
         <div className="home-hero-scroll">
@@ -43,8 +45,8 @@ export function HeroHome({ content }: { content: StorefrontContent }) {
               <HeroTransparentVideo
                 key={videoSrc}
                 src={videoSrc}
-                startSec={heroVideoStartSec}
-                {...(usesBundledVideo ? { posterSrc: DEFAULT_POSTER } : {})}
+                mobileSrc={mobileSrc}
+                posterSrc={posterSrc}
               />
             ) : null}
 

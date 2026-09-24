@@ -14,19 +14,26 @@
     "typecheck": "tsc --noEmit -p tsconfig.json --pretty false",
     "migrate": "tsx src/server/database/migrate.ts",
     "seed": "tsx src/server/jobs/seed-admin.ts",
+    "test": "node scripts/run-tests.mjs",
+    "prerender:hero": "tsx scripts/prerender-hero.ts",
     "audit": "npm audit --audit-level=high"
   },
   "dependencies": {
     "bcrypt": "6.0.0",
+    "ffmpeg-static": "5.3.0",
+    "ffprobe-static": "3.1.0",
     "nodemailer": "9.0.3",
     "pg": "8.16.3",
     "pino": "10.3.1",
+    "sharp": "0.35.4",
     "tsx": "4.20.3",
     "zod": "4.4.3"
   },
   "devDependencies": {
     "@eslint/js": "9.33.0",
     "@types/bcrypt": "6.0.0",
+    "@types/ffmpeg-static": "3.0.3",
+    "@types/ffprobe-static": "2.0.3",
     "@types/node": "24.2.0",
     "@types/nodemailer": "6.4.17",
     "@types/pg": "8.15.5",

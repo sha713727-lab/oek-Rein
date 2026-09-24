@@ -61,7 +61,6 @@
   /* Full viewport scene; header overlays the top of this panel. */
   min-height: max(32rem, calc(100vh - var(--hero-top-pad) + var(--hero-ribbon-crest)));
   min-height: max(32rem, calc(100svh - var(--hero-top-pad) + var(--hero-ribbon-crest)));
-  min-height: max(32rem, calc(100dvh - var(--hero-top-pad) + var(--hero-ribbon-crest)));
   margin: 0 auto;
   max-width: none;
   width: 100%;
@@ -121,11 +120,33 @@
   height: 100%;
   transform-origin: 50% 100%;
   position: relative;
+  opacity: 1;
+}
+
+/* Always visible by default — desktop GSAP may briefly set transforms; never hide via CSS. */
+.home-hero-wordmark-line,
+.home-hero-cta-wrap {
+  opacity: 1;
+}
+
+.home-hero-ground-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: 2%;
+  z-index: 0;
+  width: min(52%, 28rem);
+  height: 8%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: rgba(20, 34, 33, 0.25);
+  box-shadow: 0 0 2.5rem 1.25rem rgba(20, 34, 33, 0.18);
+  pointer-events: none;
 }
 
 .home-hero-poster {
   position: absolute;
   inset: 0;
+  z-index: 1;
   margin: auto auto 0;
   display: block;
   width: auto;
@@ -134,7 +155,6 @@
   max-height: 100%;
   object-fit: contain;
   object-position: bottom center;
-  filter: drop-shadow(0 28px 42px rgba(32, 78, 74, 0.22));
   opacity: 1;
   transition: opacity 220ms ease;
   pointer-events: none;
@@ -153,6 +173,8 @@
 }
 
 .home-hero-video-canvas {
+  position: relative;
+  z-index: 1;
   display: block;
   width: auto;
   height: 100%;
@@ -160,7 +182,6 @@
   max-height: 100%;
   object-fit: contain;
   object-position: bottom center;
-  filter: drop-shadow(0 28px 42px rgba(32, 78, 74, 0.22));
   opacity: 0;
   transition: opacity 180ms ease;
 }

@@ -1,10 +1,6 @@
 /**
- * Chroma key for the hero cutout, shared by the worker and the main-thread
- * fallback. Edge-floods the white plate, erodes the pale fringe welded to the
- * silhouette, then restores only fully enclosed blaze holes.
- *
- * Every pass reads precomputed masks out of reusable typed arrays — nothing is
- * allocated per pixel, which is what keeps this affordable at video rates.
+ * Chroma key for the hero cutout (Node port of Frontend hero-key).
+ * Edge-floods the white plate, erodes the pale fringe, then restores enclosed blaze holes.
  */
 
 export type HeroKeyQuality = {
@@ -29,6 +25,13 @@ export type HeroKeyBuffers = {
 
 export type HeroKeyBox = { minX: number; minY: number; maxX: number; maxY: number };
 
+/** Minimal ImageData stand-in — Node has no DOM ImageData. */
+export type HeroRgbaFrame = {
+  data: Uint8ClampedArray;
+  width: number;
+  height: number;
+};
+
 /** Breathing room around the measured silhouette so edges never clip. */
 export const HERO_CROP_PAD = 6;
 
@@ -46,7 +49,7 @@ export function createHeroKeyBuffers(pixels: number): HeroKeyBuffers {
 
 /** Keys `frame` in place and returns the subject bounds, or null if empty. */
 export function keyHeroFrame(
-  frame: ImageData,
+  frame: HeroRgbaFrame,
   buffers: HeroKeyBuffers,
   quality: HeroKeyQuality,
 ): HeroKeyBox | null {
