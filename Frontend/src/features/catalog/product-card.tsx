@@ -50,7 +50,7 @@ export function ProductCard({
               src={primary}
               alt=""
               fill
-              sizes="(min-width: 1024px) 28vw, (min-width: 768px) 40vw, 85vw"
+              sizes="(min-width: 1024px) 28vw, (min-width: 768px) 40vw, 45vw"
               className="product-card-still"
             />
           ) : (
