@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, useTransition } from "react";
 
+import { uploadAdminMediaAction } from "@/features/admin/upload-admin-media";
 import { CmsImage } from "@/features/media/cms-image";
 
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -27,9 +28,9 @@ export function ImageUrlField({
   const [url, setUrl] = useState(defaultValue);
   const [preview, setPreview] = useState(defaultValue);
   const [cleared, setCleared] = useState(false);
-  const [hasNewFile, setHasNewFile] = useState(false);
   const [error, setError] = useState("");
   const [dragOver, setDragOver] = useState(false);
+  const [pending, startTransition] = useTransition();
 
   useEffect(() => {
     return () => {
@@ -48,20 +49,40 @@ export function ImageUrlField({
       setError("Image must be 5MB or smaller.");
       return;
     }
-    const transfer = new DataTransfer();
-    transfer.items.add(file);
     if (inputRef.current) {
-      inputRef.current.files = transfer.files;
+      inputRef.current.value = "";
     }
     setError("");
     setCleared(false);
-    setHasNewFile(true);
-    // Keep previous URL as fallback if upload fails on Publish; file field wins when present.
+    const localPreview = URL.createObjectURL(file);
     setPreview((current) => {
       if (current.startsWith("blob:")) {
         URL.revokeObjectURL(current);
       }
-      return URL.createObjectURL(file);
+      return localPreview;
+    });
+
+    const body = new FormData();
+    body.set("file", file);
+    startTransition(async () => {
+      const result = await uploadAdminMediaAction(body);
+      if (result.error || !result.url) {
+        setError(result.error || "Upload failed.");
+        setPreview((current) => {
+          if (current.startsWith("blob:")) {
+            URL.revokeObjectURL(current);
+          }
+          return url || defaultValue;
+        });
+        return;
+      }
+      setUrl(result.url);
+      setPreview((current) => {
+        if (current.startsWith("blob:")) {
+          URL.revokeObjectURL(current);
+        }
+        return result.url!;
+      });
     });
   }
 
@@ -70,7 +91,6 @@ export function ImageUrlField({
       inputRef.current.value = "";
     }
     setCleared(true);
-    setHasNewFile(false);
     setUrl("");
     setError("");
     setPreview((current) => {
@@ -94,8 +114,6 @@ export function ImageUrlField({
         ref={inputRef}
         className="admin-product-upload-input"
         type="file"
-        // Only name the field when a new file is queued so Publish does not multipart-encode empties.
-        name={hasNewFile ? `${name}File` : undefined}
         accept={ACCEPT}
         onChange={(event) => {
           const file = event.target.files?.[0];
@@ -106,7 +124,7 @@ export function ImageUrlField({
       />
       <button
         type="button"
-        className={`admin-storefront-stage${dragOver ? " is-over" : ""}`}
+        className={`admin-storefront-stage${dragOver ? " is-over" : ""}${pending ? " is-uploading" : ""}`}
         onClick={() => inputRef.current?.click()}
         onDragOver={(event) => {
           event.preventDefault();
@@ -122,6 +140,7 @@ export function ImageUrlField({
           }
         }}
         aria-label={preview ? `Replace ${label}` : `Upload ${label}`}
+        disabled={pending}
       >
         {preview ? (
           preview.startsWith("blob:") ? (
@@ -131,15 +150,17 @@ export function ImageUrlField({
             <CmsImage src={preview} alt="" width={160} height={160} className="admin-storefront-preview-img" />
           )
         ) : (
-          <span className="admin-storefront-preview--empty">Drop a photo here or click to upload</span>
+          <span className="admin-storefront-preview--empty">
+            {pending ? "Uploading…" : "Drop a photo here or click to upload"}
+          </span>
         )}
       </button>
       <div className="admin-storefront-image-actions">
-        <button type="button" className="admin-orders-open" onClick={() => inputRef.current?.click()}>
-          {preview ? "Replace" : "Upload"}
+        <button type="button" className="admin-orders-open" onClick={() => inputRef.current?.click()} disabled={pending}>
+          {pending ? "Uploading…" : preview ? "Replace" : "Upload"}
         </button>
         {preview ? (
-          <button type="button" className="admin-product-delete" onClick={clear}>
+          <button type="button" className="admin-product-delete" onClick={clear} disabled={pending}>
             Remove
           </button>
         ) : null}
@@ -149,7 +170,11 @@ export function ImageUrlField({
           {error}
         </p>
       ) : (
-        <p className="admin-product-kicker">PNG, JPG, or WEBP. Up to 5MB. Publish to update the live shop.</p>
+        <p className="admin-product-kicker">
+          {pending
+            ? "Uploading image…"
+            : "PNG, JPG, or WEBP. Up to 5MB. Wait for upload, then Publish to update the live shop."}
+        </p>
       )}
     </div>
   );

@@ -34,12 +34,29 @@ function revalidateEntry(path: string, asLayout: boolean): void {
 }
 
 export function revalidateStorefront(productId?: string): void {
-  const layoutPaths = new Set(["/", "/collections", "/best-sellers", "/craftsmanship", "/about-us", "/custom", "/disciplines"]);
+  const layoutPaths = new Set([
+    "/",
+    "/collections",
+    "/best-sellers",
+    "/craftsmanship",
+    "/about-us",
+    "/custom",
+    "/disciplines",
+    "/tack",
+  ]);
   for (const path of STOREFRONT_PATHS) {
     const asLayout = layoutPaths.has(path);
     revalidateEntry(path, asLayout);
+    // Also bust page cache explicitly (layout alone can miss some RSC payloads).
+    if (asLayout) {
+      revalidateEntry(path, false);
+    }
     for (const locale of LOCALES) {
-      revalidateEntry(path === "/" ? `/${locale}` : `/${locale}${path}`, asLayout);
+      const localized = path === "/" ? `/${locale}` : `/${locale}${path}`;
+      revalidateEntry(localized, asLayout);
+      if (asLayout) {
+        revalidateEntry(localized, false);
+      }
     }
   }
   if (productId) {

@@ -153,7 +153,10 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
       })),
     };
     categoryIndexes.forEach((index) => {
-      const category = published.content.shopCategories[index];
+      const id = String(formData.get(`categoryId_${index}`) ?? "").trim();
+      const category =
+        published.content.shopCategories.find((item) => item.id === id) ??
+        published.content.shopCategories[index];
       if (!category) {
         return;
       }
