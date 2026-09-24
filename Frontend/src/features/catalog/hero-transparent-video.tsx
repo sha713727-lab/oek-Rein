@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 
 import { heroVideoStartSec as defaultHeroVideoStartSec } from "@/constants/brand";
 import {
@@ -14,11 +15,12 @@ import type { HeroKeyResponse } from "@/features/catalog/hero-key.worker";
 type HeroTransparentVideoProps = {
   src: string;
   className?: string;
+  /** Instant LCP cutout shown until the first keyed video frame lands. */
+  posterSrc?: string;
   /** Playback starts here and loops back here (skips clipped side-face intro). */
   startSec?: number;
 };
 
-/** Keyed in a worker: the page thread only hands over decoded frames. */
 const WORKER_QUALITY: HeroKeyQuality = {
   workWidth: 560,
   intervalMs: 40,
@@ -35,7 +37,6 @@ const WORKER_QUALITY_SMALL: HeroKeyQuality = {
   despill: true,
 };
 
-/** No worker available — the key runs on the page thread, so spend far less. */
 const FALLBACK_QUALITY: HeroKeyQuality = {
   workWidth: 520,
   intervalMs: 60,
@@ -46,13 +47,11 @@ const FALLBACK_QUALITY: HeroKeyQuality = {
 
 const FALLBACK_QUALITY_SMALL: HeroKeyQuality = {
   workWidth: 360,
-  intervalMs: 400,
+  intervalMs: 80,
   fringePasses: 2,
   healPasses: 2,
   despill: false,
 };
-
-const WORKER_HANDSHAKE_MS = 2500;
 
 function isSmallDevice(): boolean {
   return (
@@ -63,14 +62,15 @@ function isSmallDevice(): boolean {
 }
 
 /**
- * Plays the hero clip as a transparent cutout. Frames are keyed in a worker on
- * an OffscreenCanvas so the pixel work never competes with scrolling; browsers
- * without that support fall back to keying on the page thread, and phones in
- * that fallback get a single keyed still instead of a per-frame loop.
+ * Transparent hero cutout. A static poster paints immediately for LCP; the first
+ * live frame is keyed on the page thread as soon as the decoder seeks to the
+ * loop start; later frames go through a worker that returns ImageBitmaps so the
+ * visible canvas never waits on OffscreenCanvas transfer.
  */
 export function HeroTransparentVideo({
   src,
   className = "",
+  posterSrc,
   startSec = defaultHeroVideoStartSec,
 }: HeroTransparentVideoProps) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -78,6 +78,13 @@ export function HeroTransparentVideo({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoSrc = String(src ?? "").trim();
   const loopStart = Number.isFinite(startSec) && startSec > 0 ? startSec : 0;
+  const [live, setLive] = useState(false);
+
+  // Media fragment nudges Safari/Chrome to begin decoding near the loop start.
+  const playbackSrc =
+    loopStart > 0 && !videoSrc.includes("#")
+      ? `${videoSrc}#t=${loopStart}`
+      : videoSrc;
 
   useEffect(() => {
     const root = rootRef.current;
@@ -89,27 +96,26 @@ export function HeroTransparentVideo({
 
     const small = isSmallDevice();
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    let mode: "pending" | "worker" | "main" = "pending";
     let quality = small ? WORKER_QUALITY_SMALL : WORKER_QUALITY;
-    /** Fallback on a phone: key one frame and leave the video parked. */
-    let stillOnly = false;
-    let stillDone = false;
 
     let running = true;
     let inView = true;
     let pageVisible = document.visibilityState === "visible";
     let raf = 0;
     let lastKey = 0;
-
     let worker: Worker | null = null;
+    let workerReady = false;
     let workerBusy = false;
-    let handshake = 0;
+    let firstPaintDone = false;
 
-    let work: HTMLCanvasElement | null = null;
-    let workCtx: CanvasRenderingContext2D | null = null;
-    let viewCtx: CanvasRenderingContext2D | null = null;
+    const work = document.createElement("canvas");
+    const workCtx = work.getContext("2d", { willReadFrequently: true, alpha: true });
+    const viewCtx = canvas.getContext("2d", { alpha: true });
     let buffers: HeroKeyBuffers | null = null;
+
+    if (!workCtx || !viewCtx) {
+      return;
+    }
 
     const targetSize = () => {
       const vw = video.videoWidth;
@@ -122,9 +128,23 @@ export function HeroTransparentVideo({
       };
     };
 
+    const paintBitmap = (bitmap: ImageBitmap) => {
+      if (canvas.width !== bitmap.width || canvas.height !== bitmap.height) {
+        canvas.width = bitmap.width;
+        canvas.height = bitmap.height;
+      }
+      viewCtx.clearRect(0, 0, bitmap.width, bitmap.height);
+      viewCtx.drawImage(bitmap, 0, 0);
+      bitmap.close();
+      if (!firstPaintDone) {
+        firstPaintDone = true;
+        setLive(true);
+      }
+    };
+
     const keyOnPageThread = () => {
       const size = targetSize();
-      if (!size || !work || !workCtx || !viewCtx) return;
+      if (!size || video.readyState < 2) return false;
       const { width, height } = size;
       if (work.width !== width || work.height !== height) {
         work.width = width;
@@ -132,16 +152,14 @@ export function HeroTransparentVideo({
         workCtx.imageSmoothingQuality = "medium";
       }
       workCtx.drawImage(video, 0, 0, width, height);
-
       const pixels = width * height;
       if (!buffers || buffers.pixels !== pixels) {
         buffers = createHeroKeyBuffers(pixels);
       }
       const frame = workCtx.getImageData(0, 0, width, height);
       const box = keyHeroFrame(frame, buffers, quality);
-      if (!box) return;
+      if (!box) return false;
       workCtx.putImageData(frame, 0, 0);
-
       const cw = box.maxX - box.minX + 1;
       const ch = box.maxY - box.minY + 1;
       if (canvas.width !== cw || canvas.height !== ch) {
@@ -150,35 +168,35 @@ export function HeroTransparentVideo({
       }
       viewCtx.clearRect(0, 0, cw, ch);
       viewCtx.drawImage(work, box.minX, box.minY, cw, ch, 0, 0, cw, ch);
-      stillDone = true;
+      if (!firstPaintDone) {
+        firstPaintDone = true;
+        setLive(true);
+      }
+      return true;
     };
 
     const requestKey = () => {
       if (!running || video.readyState < 2) return;
-      if (mode === "main") {
-        keyOnPageThread();
-        if (stillOnly) {
-          video.pause();
-          stopLoop();
-        }
+      if (worker && workerReady && !workerBusy && firstPaintDone) {
+        const size = targetSize();
+        if (!size) return;
+        workerBusy = true;
+        createImageBitmap(video)
+          .then((bitmap) => {
+            if (!running || !worker) {
+              bitmap.close();
+              workerBusy = false;
+              return;
+            }
+            worker.postMessage({ type: "frame", bitmap, ...size }, [bitmap]);
+          })
+          .catch(() => {
+            workerBusy = false;
+            keyOnPageThread();
+          });
         return;
       }
-      if (mode !== "worker" || !worker || workerBusy) return;
-      const size = targetSize();
-      if (!size) return;
-      workerBusy = true;
-      createImageBitmap(video)
-        .then((bitmap) => {
-          if (!running || !worker) {
-            bitmap.close();
-            workerBusy = false;
-            return;
-          }
-          worker.postMessage({ type: "frame", bitmap, ...size }, [bitmap]);
-        })
-        .catch(() => {
-          workerBusy = false;
-        });
+      keyOnPageThread();
     };
 
     const clampToLoopStart = () => {
@@ -204,19 +222,19 @@ export function HeroTransparentVideo({
       requestKey();
     };
 
-    function startLoop() {
-      if (raf || stillOnly || mode === "pending") return;
+    const startLoop = () => {
+      if (raf || reduced) return;
       lastKey = 0;
       raf = window.requestAnimationFrame(tick);
-    }
+    };
 
-    function stopLoop() {
+    const stopLoop = () => {
       if (!raf) return;
       window.cancelAnimationFrame(raf);
       raf = 0;
-    }
+    };
 
-    const shouldPlay = () => running && !reduced && inView && pageVisible && !(stillOnly && stillDone);
+    const shouldPlay = () => running && !reduced && inView && pageVisible;
 
     const syncPlayback = () => {
       if (!shouldPlay()) {
@@ -234,66 +252,53 @@ export function HeroTransparentVideo({
       syncPlayback();
     };
 
-    const startPageThreadMode = () => {
-      if (mode !== "pending") return;
-      window.clearTimeout(handshake);
-      worker?.terminate();
-      worker = null;
-      mode = "main";
-      quality = small ? FALLBACK_QUALITY_SMALL : FALLBACK_QUALITY;
-      stillOnly = small;
-      work = document.createElement("canvas");
-      workCtx = work.getContext("2d", { willReadFrequently: true, alpha: true });
-      viewCtx = canvas.getContext("2d", { alpha: true });
-      requestKey();
-      syncPlayback();
-    };
-
     const onWorkerMessage = (event: MessageEvent<HeroKeyResponse>) => {
-      if (event.data.type === "drawn") {
-        workerBusy = false;
+      if (event.data.type === "ready") {
+        workerReady = true;
+        worker?.postMessage({ type: "init", quality });
         return;
       }
-      if (mode !== "pending" || !worker) return;
-      window.clearTimeout(handshake);
-      const offscreen = canvas.transferControlToOffscreen();
-      worker.postMessage({ type: "init", canvas: offscreen, quality }, [offscreen]);
-      mode = "worker";
-      requestKey();
-      syncPlayback();
+      if (event.data.type === "frame") {
+        workerBusy = false;
+        paintBitmap(event.data.bitmap);
+        return;
+      }
+      if (event.data.type === "empty") {
+        workerBusy = false;
+      }
     };
 
-    if (
-      typeof Worker !== "undefined" &&
-      typeof createImageBitmap === "function" &&
-      typeof canvas.transferControlToOffscreen === "function"
-    ) {
+    if (typeof Worker !== "undefined" && typeof createImageBitmap === "function") {
       try {
         worker = new Worker(new URL("./hero-key.worker.ts", import.meta.url), { type: "module" });
         worker.addEventListener("message", onWorkerMessage);
-        worker.addEventListener("error", startPageThreadMode);
-        handshake = window.setTimeout(startPageThreadMode, WORKER_HANDSHAKE_MS);
+        worker.addEventListener("error", () => {
+          workerReady = false;
+          worker = null;
+          quality = small ? FALLBACK_QUALITY_SMALL : FALLBACK_QUALITY;
+        });
       } catch {
         worker = null;
+        quality = small ? FALLBACK_QUALITY_SMALL : FALLBACK_QUALITY;
       }
-    }
-    if (!worker) {
-      startPageThreadMode();
+    } else {
+      quality = small ? FALLBACK_QUALITY_SMALL : FALLBACK_QUALITY;
     }
 
     const onSeeked = () => {
       lastKey = 0;
-      requestKey();
+      // First paint always on the page thread so the horse appears immediately.
+      keyOnPageThread();
+      syncPlayback();
     };
 
     const onReady = () => {
       if (loopStart > 0 && video.currentTime < loopStart - 0.04) {
-        // `seeked` keys the frame once the decoder lands on the start time.
         video.currentTime = loopStart;
       } else {
-        requestKey();
+        keyOnPageThread();
+        syncPlayback();
       }
-      syncPlayback();
     };
 
     const onVisibility = () => {
@@ -306,14 +311,24 @@ export function HeroTransparentVideo({
         inView = entries.some((entry) => entry.isIntersecting && entry.intersectionRatio > 0.05);
         syncPlayback();
       },
-      { root: null, threshold: [0, 0.05, 0.2], rootMargin: "80px 0px" },
+      { root: null, threshold: [0, 0.05, 0.2], rootMargin: "120px 0px" },
     );
     io.observe(root);
 
     video.addEventListener("loadeddata", onReady);
+    video.addEventListener("canplay", onReady);
     video.addEventListener("seeked", onSeeked);
     video.addEventListener("ended", restartLoop);
     document.addEventListener("visibilitychange", onVisibility);
+
+    // Kick decoding immediately — critical for iOS/Android cold loads.
+    video.setAttribute("playsinline", "true");
+    video.setAttribute("webkit-playsinline", "true");
+    try {
+      video.load();
+    } catch {
+      /* ignore */
+    }
     if (video.readyState >= 2) {
       onReady();
     }
@@ -321,10 +336,10 @@ export function HeroTransparentVideo({
     return () => {
       running = false;
       stopLoop();
-      window.clearTimeout(handshake);
       io.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
       video.removeEventListener("loadeddata", onReady);
+      video.removeEventListener("canplay", onReady);
       video.removeEventListener("seeked", onSeeked);
       video.removeEventListener("ended", restartLoop);
       video.pause();
@@ -337,17 +352,33 @@ export function HeroTransparentVideo({
 
   return (
     <div ref={rootRef} className={`home-hero-subject ${className}`.trim()}>
-      <div className="home-hero-subject-motion">
+      <div className={`home-hero-subject-motion${live ? " is-live" : ""}`}>
+        {posterSrc ? (
+          <Image
+            src={posterSrc}
+            alt=""
+            width={563}
+            height={343}
+            priority
+            unoptimized
+            className={`home-hero-poster${live ? " is-hidden" : ""}`}
+            aria-hidden="true"
+          />
+        ) : null}
         <video
           ref={videoRef}
           className="home-hero-video-source"
-          src={videoSrc}
+          src={playbackSrc}
           muted
           playsInline
-          preload="metadata"
+          preload="auto"
           aria-hidden="true"
         />
-        <canvas ref={canvasRef} className="home-hero-video-canvas" aria-hidden="true" />
+        <canvas
+          ref={canvasRef}
+          className={`home-hero-video-canvas${live ? " is-live" : ""}`}
+          aria-hidden="true"
+        />
       </div>
     </div>
   );

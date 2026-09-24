@@ -4,20 +4,32 @@ import {
   heroCtaLabel,
   heroHeadline,
   heroVideoSrc as defaultHeroVideoSrc,
+  heroVideoStartSec,
 } from "@/constants/brand";
 import type { StorefrontContent } from "@/constants/storefront";
 import { HeroTransparentVideo } from "@/features/catalog/hero-transparent-video";
 import { RibbonMarquee } from "@/features/catalog/ribbon-marquee";
 import { PillCta } from "@/features/motion/pill-cta";
 
+const DEFAULT_POSTER = "/assets/images/hero-poster.webp";
+
 export function HeroHome({ content }: { content: StorefrontContent }) {
   const title = content.heroHeadline || heroHeadline;
   const videoSrc = content.heroVideoSrc || defaultHeroVideoSrc;
+  const usesBundledVideo = !videoSrc || videoSrc === defaultHeroVideoSrc;
 
   return (
     <section className="home-hero" aria-label={title}>
+      {/* Kick the network early so cold loads (esp. mobile) decode sooner. */}
+      {videoSrc ? (
+        <link
+          rel="preload"
+          as="video"
+          href={videoSrc.includes("#") ? videoSrc : `${videoSrc}#t=${heroVideoStartSec}`}
+          type="video/mp4"
+        />
+      ) : null}
       <div className="home-hero-layout">
-        {/* Panel + merged ribbon share the scroll/pin wrapper so the blend join holds while scrolling. */}
         <div className="home-hero-scroll">
           <div className="home-hero-panel">
             <div className="home-hero-entrance" aria-hidden="true">
@@ -32,7 +44,14 @@ export function HeroHome({ content }: { content: StorefrontContent }) {
               </span>
             </h1>
 
-            {videoSrc ? <HeroTransparentVideo key={videoSrc} src={videoSrc} /> : null}
+            {videoSrc ? (
+              <HeroTransparentVideo
+                key={videoSrc}
+                src={videoSrc}
+                startSec={heroVideoStartSec}
+                {...(usesBundledVideo ? { posterSrc: DEFAULT_POSTER } : {})}
+              />
+            ) : null}
 
             <div className="home-hero-cta-wrap">
               <PillCta href={heroCtaHref} className="home-hero-cta">

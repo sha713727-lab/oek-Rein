@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { useCardEntrances } from "@/features/motion/card-entrances";
 import { useDrawAndParallax } from "@/features/motion/draw-parallax";
@@ -8,14 +8,20 @@ import { useHeadingReveals } from "@/features/motion/heading-reveals";
 import { useHeroMotion } from "@/features/motion/hero-motion";
 import { prefersReducedMotion, registerGsapPlugins, ScrollTrigger } from "@/features/motion/motion-config";
 
-/**
- * Homepage motion orchestrator — mounts GSAP scenes once on .home-flow.
- */
-export function HomeMotion() {
-  useHeroMotion();
+function DeferredHomeScenes() {
   useHeadingReveals();
   useDrawAndParallax();
   useCardEntrances();
+  return null;
+}
+
+/**
+ * Homepage motion orchestrator — hero runs immediately; heavier scroll scenes
+ * wait for an idle slot so first paint / hero video aren't competing for the main thread.
+ */
+export function HomeMotion() {
+  useHeroMotion();
+  const [defer, setDefer] = useState(false);
 
   useEffect(() => {
     registerGsapPlugins();
@@ -28,7 +34,6 @@ export function HomeMotion() {
 
     const refresh = () => ScrollTrigger.refresh();
     void document.fonts?.ready.then(refresh);
-    window.addEventListener("load", refresh);
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     const onReduced = () => {
@@ -39,12 +44,26 @@ export function HomeMotion() {
     };
     reduced.addEventListener("change", onReduced);
 
+    let idleId = 0;
+    let timeoutId = 0;
+    const arm = () => setDefer(true);
+    if (typeof window.requestIdleCallback === "function") {
+      idleId = window.requestIdleCallback(arm, { timeout: 900 });
+    } else {
+      timeoutId = window.setTimeout(arm, 200);
+    }
+
     return () => {
-      window.removeEventListener("load", refresh);
       reduced.removeEventListener("change", onReduced);
       document.documentElement.classList.remove("home-motion-ready");
+      if (idleId && typeof window.cancelIdleCallback === "function") {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
     };
   }, []);
 
-  return null;
+  return defer ? <DeferredHomeScenes /> : null;
 }

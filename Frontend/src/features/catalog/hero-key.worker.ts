@@ -8,24 +8,26 @@ import {
 } from "@/features/catalog/hero-key";
 
 export type HeroKeyRequest =
-  | { type: "init"; canvas: OffscreenCanvas; quality: HeroKeyQuality }
+  | { type: "init"; quality: HeroKeyQuality }
   | { type: "quality"; quality: HeroKeyQuality }
   | { type: "frame"; bitmap: ImageBitmap; width: number; height: number };
 
-export type HeroKeyResponse = { type: "ready" } | { type: "drawn" };
+export type HeroKeyResponse =
+  | { type: "ready" }
+  | { type: "frame"; bitmap: ImageBitmap }
+  | { type: "empty" };
 
 const scope = self as unknown as DedicatedWorkerGlobalScope;
 
-let view: OffscreenCanvas | null = null;
-let viewCtx: OffscreenCanvasRenderingContext2D | null = null;
 let work: OffscreenCanvas | null = null;
 let workCtx: OffscreenCanvasRenderingContext2D | null = null;
 let buffers: HeroKeyBuffers | null = null;
 let quality: HeroKeyQuality | null = null;
 
-function renderFrame(bitmap: ImageBitmap, width: number, height: number) {
-  if (!view || !viewCtx || !quality) {
+async function renderFrame(bitmap: ImageBitmap, width: number, height: number) {
+  if (!quality) {
     bitmap.close();
+    scope.postMessage({ type: "empty" } satisfies HeroKeyResponse);
     return;
   }
   if (!work || work.width !== width || work.height !== height) {
@@ -34,6 +36,7 @@ function renderFrame(bitmap: ImageBitmap, width: number, height: number) {
   }
   if (!workCtx) {
     bitmap.close();
+    scope.postMessage({ type: "empty" } satisfies HeroKeyResponse);
     return;
   }
 
@@ -48,35 +51,24 @@ function renderFrame(bitmap: ImageBitmap, width: number, height: number) {
   const frame = workCtx.getImageData(0, 0, width, height);
   const box = keyHeroFrame(frame, buffers, quality);
   if (!box) {
+    scope.postMessage({ type: "empty" } satisfies HeroKeyResponse);
     return;
   }
   workCtx.putImageData(frame, 0, 0);
 
   const cw = box.maxX - box.minX + 1;
   const ch = box.maxY - box.minY + 1;
-  if (view.width !== cw || view.height !== ch) {
-    view.width = cw;
-    view.height = ch;
-  }
-  viewCtx.clearRect(0, 0, cw, ch);
-  viewCtx.drawImage(work, box.minX, box.minY, cw, ch, 0, 0, cw, ch);
+  const cropped = await createImageBitmap(work, box.minX, box.minY, cw, ch);
+  scope.postMessage({ type: "frame", bitmap: cropped } satisfies HeroKeyResponse, [cropped]);
 }
 
 scope.onmessage = (event: MessageEvent<HeroKeyRequest>) => {
   const message = event.data;
-  if (message.type === "init") {
-    view = message.canvas;
-    viewCtx = view.getContext("2d", { alpha: true });
+  if (message.type === "init" || message.type === "quality") {
     quality = message.quality;
     return;
   }
-  if (message.type === "quality") {
-    quality = message.quality;
-    return;
-  }
-  renderFrame(message.bitmap, message.width, message.height);
-  // Backpressure: the page only sends the next frame once this one is drawn.
-  scope.postMessage({ type: "drawn" } satisfies HeroKeyResponse);
+  void renderFrame(message.bitmap, message.width, message.height);
 };
 
 scope.postMessage({ type: "ready" } satisfies HeroKeyResponse);

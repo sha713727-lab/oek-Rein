@@ -125,11 +125,13 @@ export function SmoothScroll() {
       start();
     };
 
-    sync();
+    // Let the hero decode / first paint win the first frames on cold loads.
+    let startTimer = window.setTimeout(sync, 120);
     desktop.addEventListener("change", sync);
     reduced.addEventListener("change", sync);
 
     return () => {
+      window.clearTimeout(startTimer);
       desktop.removeEventListener("change", sync);
       reduced.removeEventListener("change", sync);
       stop();

@@ -61,13 +61,14 @@ export function useHeroMotion() {
       }
       gsap.set(wordLines, { yPercent: 110, opacity: 0 });
       if (subject) {
-        gsap.set(subject, { y: 36, scale: 1.04, opacity: 0 });
+        // Keep the horse faintly visible so cold loads don't look empty.
+        gsap.set(subject, { y: 20, scale: 1.02, opacity: 0.35 });
       }
       if (cta) {
-        gsap.set(cta, { y: 18, opacity: 0 });
+        gsap.set(cta, { y: 14, opacity: 0 });
       }
 
-      const durationScale = repeat ? 0.55 : 1;
+      const durationScale = repeat ? 0.4 : 0.72;
       const tl = gsap.timeline({
         defaults: { ease: "power3.out" },
         onComplete: () => {
@@ -81,31 +82,31 @@ export function useHeroMotion() {
       });
 
       if (entrance) {
-        tl.to(entrance, { scale: 1, opacity: 1, duration: 1.2 * durationScale, ease: "power4.out" }, 0);
+        tl.to(entrance, { scale: 1, opacity: 1, duration: 0.85 * durationScale, ease: "power4.out" }, 0);
       }
       if (decor.length) {
-        tl.to(decor, { opacity: 1, duration: 0.8 * durationScale }, 0.1);
+        tl.to(decor, { opacity: 1, duration: 0.55 * durationScale }, 0.05);
       }
       tl.to(
         wordLines,
         {
           yPercent: 0,
           opacity: 1,
-          duration: 0.8 * durationScale,
-          stagger: 0.08,
+          duration: 0.55 * durationScale,
+          stagger: 0.05,
           ease: "revealEase",
         },
-        0.18 * durationScale,
+        0.08 * durationScale,
       );
       if (subject) {
         tl.to(
           subject,
-          { y: 0, scale: 1, opacity: 1, duration: 0.95 * durationScale, ease: "power3.out" },
-          0.26 * durationScale,
+          { y: 0, scale: 1, opacity: 1, duration: 0.55 * durationScale, ease: "power3.out" },
+          0.06 * durationScale,
         );
       }
       if (cta) {
-        tl.to(cta, { y: 0, opacity: 1, duration: 0.55 * durationScale, ease: "power2.out" }, 0.48 * durationScale);
+        tl.to(cta, { y: 0, opacity: 1, duration: 0.4 * durationScale, ease: "power2.out" }, 0.22 * durationScale);
       }
 
       let interrupted = false;
