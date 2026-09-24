@@ -1,6 +1,6 @@
 {
-  "name": "Saddlera",
-  "short_name": "Saddlera",
+  "name": "Oak & Rein",
+  "short_name": "Oak & Rein",
   "description": "Premium handcrafted Pakistani leather equestrian brand for North America.",
   "start_url": "/",
   "display": "standalone",
@@ -8,25 +8,25 @@
   "theme_color": "#204E4A",
   "icons": [
     {
-      "src": "/favicon-192.png",
+      "src": "/favicon-192.png?v=3",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/favicon-512.png",
+      "src": "/favicon-512.png?v=3",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-192.png",
+      "src": "/icon-192.png?v=3",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/icon-512.png?v=3",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

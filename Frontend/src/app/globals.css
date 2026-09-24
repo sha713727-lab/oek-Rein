@@ -238,3 +238,52 @@
   font-size: 0.78rem;
   font-weight: 600;
 }
+
+/* Circular brand mark — replaces text wordmark in header / auth / admin */
+.brand-logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.brand-logo-mark-img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.brand-logo-mark--nav .brand-logo-mark-img {
+  width: clamp(2.55rem, 4.2vw, 3.25rem);
+  height: clamp(2.55rem, 4.2vw, 3.25rem);
+}
+
+.brand-logo-mark--auth .brand-logo-mark-img {
+  width: 4.5rem;
+  height: 4.5rem;
+}
+
+.brand-logo-mark--inline .brand-logo-mark-img {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.brand-logo-mark--product .brand-logo-mark-img,
+.brand-logo-mark--watermark .brand-logo-mark-img {
+  width: 1.65rem;
+  height: 1.65rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

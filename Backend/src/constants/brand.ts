@@ -8,12 +8,15 @@ export const brandShortBio =
   `${brandName} is a premium handcrafted Pakistani leather equestrian brand for North America. Master artisans shape full-grain leather into tack that feels refined in the barn and dependable on the trail.`;
 export const brandSocialBio =
   "Premium handcrafted Pakistani leather for North American riders. Saddles, bridles, halters, and leather care — artisan made, built to last.";
-export const brandLogoWordmark = "/assets/images/saddlera_wordmark.jpg";
-export const brandLogoWordmarkOnLight = "/assets/images/saddlera_wordmark.jpg";
-export const brandLogoCaps = "/assets/images/saddlera_caps.jpg";
-export const brandLogoCapsOnLight = "/assets/images/saddlera_caps.jpg";
+export const brandLogoWordmark = "/assets/images/oak-rein-mark.webp";
+export const brandLogoWordmarkOnLight = "/assets/images/oak-rein-mark.webp";
+export const brandLogoCaps = "/assets/images/oak-rein-mark.webp";
+export const brandLogoCapsOnLight = "/assets/images/oak-rein-mark.webp";
 export const brandLogoLight = brandLogoWordmarkOnLight;
 export const brandLogoDark = brandLogoWordmark;
+export const brandLogoMark = "/assets/images/oak-rein-mark.webp";
+export const brandLogoMarkPng = "/assets/images/oak-rein-mark.png";
+export const brandLogoMarkAlt = `${brandName} logo`;
 export const brandHomeLabel = `${brandName} home`;
 export const brandAdminHomeLabel = `${brandName} admin home`;
 export const heroHeadline = "Pakistani Leather, Ready for North America";

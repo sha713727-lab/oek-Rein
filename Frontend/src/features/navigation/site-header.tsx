@@ -535,7 +535,7 @@ export function SiteHeader({
         </nav>
 
         <div className="site-header-brand">
-          <Logo theme={open ? "light" : logoTheme} size="nav" />
+          <Logo theme={open ? "light" : logoTheme} size="nav" priority />
         </div>
 
         <div className="site-header-end">
