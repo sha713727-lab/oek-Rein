@@ -59,6 +59,8 @@
 }
 
 .feature-item {
+  position: relative;
+  z-index: 1;
   display: flex;
   min-width: 0;
   flex-direction: column;
@@ -108,9 +110,30 @@
   color: var(--vd-body);
 }
 
+/* Lime ribbon arcs through the card row (same idea as desktop). */
+.features-section .ribbon-curve {
+  inset: auto;
+  top: 48%;
+  right: -6%;
+  bottom: 6%;
+  left: -6%;
+  height: auto;
+  z-index: 0;
+  overflow: visible;
+}
+
+.features-section .ribbon-curve svg {
+  overflow: visible;
+}
+
+.features-section .ribbon-curve-band {
+  stroke: var(--vd-lime, var(--home-accent, #e1e53f));
+  stroke-width: 56;
+}
+
 @media (max-width: 767px) {
   .features-section {
-    padding: 2.75rem 0 3rem;
+    padding: 2.75rem 0 3.25rem;
   }
 
   .features-inner {
@@ -127,14 +150,15 @@
     line-height: 1.5;
   }
 
-  /* Keep the ribbon behind cards without dominating the row */
+  /* Keep the ribbon centered on the shorter 4-across card row */
   .features-section .ribbon-curve {
-    inset: 58% -20% -8%;
-    opacity: 0.55;
-    pointer-events: none;
+    top: 46%;
+    right: -12%;
+    bottom: 4%;
+    left: -12%;
   }
 
   .features-section .ribbon-curve-band {
-    stroke-width: 36;
+    stroke-width: 42;
   }
 }

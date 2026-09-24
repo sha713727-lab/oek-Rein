@@ -1162,7 +1162,7 @@ html.home-motion-ready .home-flow .home-reveal {
 
 @media (max-width: 767px) {
   .home-progress-curve {
-    height: clamp(40px, 9vw, 60px);
+    height: clamp(64px, 16vw, 96px);
   }
 }
 

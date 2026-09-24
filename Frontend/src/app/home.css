@@ -520,18 +520,18 @@
 
 .ribbon-curve-band {
   fill: none;
-  stroke: var(--vd-ribbon);
+  stroke: var(--vd-lime, var(--home-accent, #e1e53f));
   stroke-width: 64;
   stroke-linecap: round;
 }
 
 @media (max-width: 899px) {
   .ribbon-curve {
-    inset: 28% -6% 6%;
+    inset: 36% -4% 10%;
   }
 
   .ribbon-curve-band {
-    stroke-width: 72;
+    stroke-width: 48;
   }
 }
 
