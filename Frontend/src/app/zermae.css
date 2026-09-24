@@ -1600,22 +1600,13 @@
     position: relative;
     z-index: 2;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.25rem 0;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
     margin-top: 3.25rem;
-    padding: 1.35rem 1.25rem;
+    padding: 1.35rem 0.75rem;
     overflow: hidden;
     border-radius: 1.5rem;
     background: color-mix(in srgb, var(--color-brand-blush) 52%, white);
-  }
-
-  @media (min-width: 900px) {
-    .shop-range-trust {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 0;
-      margin-top: 3.75rem;
-      padding: 1.45rem 0.75rem;
-    }
   }
 
   .shop-range-trust-item {
@@ -1627,10 +1618,8 @@
     padding: 0.15rem 1rem;
   }
 
-  @media (min-width: 900px) {
-    .shop-range-trust-item + .shop-range-trust-item {
-      border-left: 1px solid color-mix(in srgb, var(--color-brand-primary) 12%, transparent);
-    }
+  .shop-range-trust-item + .shop-range-trust-item {
+    border-left: 1px solid color-mix(in srgb, var(--color-brand-primary) 12%, transparent);
   }
 
   .shop-range-trust-icon {
@@ -1759,18 +1748,6 @@
     .shop-range-card-glow {
       opacity: 0.45;
       transform: translate(-50%, -50%) scale(0.9);
-    }
-
-    .shop-range-trust {
-      grid-template-columns: 1fr;
-      gap: 0.85rem;
-      margin-top: 2rem;
-      padding: 1rem;
-    }
-
-    .shop-range-trust-item {
-      justify-content: flex-start;
-      padding: 0.25rem 0.35rem;
     }
   }
 
