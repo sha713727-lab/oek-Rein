@@ -78,20 +78,28 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
     }
 
     const ip = clientIp(req.socket.remoteAddress, header(req.headers, "x-forwarded-for"));
-    try {
-      await verifyHmac({
-        method: req.method ?? "GET",
-        path: url.pathname,
-        timestampHeader: header(req.headers, "x-timestamp"),
-        nonceHeader: header(req.headers, "x-nonce"),
-        signatureHeader: header(req.headers, "x-signature"),
-        rawBody,
-      });
-    } catch (error) {
-      await applyRateLimit(`unsigned:${ip}`, "unsigned");
-      throw error;
+    // Docker / reverse-proxy probes must not require HMAC.
+    const isPublicHealth =
+      (req.method ?? "GET") === "GET" &&
+      (apiPath === "/health" || apiPath === "/health/");
+    if (!isPublicHealth) {
+      try {
+        await verifyHmac({
+          method: req.method ?? "GET",
+          path: url.pathname,
+          timestampHeader: header(req.headers, "x-timestamp"),
+          nonceHeader: header(req.headers, "x-nonce"),
+          signatureHeader: header(req.headers, "x-signature"),
+          rawBody,
+        });
+      } catch (error) {
+        await applyRateLimit(`unsigned:${ip}`, "unsigned");
+        throw error;
+      }
+      await applyRateLimit(`signed:${ip}`, "signed");
+    } else {
+      await applyRateLimit(`health:${ip}`, "unsigned");
     }
-    await applyRateLimit(`signed:${ip}`, "signed");
 
     if (!routes) {
       routes = await loadApiRoutes(fileURLToPath(new URL("../api", import.meta.url)));
