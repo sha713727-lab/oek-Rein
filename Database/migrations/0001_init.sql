@@ -267,11 +267,11 @@ INSERT INTO storefront_setting (
 ) VALUES (
   'default',
   true,
-  'PKR',
-  500,
-  15000,
+  'USD',
+  15,
+  150,
   true,
-  true,
-  17,
-  'GST'
+  false,
+  0,
+  'Tax'
 );

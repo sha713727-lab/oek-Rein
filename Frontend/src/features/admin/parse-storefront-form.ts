@@ -1,4 +1,9 @@
-import { type CommerceSettings, DEFAULT_COMMERCE_SETTINGS, resolveCommerceSettings } from "@/constants/commerce";
+import {
+  type CommerceSettings,
+  DEFAULT_COMMERCE_SETTINGS,
+  normalizeCurrency,
+  resolveCommerceSettings,
+} from "@/constants/commerce";
 import {
   DEFAULT_CUSTOM_TACK,
   DEFAULT_DISCIPLINES_SECTION,
@@ -187,13 +192,13 @@ export function storefrontPublishFromForm(formData: FormData, images: Storefront
   return {
     theme,
     commerce: resolveCommerceSettings({
-      currency: DEFAULT_COMMERCE_SETTINGS.currency,
+      currency: normalizeCurrency(String(formData.get("currency") ?? DEFAULT_COMMERCE_SETTINGS.currency)),
       standardShippingFee: Number(formData.get("standardShippingFee") ?? 0),
       freeShippingThreshold: Number(formData.get("freeShippingThreshold") ?? 0),
       freeShippingEnabled: formData.get("freeShippingEnabled") === "on",
       taxEnabled: formData.get("taxEnabled") === "on",
       taxRate: Number(formData.get("taxRate") ?? 0),
-      taxLabel: DEFAULT_COMMERCE_SETTINGS.taxLabel,
+      taxLabel: String(formData.get("taxLabel") ?? DEFAULT_COMMERCE_SETTINGS.taxLabel).trim() || DEFAULT_COMMERCE_SETTINGS.taxLabel,
     }),
     content: resolveStorefrontContent({
       heroHeadline,

@@ -31,6 +31,7 @@ export type OrderRecord = {
   readonly taxAmount: number;
   readonly taxRate: number;
   readonly taxLabel: string;
+  readonly currency: string;
   readonly total: number;
   readonly discountAmount: number;
   readonly promoCode: string | null;

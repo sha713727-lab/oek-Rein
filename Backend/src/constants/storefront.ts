@@ -1009,9 +1009,7 @@ export function themeToCss(theme: StorefrontTheme): string {
   return `:root{--color-brand-bg:${theme.bg};--color-brand-primary:${theme.primary};--color-brand-secondary:${theme.secondary};--color-brand-accent:${theme.accent};--color-brand-mint:${theme.mint};--color-brand-blush:${theme.blush};--color-text-main:${theme.primary};--color-text-sub:color-mix(in srgb,${theme.primary} 70%,transparent);--color-text-muted:color-mix(in srgb,${theme.primary} 40%,transparent);--color-brand-border:color-mix(in srgb,${theme.primary} 10%,transparent);--vd-green:${theme.primary};--vd-green-soft:color-mix(in srgb,${theme.primary} 10%,transparent);--vd-lime:${theme.accent};--vd-lime-deep:color-mix(in srgb,${theme.accent} 82%,#142221);--vd-sage:${theme.secondary};--vd-sage-deep:color-mix(in srgb,${theme.secondary} 82%,#142221);--vd-cream:${theme.bg};--vd-body:#666666;--vd-buckskin:${theme.secondary};--vd-ribbon:${theme.primary};--vd-ribbon-deep:color-mix(in srgb,${theme.primary} 82%,#000);--vd-ribbon-text:${theme.accent};--vd-sorrel:${theme.accent};--vd-dapple:${theme.secondary};--vd-footer:${theme.primary};}`;
 }
 
-export function formatMoney(amount: number, currency = "PKR"): string {
-  return `${currency} ${amount.toLocaleString()}`;
-}
+export { formatMoney } from "@/constants/commerce";
 
 export function resolveNavImages(content: StorefrontContent): Record<string, { src: string; tone: "blush" | "mint" }> {
   const next: Record<string, { src: string; tone: "blush" | "mint" }> = {};

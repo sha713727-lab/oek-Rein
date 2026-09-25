@@ -27,7 +27,7 @@ export type ProductBuyModel = {
   stock: number;
 };
 
-export function ProductBuyBox({ product, currency = "PKR" }: { product: ProductBuyModel; currency?: string }) {
+export function ProductBuyBox({ product, currency = "USD" }: { product: ProductBuyModel; currency?: string }) {
   const [size, setSize] = useState(product.sizes[0] ?? "");
   const [color, setColor] = useState(product.colors[0]?.name ?? "");
   const [quantity, setQuantity] = useState(1);

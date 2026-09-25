@@ -23,6 +23,7 @@ export type OrderSqlRow = {
   tax_amount: string;
   tax_rate: string;
   tax_label: string;
+  currency: string;
   total: string;
   discount_amount: string;
   promo_code: string | null;
@@ -50,7 +51,7 @@ export type OrderItemSqlRow = {
 };
 
 const ORDER_COLUMNS = `id, order_number, account_id, customer, email, phone, shipping_address, shipping_city,
-  shipping_postal_code, payment_method, status, subtotal, shipping_fee, tax_amount, tax_rate, tax_label, total,
+  shipping_postal_code, payment_method, status, subtotal, shipping_fee, tax_amount, tax_rate, tax_label, currency, total,
   discount_amount, promo_code, tracking_number, tracking_url, notes, cancelled_at, cancellation_reason, version,
   created_at, updated_at`;
 
@@ -80,6 +81,7 @@ function toOrder(row: OrderSqlRow, items: readonly OrderItemRecord[]): OrderReco
     taxAmount: money(row.tax_amount),
     taxRate: money(row.tax_rate),
     taxLabel: row.tax_label,
+    currency: row.currency,
     total: money(row.total),
     discountAmount: money(row.discount_amount ?? 0),
     promoCode: row.promo_code,
@@ -125,6 +127,7 @@ export type OrderWrite = {
   taxAmount: number;
   taxRate: number;
   taxLabel: string;
+  currency: string;
   total: number;
   discountAmount: number;
   promoCode: string | null;
@@ -161,8 +164,8 @@ export class OrderRepository {
       `INSERT INTO sales_order (
          order_number, account_id, customer, email, phone, shipping_address, shipping_city,
          shipping_postal_code, payment_method, status, subtotal, shipping_fee, tax_amount,
-         tax_rate, tax_label, total, notes, discount_amount, promo_code, tracking_number, tracking_url
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
+         tax_rate, tax_label, currency, total, notes, discount_amount, promo_code, tracking_number, tracking_url
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
        RETURNING ${ORDER_COLUMNS}`,
       [
         input.orderNumber,
@@ -180,6 +183,7 @@ export class OrderRepository {
         input.taxAmount,
         input.taxRate,
         input.taxLabel,
+        input.currency,
         input.total,
         input.notes,
         input.discountAmount,

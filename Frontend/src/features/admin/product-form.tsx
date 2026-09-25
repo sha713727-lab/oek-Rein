@@ -12,6 +12,7 @@ import {
   PRODUCT_STATUS,
   PRODUCT_VOLUME_OPTIONS,
 } from "@/constants/catalog";
+import { currencySymbol, DEFAULT_COMMERCE_SETTINGS } from "@/constants/commerce";
 import { HORSE_COAT } from "@/constants/storefront";
 import { deleteProductAction, saveProductAction } from "@/features/admin/catalog-actions";
 import { ColorField } from "@/features/admin/color-field";
@@ -59,13 +60,16 @@ function Field({
 
 export function ProductForm({
   product,
+  currency = DEFAULT_COMMERCE_SETTINGS.currency,
   blush = HORSE_COAT.sorrel,
   mint = HORSE_COAT.dappleGrey,
 }: {
   product?: SerializedProduct;
+  currency?: string;
   blush?: string;
   mint?: string;
 }) {
+  const moneyAffix = currencySymbol(currency);
   const isNew = !product;
   const volumeOptions = useMemo(() => {
     const extra = (product?.sizes ?? []).filter((size) => !(PRODUCT_VOLUME_OPTIONS as readonly string[]).includes(size));
@@ -329,7 +333,7 @@ export function ProductForm({
             <div className="admin-product-fields">
               <Field label="Base Pricing" htmlFor="price" error={errors.price}>
                 <span className="admin-product-affix">
-                  <span className="admin-product-affix-label">PKR</span>
+                  <span className="admin-product-affix-label">{moneyAffix}</span>
                   <input
                     id="price"
                     className="admin-product-soft"
@@ -374,7 +378,7 @@ export function ProductForm({
                     defaultValue={product?.discount || ""}
                     placeholder="0"
                   />
-                  <span className="admin-product-affix-label">{discountType === DISCOUNT_TYPES.PERCENTAGE ? "%" : "PKR"}</span>
+                  <span className="admin-product-affix-label">{discountType === DISCOUNT_TYPES.PERCENTAGE ? "%" : moneyAffix}</span>
                 </span>
               </Field>
               <Field label="Discount Type" htmlFor="discountTypeSelect">

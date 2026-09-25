@@ -1,4 +1,5 @@
 import { brandName } from "@/constants/brand";
+import { DEFAULT_COMMERCE_SETTINGS } from "@/constants/commerce";
 import {
   formatSupportPhoneDisplay,
   supportPhoneE164,
@@ -18,7 +19,7 @@ type OrderWhatsAppInput = {
 
 export function customerOrderWhatsAppMessage(order: OrderWhatsAppInput): string {
   const lines = order.items.map((item) => `• ${item.name} × ${item.quantity}`).join("\n");
-  const money = formatMoney(order.total, order.currency ?? "PKR");
+  const money = formatMoney(order.total, order.currency ?? DEFAULT_COMMERCE_SETTINGS.currency);
   const display = formatSupportPhoneDisplay(order.supportPhone);
   const e164 = supportPhoneE164(order.supportPhone);
   return [

@@ -24,7 +24,7 @@ function customerOrderMessage(order: OrderRecord, opts: SupportPhoneOpts = {}): 
     ``,
     lines,
     ``,
-    `Total: ${formatMoney(order.total)}`,
+    `Total: ${formatMoney(order.total, order.currency)}`,
     `Payment: Cash on delivery`,
     `Delivery: 3–5 working days`,
     ``,
@@ -58,7 +58,7 @@ export function shopOrderAlertEmail(order: OrderRecord, opts: SupportPhoneOpts =
     ``,
     lines,
     ``,
-    `Total: ${formatMoney(order.total)}`,
+    `Total: ${formatMoney(order.total, order.currency)}`,
     ``,
     sendUrl
       ? `Tap to WhatsApp the customer confirmation from your phone (${display}):\n${sendUrl}`
@@ -80,7 +80,7 @@ function businessOrderMessage(order: OrderRecord): string {
     ``,
     lines,
     ``,
-    `Total: ${formatMoney(order.total)} (COD)`,
+    `Total: ${formatMoney(order.total, order.currency)} (COD)`,
   ].join("\n");
 }
 
@@ -189,7 +189,7 @@ export function orderEmailText(order: OrderRecord, appUrl: string, opts: Support
     ``,
     lines,
     ``,
-    `Total: ${formatMoney(order.total)}`,
+    `Total: ${formatMoney(order.total, order.currency)}`,
     `Payment: Cash on delivery`,
     `We will deliver within 3–5 working days.`,
     ``,

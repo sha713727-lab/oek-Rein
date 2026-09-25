@@ -34,7 +34,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
   const status = order.status as OrderStatus;
   const next = ORDER_STATUS_TRANSITIONS[status] ?? [];
   const storefront = await getStorefront();
-  const currency = storefront.commerce.currency;
+  const currency = order.currency || storefront.commerce.currency;
   const whatsappUrl = customerWhatsAppSendUrl({
     orderNumber: order.orderNumber,
     customer: order.customer,

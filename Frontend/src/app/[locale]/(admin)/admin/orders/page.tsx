@@ -109,7 +109,7 @@ export default async function AdminOrdersPage({
                     phone: String(order.phone),
                     items: order.items,
                     total: Number(order.total),
-                    currency: storefront.commerce.currency,
+                    currency: order.currency || storefront.commerce.currency,
                     supportPhone: storefront.content.supportPhone,
                   });
                   return (
@@ -141,7 +141,7 @@ export default async function AdminOrdersPage({
                           {ORDER_STATUS_LABELS[status] ?? status}
                         </span>
                       </td>
-                      <td>{formatMoney(Number(order.total), storefront.commerce.currency)}</td>
+                      <td>{formatMoney(Number(order.total), order.currency || storefront.commerce.currency)}</td>
                       <td>
                         <div className="admin-orders-items-cell" style={{ gap: "0.5rem", flexWrap: "wrap" }}>
                           <Link href={`/admin/orders/${order.orderNumber}`} className="admin-orders-open">

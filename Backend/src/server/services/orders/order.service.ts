@@ -141,6 +141,7 @@ export class OrderService {
           taxAmount: totals.taxAmount,
           taxRate: commerce.taxEnabled ? commerce.taxRate : 0,
           taxLabel: commerce.taxLabel,
+          currency: commerce.currency,
           total: totals.total,
           notes: payload.notes ?? null,
           discountAmount,

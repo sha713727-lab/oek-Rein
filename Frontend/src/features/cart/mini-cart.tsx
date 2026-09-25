@@ -22,7 +22,7 @@ const EMPTY: MiniCartSnapshot = {
   taxLabel: "GST",
   total: 0,
   freeShippingNote: "",
-  currency: "PKR",
+  currency: "USD",
 };
 
 const FOCUSABLE =

@@ -7,7 +7,7 @@ export function OrderTotals({
   taxLabel,
   total,
   discount = 0,
-  currency = "PKR",
+  currency = "USD",
 }: {
   subtotal: number;
   shippingFee: number;

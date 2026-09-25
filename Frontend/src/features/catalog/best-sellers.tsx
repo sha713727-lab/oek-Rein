@@ -14,7 +14,7 @@ const BEST_SELLERS_LIMIT = 3;
  * Best-sellers rail — same native scroll-snap feel as category cards on mobile.
  * No JS transform drag: the browser owns the swipe, which stays smooth on iOS/Android.
  */
-export function BestSellers({ items, currency = "PKR" }: { items: ResolvedBestSeller[]; currency?: string }) {
+export function BestSellers({ items, currency = "USD" }: { items: ResolvedBestSeller[]; currency?: string }) {
   const products = items.slice(0, BEST_SELLERS_LIMIT);
   const empty = products.length === 0;
   const viewportRef = useRef<HTMLDivElement>(null);

@@ -127,7 +127,7 @@ export default async function AdminDashboardPage() {
                           {ORDER_STATUS_LABELS[status] ?? status}
                         </span>
                       </td>
-                      <td>{formatMoney(Number(order.total), storefront.commerce.currency)}</td>
+                      <td>{formatMoney(Number(order.total), order.currency || storefront.commerce.currency)}</td>
                       <td>
                         <Link href={`/admin/orders/${order.orderNumber}`} className="admin-orders-open">
                           Open

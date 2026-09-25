@@ -4,7 +4,13 @@ import type { InputHTMLAttributes, TextareaHTMLAttributes } from "react";
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 
-import { resolveCommerceSettings } from "@/constants/commerce";
+import {
+  currencyOptionLabel,
+  formatMoney as formatCommerceMoney,
+  normalizeCurrency,
+  resolveCommerceSettings,
+  STORE_CURRENCIES,
+} from "@/constants/commerce";
 import {
   formatMoney,
   HORSE_COAT,
@@ -91,6 +97,37 @@ function SoftArea({
         {label}
       </label>
       <textarea id={name} name={name} className="admin-product-soft admin-product-soft-area" {...props} />
+    </div>
+  );
+}
+
+function CurrencyField({ defaultValue }: { defaultValue: string }) {
+  const [currency, setCurrency] = useState(normalizeCurrency(defaultValue));
+  return (
+    <div className="admin-product-field admin-product-field--full">
+      <label className="admin-product-label" htmlFor="currency">
+        Store currency
+      </label>
+      <p className="admin-product-kicker">
+        Prices stay as numbers — switching currency does not convert them. Re-check product prices, shipping, and
+        promos after you change this.
+      </p>
+      <select
+        id="currency"
+        name="currency"
+        className="admin-product-soft"
+        value={currency}
+        onChange={(event) => setCurrency(normalizeCurrency(event.target.value))}
+      >
+        {STORE_CURRENCIES.map((item) => (
+          <option key={item.code} value={item.code}>
+            {currencyOptionLabel(item.code)}
+          </option>
+        ))}
+      </select>
+      <p className="admin-product-kicker" style={{ marginTop: "0.5rem" }}>
+        Preview: {formatCommerceMoney(1234.5, currency)}
+      </p>
     </div>
   );
 }
@@ -946,11 +983,13 @@ export function StorefrontEditor({
             Checkout fees
           </h2>
           <div className="admin-product-fields">
+            <CurrencyField defaultValue={commerce.currency} />
             <SoftInput
               label="Standard shipping fee"
               name="standardShippingFee"
               type="number"
               min="0"
+              step="0.01"
               defaultValue={commerce.standardShippingFee}
             />
             <SoftInput
@@ -958,9 +997,11 @@ export function StorefrontEditor({
               name="freeShippingThreshold"
               type="number"
               min="0"
+              step="0.01"
               defaultValue={commerce.freeShippingThreshold}
             />
             <SoftInput label="Tax rate" name="taxRate" type="number" min="0" defaultValue={commerce.taxRate} />
+            <SoftInput label="Tax label" name="taxLabel" defaultValue={commerce.taxLabel} />
             <fieldset className="admin-product-field admin-product-field--full">
               <legend className="admin-product-label">Options</legend>
               <div className="admin-product-radios">

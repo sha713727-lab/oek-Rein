@@ -33,7 +33,7 @@ export default async function AccountOrdersPage() {
                   {CUSTOMER_ORDER_STATUS_LABELS[String(order.status)] ?? String(order.status)}
                 </span>
               </div>
-              <p className="customer-order-card-total">{formatMoney(Number(order.total), storefront.commerce.currency)}</p>
+              <p className="customer-order-card-total">{formatMoney(Number(order.total), order.currency || storefront.commerce.currency)}</p>
               <Link href={`/account/orders/${order.orderNumber}`} className="mt-3 inline-block text-sm underline-offset-4 hover:underline">
                 View details
               </Link>

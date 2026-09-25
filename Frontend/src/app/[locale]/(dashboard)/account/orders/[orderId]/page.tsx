@@ -31,7 +31,7 @@ export default async function AccountOrderDetailPage({ params }: { params: Promi
       <p className={`customer-order-status customer-order-status--${order.status} mb-6`}>
         {CUSTOMER_ORDER_STATUS_LABELS[order.status] ?? order.status}
       </p>
-      <OrderSummary order={order} currency={storefront.commerce.currency} />
+      <OrderSummary order={order} currency={order.currency || storefront.commerce.currency} />
     </>
   );
 }

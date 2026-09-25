@@ -6,7 +6,7 @@ const FALLBACK_COLORS = [...PRODUCT_CARD_COATS];
 export function ProductGrid({
   products,
   wishlistIds,
-  currency = "PKR",
+  currency = "USD",
   tileColors,
 }: {
   products: CatalogProduct[];

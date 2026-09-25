@@ -25,7 +25,7 @@ export type CatalogProduct = {
 export function ProductCard({
   product,
   wished,
-  currency = "PKR",
+  currency = "USD",
   ctaLabel = "Shop",
 }: {
   product: CatalogProduct;

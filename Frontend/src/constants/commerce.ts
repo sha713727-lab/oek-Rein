@@ -1,11 +1,25 @@
+export const STORE_CURRENCIES = [
+  { code: "USD", label: "US Dollar", locale: "en-US", fractionDigits: 2 },
+  { code: "CAD", label: "Canadian Dollar", locale: "en", fractionDigits: 2 },
+  { code: "PKR", label: "Pakistani Rupee", locale: "en-PK", fractionDigits: 0 },
+  { code: "EUR", label: "Euro", locale: "en-IE", fractionDigits: 2 },
+  { code: "GBP", label: "British Pound", locale: "en-GB", fractionDigits: 2 },
+  { code: "AED", label: "UAE Dirham", locale: "en-AE", fractionDigits: 2 },
+  { code: "AUD", label: "Australian Dollar", locale: "en-AU", fractionDigits: 2 },
+] as const;
+
+export type StoreCurrencyCode = (typeof STORE_CURRENCIES)[number]["code"];
+
+const CURRENCY_BY_CODE = new Map(STORE_CURRENCIES.map((item) => [item.code, item]));
+
 export const DEFAULT_COMMERCE_SETTINGS = {
-  currency: "PKR",
-  standardShippingFee: 500,
-  freeShippingThreshold: 15000,
+  currency: "USD",
+  standardShippingFee: 15,
+  freeShippingThreshold: 150,
   freeShippingEnabled: true,
   taxEnabled: true,
-  taxRate: 17,
-  taxLabel: "GST",
+  taxRate: 0,
+  taxLabel: "Tax",
 } as const;
 
 export type CommerceSettings = {
@@ -18,9 +32,56 @@ export type CommerceSettings = {
   readonly taxLabel: string;
 };
 
+export function isSupportedCurrency(code: string): code is StoreCurrencyCode {
+  return CURRENCY_BY_CODE.has(code.toUpperCase() as StoreCurrencyCode);
+}
+
+/** Normalize any string to a supported store currency (fallback USD). */
+export function normalizeCurrency(code: string | null | undefined): StoreCurrencyCode {
+  const next = String(code ?? "")
+    .trim()
+    .toUpperCase();
+  return isSupportedCurrency(next) ? next : DEFAULT_COMMERCE_SETTINGS.currency;
+}
+
+function currencyMeta(code: string) {
+  const normalized = normalizeCurrency(code);
+  return CURRENCY_BY_CODE.get(normalized)!;
+}
+
+/** Symbol only — e.g. `$`, `CA$`, `Rs`. */
+export function currencySymbol(code: string): string {
+  const meta = currencyMeta(code);
+  const parts = new Intl.NumberFormat(meta.locale, {
+    style: "currency",
+    currency: meta.code,
+    currencyDisplay: "symbol",
+  }).formatToParts(0);
+  return parts.find((part) => part.type === "currency")?.value ?? meta.code;
+}
+
+/** Admin select label: `USD — US Dollar ($)`. */
+export function currencyOptionLabel(code: string): string {
+  const meta = currencyMeta(code);
+  return `${meta.code} — ${meta.label} (${currencySymbol(meta.code)})`;
+}
+
+/** Format an amount with the proper currency symbol for the store currency. */
+export function formatMoney(amount: number, currency: string = DEFAULT_COMMERCE_SETTINGS.currency): string {
+  const meta = currencyMeta(currency);
+  const value = Number.isFinite(amount) ? amount : 0;
+  return new Intl.NumberFormat(meta.locale, {
+    style: "currency",
+    currency: meta.code,
+    currencyDisplay: "symbol",
+    minimumFractionDigits: meta.fractionDigits,
+    maximumFractionDigits: meta.fractionDigits,
+  }).format(value);
+}
+
 export function resolveCommerceSettings(settings: Partial<CommerceSettings> = {}): CommerceSettings {
   return {
-    currency: settings.currency ?? DEFAULT_COMMERCE_SETTINGS.currency,
+    currency: normalizeCurrency(settings.currency ?? DEFAULT_COMMERCE_SETTINGS.currency),
     standardShippingFee: Number(
       settings.standardShippingFee ?? DEFAULT_COMMERCE_SETTINGS.standardShippingFee,
     ),
@@ -31,7 +92,7 @@ export function resolveCommerceSettings(settings: Partial<CommerceSettings> = {}
       settings.freeShippingEnabled ?? DEFAULT_COMMERCE_SETTINGS.freeShippingEnabled,
     taxEnabled: settings.taxEnabled ?? DEFAULT_COMMERCE_SETTINGS.taxEnabled,
     taxRate: Number(settings.taxRate ?? DEFAULT_COMMERCE_SETTINGS.taxRate),
-    taxLabel: (settings.taxLabel ?? DEFAULT_COMMERCE_SETTINGS.taxLabel).trim(),
+    taxLabel: (settings.taxLabel ?? DEFAULT_COMMERCE_SETTINGS.taxLabel).trim() || DEFAULT_COMMERCE_SETTINGS.taxLabel,
   };
 }
 
@@ -55,7 +116,7 @@ export function getFreeShippingNote(settings: CommerceSettings = DEFAULT_COMMERC
   if (!commerce.freeShippingEnabled) {
     return "Standard shipping applies to all orders.";
   }
-  return `Free shipping on orders above ${commerce.currency} ${commerce.freeShippingThreshold.toLocaleString("en-US", { maximumFractionDigits: 0 })}.`;
+  return `Free shipping on orders above ${formatMoney(commerce.freeShippingThreshold, commerce.currency)}.`;
 }
 
 export function applyDiscount(subtotal: number, discount: number): number {

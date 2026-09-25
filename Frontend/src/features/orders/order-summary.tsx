@@ -8,14 +8,15 @@ export function OrderSummary({
   currency,
 }: {
   order: OrderRecord;
-  currency: string;
+  currency?: string;
 }) {
+  const moneyCurrency = order.currency || currency || "USD";
   return (
     <div className="print-receipt">
       <ul className="mt-6 space-y-2 text-sm">
         {order.items.map((item, index) => (
           <li key={`${item.name}-${index}`}>
-            {item.name} × {item.quantity} — {formatMoney(item.price, currency)}
+            {item.name} × {item.quantity} — {formatMoney(item.price, moneyCurrency)}
           </li>
         ))}
       </ul>
@@ -27,7 +28,7 @@ export function OrderSummary({
           taxAmount={order.taxAmount}
           taxLabel={order.taxLabel}
           total={order.total}
-          currency={currency}
+          currency={moneyCurrency}
         />
       </div>
       {order.promoCode ? <p className="mt-3 text-sm text-text-sub">Promo: {order.promoCode}</p> : null}

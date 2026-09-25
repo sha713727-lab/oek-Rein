@@ -65,7 +65,7 @@ export default async function AccountPage() {
                 <Link href={`/account/orders/${order.orderNumber}`} className="customer-order-card">
                   <p className="customer-order-card-id">{String(order.orderNumber)}</p>
                   <p className="customer-order-card-date">{String(order.status)}</p>
-                  <p className="customer-order-card-total">{formatMoney(Number(order.total), storefront.commerce.currency)}</p>
+                  <p className="customer-order-card-total">{formatMoney(Number(order.total), order.currency || storefront.commerce.currency)}</p>
                 </Link>
               </li>
             ))}

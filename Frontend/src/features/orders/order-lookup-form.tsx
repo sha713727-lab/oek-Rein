@@ -34,7 +34,7 @@ export function OrderLookupForm({ currency }: { currency: string }) {
           <p className="order-confirmation-fallback-label">Order</p>
           <p className="order-confirmation-fallback-id">{state.order.orderNumber}</p>
           <p className="mt-2 text-sm uppercase tracking-[0.14em]">{state.order.status}</p>
-          <OrderSummary order={state.order} currency={currency} />
+          <OrderSummary order={state.order} currency={state.order.currency || currency} />
         </div>
       ) : null}
     </div>
