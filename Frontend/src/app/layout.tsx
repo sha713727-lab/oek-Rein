@@ -27,12 +27,16 @@ const fraunces = Fraunces({
   subsets: ["latin"],
   variable: "--font-fraunces",
   display: "swap",
+  // Display font — used by headings after CSS applies; avoid unused-preload console noise.
+  preload: false,
 });
 
 const manrope = Manrope({
   subsets: ["latin"],
   variable: "--font-manrope",
   display: "swap",
+  // Body font on <body> — keep preload for first paint.
+  preload: true,
 });
 
 export const metadata = {
