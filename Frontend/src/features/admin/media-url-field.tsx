@@ -28,22 +28,28 @@ function isVideoFile(file: File) {
   return name.endsWith(".mp4") || name.endsWith(".webm") || name.endsWith(".mov");
 }
 
-/** Image or video upload for gallery tiles (Seen in the saddle, etc.). */
+/**
+ * Image or video upload. Videos also store an auto-generated cover (poster) in
+ * `${name}Poster` so the live frame can paint before playback.
+ */
 export function MediaUrlField({
   name,
   label,
   defaultValue,
+  defaultPoster = "",
   hint,
 }: {
   name: string;
   label: string;
   defaultValue: string;
+  defaultPoster?: string;
   hint?: string;
 }) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const { registerPending, clearPending } = useAdminUploadBusy();
   const [url, setUrl] = useState(defaultValue);
+  const [poster, setPoster] = useState(defaultPoster);
   const [preview, setPreview] = useState(defaultValue);
   const [previewKind, setPreviewKind] = useState<"image" | "video">(isVideoSrc(defaultValue) ? "video" : "image");
   const [cleared, setCleared] = useState(false);
@@ -105,6 +111,7 @@ export function MediaUrlField({
           return;
         }
         setUrl(result.url);
+        setPoster(asVideo ? result.posterUrl ?? "" : "");
         markAdminFormDirty();
         setPreviewKind(asVideo ? "video" : "image");
         setPreview((current) => {
@@ -125,6 +132,7 @@ export function MediaUrlField({
     }
     setCleared(true);
     setUrl("");
+    setPoster("");
     setError("");
     setPreviewKind("image");
     markAdminFormDirty();
@@ -136,6 +144,8 @@ export function MediaUrlField({
     });
   }
 
+  const coverSrc = poster || (previewKind === "image" ? preview : "");
+
   return (
     <div className="admin-product-field">
       <label className="admin-product-label" htmlFor={inputId}>
@@ -143,6 +153,7 @@ export function MediaUrlField({
       </label>
       {hint ? <p className="admin-product-kicker">{hint}</p> : null}
       <input type="hidden" name={name} value={url} />
+      <input type="hidden" name={`${name}Poster`} value={isVideoSrc(url) ? poster : ""} />
       <input type="hidden" name={`${name}Cleared`} value={cleared ? "1" : "0"} />
       <input
         id={inputId}
@@ -179,12 +190,21 @@ export function MediaUrlField({
       >
         {preview ? (
           previewKind === "video" ? (
-            <video src={preview} className="admin-storefront-preview-img" muted playsInline loop autoPlay controls={false} />
+            <video
+              src={preview}
+              poster={poster || undefined}
+              className="admin-storefront-preview-img"
+              muted
+              playsInline
+              loop
+              autoPlay
+              controls={false}
+            />
           ) : preview.startsWith("blob:") ? (
             // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
             <img src={preview} alt="" className="admin-storefront-preview-img" />
           ) : (
-            <CmsImage src={preview} alt="" width={160} height={160} className="admin-storefront-preview-img" />
+            <CmsImage src={coverSrc || preview} alt="" width={160} height={160} className="admin-storefront-preview-img" />
           )
         ) : (
           <span className="admin-storefront-preview--empty">
@@ -209,8 +229,10 @@ export function MediaUrlField({
       ) : (
         <p className="admin-product-kicker">
           {pending
-            ? "Uploading media…"
-            : "PNG, JPG, WEBP (5MB) or MP4, MOV, WEBM (25MB). Wait for upload, then Publish to update the live shop."}
+            ? previewKind === "video"
+              ? "Uploading video and building a cover frame…"
+              : "Uploading media…"
+            : "PNG/JPG/WEBP (5MB) or MP4/MOV/WEBM (25MB). Videos get an automatic cover. Publish when ready."}
         </p>
       )}
     </div>

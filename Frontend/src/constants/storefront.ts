@@ -135,6 +135,8 @@ export type StorefrontRiderGalleryTone = "warm" | "mint" | "photo";
 export type StorefrontRiderGalleryItem = {
   id: string;
   src: string;
+  /** Cover image when `src` is a video. */
+  poster?: string;
   alt: string;
   label: string;
   href: string;
@@ -203,6 +205,8 @@ export type StorefrontContent = {
   shopImages: Record<string, string>;
   shopCardColors: Record<string, string>;
   collectionImages: Record<string, string>;
+  /** Cover frames for collection hero videos (same keys as collectionImages). */
+  collectionImagePosters: Record<string, string>;
   collectionTitles: Record<string, StorefrontCollectionTitle>;
   bestSellerSkus: string[];
   bestSellerColors: string[];
@@ -511,6 +515,7 @@ export const DEFAULT_STOREFRONT_CONTENT: StorefrontContent = {
   shopImages: Object.fromEntries(DEFAULT_SHOP_CATEGORIES.map((item) => [item.id, item.image])),
   shopCardColors: Object.fromEntries(DEFAULT_SHOP_CATEGORIES.map((item) => [item.id, item.color])),
   collectionImages: Object.fromEntries(Object.entries(COLLECTION_HEROES).map(([key, value]) => [key, value.image])),
+  collectionImagePosters: Object.fromEntries(Object.keys(COLLECTION_HEROES).map((key) => [key, ""])),
   collectionTitles: Object.fromEntries(
     Object.entries(COLLECTION_HEROES).map(([key, value]) => [key, { first: value.first, second: value.second }]),
   ),
@@ -729,6 +734,7 @@ function asRiderGallery(value: unknown): StorefrontRiderGallery {
       return {
         id: asStoredText(raw.id, item.id) || item.id,
         src: resolvePublicAssetSrc(asStoredText(raw.src, item.src) || item.src),
+        poster: resolvePublicAssetSrc(asStoredText(raw.poster, item.poster ?? "")),
         alt: asStoredText(raw.alt, item.alt),
         label: asStoredText(raw.label, item.label),
         href: asPath(raw.href, item.href),
@@ -938,6 +944,10 @@ export function resolveStorefrontContent(raw: unknown): StorefrontContent {
     shopCategories,
     navLinks: asNavLinks(record.navLinks),
     collectionImages: asImageMap(record.collectionImages, DEFAULT_STOREFRONT_CONTENT.collectionImages),
+    collectionImagePosters: asImageMap(
+      record.collectionImagePosters,
+      DEFAULT_STOREFRONT_CONTENT.collectionImagePosters,
+    ),
     collectionTitles: asCollectionTitles(record.collectionTitles),
     bestSellerSkus: skus.length > 0 ? skus : DEFAULT_STOREFRONT_CONTENT.bestSellerSkus,
     bestSellerColors: asHexList(record.bestSellerColors, DEFAULT_STOREFRONT_CONTENT.bestSellerColors),

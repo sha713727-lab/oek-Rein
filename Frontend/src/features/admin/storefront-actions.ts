@@ -26,6 +26,17 @@ async function readImage(formData: FormData, field: string): Promise<string> {
   return String(formData.get(field) ?? "").trim();
 }
 
+/** Cover URL written by MediaUrlField when the primary field is a video. */
+function readPoster(formData: FormData, field: string, mediaSrc: string): string {
+  if (!mediaSrc || String(formData.get(`${field}Cleared`) ?? "") === "1") {
+    return "";
+  }
+  if (!/\.(mp4|webm|mov)(\?|$)/i.test(mediaSrc)) {
+    return "";
+  }
+  return String(formData.get(`${field}Poster`) ?? "").trim();
+}
+
 async function readImageMap(formData: FormData, prefix: string, keys: string[]): Promise<Record<string, string>> {
   const entries = await Promise.all(
     keys.map(async (key) => {
@@ -34,6 +45,16 @@ async function readImageMap(formData: FormData, prefix: string, keys: string[]):
     }),
   );
   return Object.fromEntries(entries);
+}
+
+async function readPosterMap(
+  formData: FormData,
+  prefix: string,
+  media: Record<string, string>,
+): Promise<Record<string, string>> {
+  return Object.fromEntries(
+    Object.entries(media).map(([key, src]) => [key, readPoster(formData, `${prefix}_${key}`, src)]),
+  );
 }
 
 /**
@@ -109,6 +130,10 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
         ),
       ),
     ]);
+    const collectionImagePosters = await readPosterMap(formData, "collectionImage", collectionImages);
+    const riderGalleryPosters = riderGalleryImages.map((src, index) =>
+      readPoster(formData, `riderGalleryItemSrc_${index}`, src),
+    );
 
     const megaCardImages = Object.fromEntries(
       MEGA_MENU_IDS.map((menuId, index) => [menuId, megaCardImageLists[index] ?? []]),
@@ -131,9 +156,11 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
       authAdminSrc,
       categoryImages,
       collectionImages,
+      collectionImagePosters,
       customTackImage,
       megaCardImages,
       riderGalleryImages,
+      riderGalleryPosters,
     });
     // Force exact image paths from the form (including intentional clears) so resolve defaults
     // cannot resurrect stock FAQ / homepage art after Remove.
@@ -159,6 +186,10 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
       ...published.content.collectionImages,
       ...collectionImages,
     };
+    published.content.collectionImagePosters = {
+      ...published.content.collectionImagePosters,
+      ...collectionImagePosters,
+    };
     published.content.customTack = {
       ...published.content.customTack,
       image: customTackImage || DEFAULT_STOREFRONT_CONTENT.customTack.image,
@@ -172,6 +203,7 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
           item.src ||
           DEFAULT_STOREFRONT_CONTENT.riderGallery.items[index]?.src ||
           "",
+        poster: riderGalleryPosters[index] || "",
       })),
     };
     categoryIndexes.forEach((index) => {

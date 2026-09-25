@@ -30,9 +30,11 @@ export type StorefrontFormImages = {
   authAdminSrc: string;
   categoryImages: string[];
   collectionImages: Record<string, string>;
+  collectionImagePosters: Record<string, string>;
   customTackImage: string;
   megaCardImages: Record<MegaMenuId, string[]>;
   riderGalleryImages: string[];
+  riderGalleryPosters: string[];
 };
 
 export type StorefrontPublishPayload = {
@@ -174,6 +176,7 @@ export function storefrontPublishFromForm(formData: FormData, images: Storefront
     items: DEFAULT_RIDER_GALLERY.items.map((item, index) => ({
       id: String(formData.get(`riderGalleryItemId_${index}`) ?? item.id),
       src: images.riderGalleryImages[index] ?? item.src,
+      poster: images.riderGalleryPosters[index] ?? item.poster ?? "",
       alt: String(formData.get(`riderGalleryItemAlt_${index}`) ?? item.alt),
       label: String(formData.get(`riderGalleryItemLabel_${index}`) ?? item.label),
       href: String(formData.get(`riderGalleryItemHref_${index}`) ?? item.href),
@@ -227,6 +230,7 @@ export function storefrontPublishFromForm(formData: FormData, images: Storefront
       shopCategories,
       navLinks,
       collectionImages: images.collectionImages,
+      collectionImagePosters: images.collectionImagePosters,
       collectionTitles,
       bestSellerSkus: [formData.get("bestSellerSku1"), formData.get("bestSellerSku2"), formData.get("bestSellerSku3")],
       bestSellerColors: [formData.get("bestSellerColor1"), formData.get("bestSellerColor2"), formData.get("bestSellerColor3")],

@@ -88,6 +88,9 @@ export async function CollectionView({
   const after = products.slice(splitIndex);
   const heroImage =
     (bestSeller ? undefined : storefront.content.collectionImages[slug]) ?? hero.image;
+  const heroPoster = bestSeller
+    ? undefined
+    : storefront.content.collectionImagePosters[slug]?.trim() || undefined;
   const titles = bestSeller
     ? { first: BEST_SELLERS_HERO.first, second: BEST_SELLERS_HERO.second }
     : (storefront.content.collectionTitles[slug] ?? {
@@ -142,6 +145,7 @@ export async function CollectionView({
         {products.length > 0 ? (
           <RitualFeature
             image={heroImage}
+            {...(heroPoster ? { poster: heroPoster } : {})}
             alt={hero.alt}
             tone={hero.tone}
             category={bestSeller ? "all" : slug}

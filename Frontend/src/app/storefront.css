@@ -378,11 +378,12 @@
   isolation: isolate;
   display: flex;
   min-height: 22rem;
-  align-items: flex-end;
+  align-items: stretch;
   justify-content: center;
 }
 
-.ritual-still-arch {
+.ritual-still-arch,
+.ritual-still-frame {
   position: absolute;
   left: 16%;
   right: 16%;
@@ -391,27 +392,62 @@
   z-index: 0;
   border-radius: 12rem 12rem 1.35rem 1.35rem;
   background: color-mix(in srgb, var(--color-brand-mint) 58%, white);
+  overflow: hidden;
 }
 
 .ritual-feature--olive .ritual-still-arch,
+.ritual-feature--olive .ritual-still-frame,
 .ritual-still--olive .ritual-still-arch {
   background: color-mix(in srgb, var(--color-brand-accent) 42%, white);
 }
 
 .ritual-feature--blush .ritual-still-arch,
+.ritual-feature--blush .ritual-still-frame,
 .ritual-still--blush .ritual-still-arch {
   background: color-mix(in srgb, var(--color-brand-blush) 62%, white);
 }
 
-.ritual-still-image {
-  position: relative;
+.ritual-still-image,
+.ritual-still-video {
+  position: absolute;
+  inset: 0;
   z-index: 1;
   display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: center center;
+}
+
+/* Legacy info-page stills: cutout sits on the colored arch, not clipped into it. */
+.ritual-still > .ritual-still-image {
+  position: relative;
+  inset: auto;
   width: auto;
   height: min(24rem, 56vh);
   max-width: 11.5rem;
   object-fit: contain;
   filter: drop-shadow(0 20px 22px rgba(63, 55, 52, 0.16));
+}
+
+.ritual-still-frame--cutout .ritual-still-image {
+  object-fit: contain;
+  object-position: bottom center;
+  padding: 0.75rem 0.35rem 0;
+  filter: drop-shadow(0 20px 22px rgba(63, 55, 52, 0.16));
+}
+
+.ritual-still-frame--video .ritual-still-video {
+  background: #142221;
+}
+
+.ritual-still-video[data-ready="0"] {
+  opacity: 0.55;
+}
+
+.ritual-still-video[data-ready="1"] {
+  opacity: 1;
 }
 
 @media (max-width: 767px) {
@@ -440,7 +476,14 @@
     min-height: 16.5rem;
   }
 
-  .ritual-still-image {
+  .ritual-still-arch,
+  .ritual-still-frame {
+    left: 12%;
+    right: 12%;
+    top: 14%;
+  }
+
+  .ritual-still > .ritual-still-image {
     height: min(17rem, 44vh);
     max-width: 8rem;
   }

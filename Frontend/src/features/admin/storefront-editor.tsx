@@ -521,6 +521,8 @@ export function StorefrontEditor({
                       name={`riderGalleryItemSrc_${index}`}
                       label="Media"
                       defaultValue={item.src}
+                      defaultPoster={item.poster ?? ""}
+                      hint="Photo or video. Videos get an automatic cover frame."
                     />
                     <SoftInput label="Label" name={`riderGalleryItemLabel_${index}`} defaultValue={item.label} />
                     <SoftInput label="Alt text" name={`riderGalleryItemAlt_${index}`} defaultValue={item.alt} />
@@ -638,10 +640,12 @@ export function StorefrontEditor({
             <div className="admin-storefront-groups">
               {Object.keys(content.collectionImages).map((key) => (
                 <div key={key} className="admin-storefront-group">
-                  <ImageUrlField
+                  <MediaUrlField
                     name={`collectionImage_${key}`}
                     label={`${COLLECTION_LABELS[key] ?? key} hero`}
                     defaultValue={content.collectionImages[key] ?? ""}
+                    defaultPoster={content.collectionImagePosters[key] ?? ""}
+                    hint="Tall photo, product cutout (PNG), or video for the arched frame. Videos include a cover automatically."
                   />
                   <div className="admin-product-fields">
                     <SoftInput

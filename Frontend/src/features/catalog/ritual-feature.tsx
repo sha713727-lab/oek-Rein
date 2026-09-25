@@ -18,7 +18,9 @@ import {
   RITUAL_FEATURE_TITLE,
   type RitualIcon,
 } from "@/constants/site";
+import { GalleryVideo } from "@/features/catalog/gallery-video";
 import { CmsImage } from "@/features/media/cms-image";
+import { isVideoSrc } from "@/lib/media-src";
 
 const RITUAL_ICONS: Record<RitualIcon, ComponentType<{ className?: string | undefined }>> = {
   leather: IconLeather,
@@ -32,13 +34,22 @@ const RITUAL_ICONS: Record<RitualIcon, ComponentType<{ className?: string | unde
   shield: IconShield,
 };
 
+/** PNG product cutouts sit on the arch; photos and videos fill the arch frame. */
+function isCutoutSrc(src: string): boolean {
+  const path = src.split(/[?#]/)[0]?.toLowerCase() ?? "";
+  return path.endsWith(".png");
+}
+
 export function RitualFeature({
   image,
+  poster,
   alt,
   tone = "mint",
   category = "all",
 }: {
   image: string;
+  /** Cover frame when `image` is a video. */
+  poster?: string;
   alt: string;
   tone?: "mint" | "blush" | "olive";
   category?: string;
@@ -52,6 +63,15 @@ export function RitualFeature({
   const right = ritual.notes[1];
   const LeftIcon = RITUAL_ICONS[left.icon] ?? IconLeather;
   const RightIcon = RITUAL_ICONS[right.icon] ?? IconHorse;
+  const video = Boolean(image) && isVideoSrc(image);
+  const cutout = Boolean(image) && !video && isCutoutSrc(image);
+  const frameClass = [
+    "ritual-still-frame",
+    cutout ? "ritual-still-frame--cutout" : "ritual-still-frame--fill",
+    video ? "ritual-still-frame--video" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <section className={`ritual-feature ritual-feature--${tone}`} aria-labelledby="ritual-feature-title">
@@ -68,15 +88,26 @@ export function RitualFeature({
           <p className="ritual-feature-copy">{left.description}</p>
         </article>
         <div className="ritual-feature-stage">
-          <span className="ritual-still-arch" aria-hidden="true" />
-          <CmsImage
-            src={image}
-            alt={alt}
-            width={304}
-            height={637}
-            sizes="(max-width: 767px) 8rem, 12rem"
-            className="ritual-still-image"
-          />
+          <div className={frameClass}>
+            {image ? (
+              video ? (
+                <GalleryVideo
+                  className="ritual-still-video"
+                  src={image}
+                  {...(poster ? { poster } : {})}
+                  label={alt}
+                />
+              ) : (
+                <CmsImage
+                  src={image}
+                  alt={alt}
+                  fill
+                  sizes="(max-width: 767px) 8rem, 12rem"
+                  className="ritual-still-image"
+                />
+              )
+            ) : null}
+          </div>
         </div>
         <article className="ritual-feature-note ritual-feature-note--right">
           <span className="ritual-feature-icon">

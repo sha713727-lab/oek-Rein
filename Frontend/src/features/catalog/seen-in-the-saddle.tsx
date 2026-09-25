@@ -47,6 +47,7 @@ export function SeenInTheSaddle({ content = DEFAULT_RIDER_GALLERY }: SeenInTheSa
                         <GalleryVideo
                           className="home-rider-gallery-video"
                           src={resolved}
+                          {...(item.poster?.trim() ? { poster: item.poster.trim() } : {})}
                           label={item.alt || item.label}
                         />
                       ) : (
