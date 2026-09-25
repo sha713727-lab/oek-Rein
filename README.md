@@ -68,10 +68,10 @@ cd deploy/docker && docker compose build && docker compose up -d
 #   include /var/www/oakrein/deploy/nginx/oakrein-map.conf;
 # Ensure site config uses deploy/nginx/oakrein.com.conf (TLS) or the http-only bootstrap.
 nginx -t && systemctl reload nginx
-# Optional one-time: if hero source was uploaded without mobile/poster siblings
-#   docker compose exec backend npm run prerender:hero
-# (Prerendered hero assets under Frontend/public are baked into the image on build.)
-# Optional env on backend: PRERENDER_HERO_ON_START=1 queues conversion for a raw /uploads hero at boot (default off).
+# The default hero cutout ships in Frontend/public/assets. If the published hero is still a
+# plain uploaded clip, the backend converts it to the cutout once, in the background, on boot
+# (set PRERENDER_HERO_ON_START=0 to skip). Regenerate the bundled default from its source with:
+#   npm run prerender:hero --prefix Backend
 ```
 
 ## Local development

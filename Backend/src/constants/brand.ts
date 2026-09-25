@@ -26,9 +26,7 @@ export const heroCtaLabel = "Shop Now";
 export const heroCtaHref = "/collections/all";
 export const heroProductSrc = "/assets/images/western_floral_saddle.png";
 export const heroProductAlt = `${brandName} Western Floral Saddle`;
-export const heroVideoSrc = "/assets/videos/heroVideo.mp4";
-/** Skip side-on intro where the muzzle clips the frame / blaze punches through. */
-export const heroVideoStartSec = 3.6;
+export const heroVideoSrc = "/assets/videos/hero-horse-alpha-hd.mp4";
 export const heroWaveText =
   "Premium Hand Crafted Pakistani Leather Equestrian Brand For North America";
 export const heroExploreLabel = "Shop Collection";

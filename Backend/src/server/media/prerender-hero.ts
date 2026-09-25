@@ -1,58 +1,131 @@
+/**
+ * Hero cutout: a clip of the subject on a plain backdrop becomes a looping stacked-alpha
+ * H.264 pair (desktop + mobile) and a WebP poster of the loop's first frame.
+ *
+ * Stacked alpha: the top half of every frame is colour (straight, spread past the edges),
+ * the bottom half the matte as grey. The storefront recombines the halves in a WebGL
+ * shader, so every browser (iOS Safari included) plays it on the hardware decoder with no
+ * per-frame CPU work.
+ *
+ * Pass 1 decodes a small copy of the clip to find the backdrop, the frames with the subject
+ * fully in shot, the loop and the crop. Pass 2 mattes the frames the loop uses at working
+ * size, then one ffmpeg encodes both sizes from the composed loop.
+ */
 import { spawn } from "node:child_process";
-import { createWriteStream } from "node:fs";
-import { mkdir, mkdtemp, readdir, rm } from "node:fs/promises";
+import { randomBytes } from "node:crypto";
+import { once } from "node:events";
+import { type FileHandle, mkdir, open, rename, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
 import sharp from "sharp";
 
-import { ffmpegBinary, ffprobeBinary } from "@/server/media/ffmpeg-bin";
+import { ffmpegBinary, ffprobeBinary, runMediaTool } from "@/server/media/ffmpeg-bin";
+import { type FrameMix, type LoopPlan, planFrames, planLoop, planSources } from "@/server/media/hero-loop";
 import {
-  createHeroKeyBuffers,
-  type HeroKeyBox,
-  type HeroKeyQuality,
-  type HeroRgbaFrame,
-  keyHeroFrame,
-} from "@/server/media/hero-key";
+  combinePlates,
+  computeMatte,
+  createMatteBuffers,
+  defaultMatteParams,
+  estimatePlate,
+  type MatteBox,
+  type PlateEstimate,
+} from "@/server/media/hero-matte";
 
-const DEFAULT_START_SEC = 3.6;
-const DESKTOP_WIDTH = 720;
-const MOBILE_WIDTH = 480;
-const CROSSFADE_FRAMES = 10;
-const JOB_TIMEOUT_MS = 120_000;
-const CRF = 25;
+/** Only the opening seconds of an upload are searched for a loop. */
+const ANALYSIS_SECONDS = 12;
+const ANALYSIS_PIXELS = 40_000;
+/** Desktop colour-half cap; stacked it stays inside H.264 level 4.2 (8704 macroblocks). */
+const WORK_MAX_WIDTH = 1920;
+const WORK_MAX_HEIGHT = 1080;
+const WORK_MAX_PIXELS = 1_050_000;
+const SD_SCALE = 0.75;
+const HD_CRF = 21;
+const SD_CRF = 23;
+const MAX_FPS = 30;
+const THUMB_WIDTH = 32;
+/** Fade band, as a share of the frame width, where the subject leaves a side or the top. */
+const EDGE_FEATHER = 0.03;
+/** Colour is spread this many pixels past the silhouette (below this alpha it's rebuilt). */
+const BLEED_RADIUS = 12;
+const BLEED_MIN_ALPHA = 24;
+/** Loop source frames above this size are kept in a temp file instead of memory. */
+const MEMORY_FRAME_BUDGET = 192 * 1024 * 1024;
+const JOB_TIMEOUT_MS = 110_000;
 
-const KEY_QUALITY: Omit<HeroKeyQuality, "workWidth"> = {
-  intervalMs: 0,
-  fringePasses: 3,
-  healPasses: 3,
-  despill: true,
-};
+/** The storefront recognises stacked-alpha files by these suffixes. */
+export const HERO_ALPHA_SUFFIX = {
+  hd: "-alpha-hd.mp4",
+  sd: "-alpha-sd.mp4",
+  poster: "-alpha-poster.webp",
+} as const;
+
+export function isStackedAlphaVideoName(name: string): boolean {
+  return /-alpha-(hd|sd)\.mp4$/i.test(name);
+}
+
+/** The clip can't be turned into a cutout; the message is meant for the admin. */
+export class HeroVideoError extends Error {
+  override name = "HeroVideoError";
+}
 
 export type PrerenderHeroInput = {
   inputPath: string;
   outputDir: string;
   basename: string;
-  startSec?: number;
-  /** Defaults to outputDir. Poster filename: `${basename}-poster.webp`. */
+  /** Defaults to outputDir. */
   posterDir?: string;
+  signal?: AbortSignal;
 };
 
 export type PrerenderHeroResult = {
   src: string;
   mobileSrc: string;
   posterSrc: string;
-};
-
-type RgbaFrame = {
-  data: Uint8ClampedArray;
   width: number;
   height: number;
+  fps: number;
+  frames: number;
+  plan: LoopPlan;
 };
 
-/** Serialize hero prerender jobs — one at a time. */
+type Size = { width: number; height: number };
+type Rect = Size & { x: number; y: number };
+
+type SourceInfo = Size & {
+  fps: number;
+  /** Frame rate handed to the encoder, as ffprobe reports it (keeps 24000/1001 exact). */
+  rate: string;
+  rateFilter: string | null;
+  colorMatrix: string;
+  colorRange: string;
+};
+
+type ProbeStream = {
+  width?: number;
+  height?: number;
+  r_frame_rate?: string;
+  avg_frame_rate?: string;
+  color_space?: string;
+  color_range?: string;
+  tags?: { rotate?: string };
+  side_data_list?: Array<{ rotation?: number }>;
+};
+
+/** swscale names for the matrices ffprobe reports. */
+const COLOR_MATRIX: Record<string, string> = {
+  bt709: "bt709",
+  smpte170m: "smpte170m",
+  bt470bg: "bt470",
+  bt2020nc: "bt2020",
+  bt2020c: "bt2020",
+  smpte240m: "smpte240m",
+  fcc: "fcc",
+};
+
 let jobTail: Promise<unknown> = Promise.resolve();
 
+/** One render at a time: each holds a few hundred MB and all cores for a while. */
 function enqueueJob<T>(fn: () => Promise<T>): Promise<T> {
   const run = jobTail.then(fn, fn);
   jobTail = run.then(
@@ -62,104 +135,239 @@ function enqueueJob<T>(fn: () => Promise<T>): Promise<T> {
   return run;
 }
 
-function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(new Error(`${label} timed out after ${ms}ms`));
-    }, ms);
-    promise.then(
-      (value) => {
-        clearTimeout(timer);
-        resolve(value);
-      },
-      (error: unknown) => {
-        clearTimeout(timer);
-        reject(error);
-      },
-    );
-  });
+function even(value: number): number {
+  return Math.max(2, 2 * Math.round(value / 2));
 }
 
-function runProcess(bin: string, args: readonly string[], label: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const child = spawn(bin, [...args], {
-      windowsHide: true,
-      stdio: ["ignore", "ignore", "pipe"],
-    });
-    let stderr = "";
-    child.stderr?.on("data", (chunk: Buffer) => {
-      stderr += chunk.toString("utf8");
-      if (stderr.length > 8_000) {
-        stderr = stderr.slice(-8_000);
-      }
-    });
-    child.on("error", reject);
-    child.on("close", (code) => {
-      if (code === 0) {
-        resolve();
-        return;
-      }
-      reject(new Error(`${label} exited ${code}: ${stderr.trim() || "no stderr"}`));
-    });
-  });
+function parseRate(value: string | undefined): number {
+  const match = /^(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)$/.exec(value?.trim() ?? "");
+  const rate = match ? Number(match[1]) / Number(match[2]) : Number(value);
+  return Number.isFinite(rate) && rate > 0 && rate < 1000 ? rate : 0;
 }
 
-async function probeFps(inputPath: string): Promise<number> {
+async function probeSource(inputPath: string, signal: AbortSignal): Promise<SourceInfo> {
+  const stdout = await runMediaTool(
+    ffprobeBinary(),
+    ["-v", "error", "-select_streams", "v:0", "-show_streams", "-of", "json", inputPath],
+    { label: "ffprobe", signal, captureStdout: true },
+  );
+  let stream: ProbeStream | undefined;
+  try {
+    stream = (JSON.parse(stdout) as { streams?: ProbeStream[] }).streams?.[0];
+  } catch {
+    stream = undefined;
+  }
+  if (!stream?.width || !stream.height) {
+    throw new HeroVideoError("That file has no readable video track.");
+  }
+  const rotation = Number(
+    stream.side_data_list?.find((entry) => entry.rotation !== undefined)?.rotation ?? stream.tags?.rotate ?? 0,
+  );
+  const sideways = Math.abs(Math.round(rotation / 90)) % 2 === 1;
+  const reported = parseRate(stream.avg_frame_rate) ? stream.avg_frame_rate : stream.r_frame_rate;
+  const sourceFps = parseRate(reported) || 30;
+  const capped = sourceFps > MAX_FPS + 0.5;
+  return {
+    width: sideways ? stream.height : stream.width,
+    height: sideways ? stream.width : stream.height,
+    fps: capped ? MAX_FPS : sourceFps,
+    rate: capped ? String(MAX_FPS) : reported?.trim() || "30",
+    rateFilter: capped ? `fps=${MAX_FPS}` : null,
+    colorMatrix: COLOR_MATRIX[stream.color_space ?? ""] ?? "bt709",
+    colorRange: stream.color_range === "pc" ? "pc" : "tv",
+  };
+}
+
+function workingSize(source: Size): Size {
+  const scale = Math.min(
+    1,
+    WORK_MAX_WIDTH / source.width,
+    WORK_MAX_HEIGHT / source.height,
+    Math.sqrt(WORK_MAX_PIXELS / (source.width * source.height)),
+  );
+  return { width: even(source.width * scale), height: even(source.height * scale) };
+}
+
+function analysisSize(work: Size): Size {
+  const scale = Math.min(1, Math.sqrt(ANALYSIS_PIXELS / (work.width * work.height)));
+  return { width: even(work.width * scale), height: even(work.height * scale) };
+}
+
+/** Decodes the opening of the clip as RGB frames of `size`, one Buffer per frame. */
+async function* decodeFrames(inputPath: string, info: SourceInfo, size: Size, signal: AbortSignal): AsyncGenerator<Buffer> {
+  const scale = [
+    `scale=${size.width}:${size.height}`,
+    "flags=lanczos+accurate_rnd+full_chroma_int",
+    `in_color_matrix=${info.colorMatrix}`,
+    `in_range=${info.colorRange}`,
+  ].join(":");
+  const filter = info.rateFilter ? `${info.rateFilter},${scale}` : scale;
   const args = [
-    "-v",
-    "error",
-    "-select_streams",
-    "v:0",
-    "-show_entries",
-    "stream=r_frame_rate",
-    "-of",
-    "default=noprint_wrappers=1:nokey=1",
-    inputPath,
+    "-v", "error", "-nostdin", "-i", inputPath, "-t", String(ANALYSIS_SECONDS),
+    "-map", "0:v:0", "-an", "-sn", "-dn", "-fps_mode", "passthrough",
+    "-vf", filter, "-f", "rawvideo", "-pix_fmt", "rgb24", "pipe:1",
   ];
-  const raw = await new Promise<string>((resolve, reject) => {
-    const child = spawn(ffprobeBinary(), args, {
-      windowsHide: true,
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-    let stdout = "";
-    let stderr = "";
-    child.stdout?.on("data", (chunk: Buffer) => {
-      stdout += chunk.toString("utf8");
-    });
-    child.stderr?.on("data", (chunk: Buffer) => {
-      stderr += chunk.toString("utf8");
-    });
-    child.on("error", reject);
-    child.on("close", (code) => {
-      if (code !== 0) {
-        reject(new Error(`ffprobe failed: ${stderr.trim() || `exit ${code}`}`));
-        return;
-      }
-      resolve(stdout.trim());
-    });
+  const child = spawn(ffmpegBinary(), args, { windowsHide: true, stdio: ["ignore", "pipe", "pipe"], signal });
+  let stderr = "";
+  child.stderr.on("data", (chunk: Buffer) => {
+    stderr = (stderr + chunk.toString("utf8")).slice(-4_000);
   });
-  const match = /^(\d+)\s*\/\s*(\d+)$/.exec(raw);
-  if (match) {
-    const num = Number(match[1]);
-    const den = Number(match[2]);
-    if (den > 0 && Number.isFinite(num / den) && num / den > 0) {
-      return num / den;
+  let spawnError: Error | null = null;
+  const closed = new Promise<number | null>((resolve) => {
+    child.once("error", (error) => {
+      spawnError = error;
+      resolve(null);
+    });
+    child.once("close", resolve);
+  });
+
+  const frameBytes = size.width * size.height * 3;
+  let frame = Buffer.allocUnsafe(frameBytes);
+  let filled = 0;
+  let exited = false;
+  try {
+    for await (const chunk of child.stdout as AsyncIterable<Buffer>) {
+      let offset = 0;
+      while (offset < chunk.length) {
+        const take = Math.min(frameBytes - filled, chunk.length - offset);
+        chunk.copy(frame, filled, offset, offset + take);
+        filled += take;
+        offset += take;
+        if (filled === frameBytes) {
+          yield frame;
+          frame = Buffer.allocUnsafe(frameBytes);
+          filled = 0;
+        }
+      }
+    }
+    const code = await closed;
+    exited = true;
+    signal.throwIfAborted();
+    if (code !== 0) {
+      const reason = stderr.trim() || (spawnError as Error | null)?.message || "no stderr";
+      throw new Error(`ffmpeg decode exited ${code}: ${reason}`);
+    }
+  } finally {
+    if (!exited) {
+      child.kill("SIGKILL");
     }
   }
-  const asFloat = Number(raw);
-  if (Number.isFinite(asFloat) && asFloat > 0) {
-    return asFloat;
+}
+
+type Encoder = {
+  write(frame: Buffer): Promise<void>;
+  finish(): Promise<void>;
+  abort(): void;
+};
+
+function startEncoder(args: readonly string[], signal: AbortSignal): Encoder {
+  const child = spawn(ffmpegBinary(), [...args], { windowsHide: true, stdio: ["pipe", "ignore", "pipe"], signal });
+  let stderr = "";
+  child.stderr.on("data", (chunk: Buffer) => {
+    stderr = (stderr + chunk.toString("utf8")).slice(-4_000);
+  });
+  const closed = new Promise<number | null>((resolve) => {
+    child.once("error", () => resolve(null));
+    child.once("close", resolve);
+  });
+  const failure = () => new Error(`ffmpeg encode exited early: ${stderr.trim() || "no stderr"}`);
+  const stdin = child.stdin;
+  stdin.on("error", () => undefined);
+  return {
+    async write(frame) {
+      if (child.exitCode !== null || stdin.destroyed) {
+        throw failure();
+      }
+      if (!stdin.write(frame)) {
+        const early = closed.then(() => {
+          throw failure();
+        });
+        early.catch(() => undefined);
+        await Promise.race([once(stdin, "drain"), early]);
+      }
+    },
+    async finish() {
+      stdin.end();
+      const code = await closed;
+      signal.throwIfAborted();
+      if (code !== 0) {
+        throw new Error(`ffmpeg encode exited ${code}: ${stderr.trim() || "no stderr"}`);
+      }
+    },
+    abort() {
+      child.kill("SIGKILL");
+    },
+  };
+}
+
+function encoderArgs(color: Size, sd: Size, rate: string, gop: number, hdPath: string, sdPath: string): string[] {
+  // Mobile halves are scaled separately so the filter never mixes colour and matte rows.
+  const graph = [
+    "[0:v]split=3[hd][c][a]",
+    `[c]crop=${color.width}:${color.height}:0:0,scale=${sd.width}:${sd.height}:flags=lanczos[sc]`,
+    `[a]crop=${color.width}:${color.height}:0:${color.height},scale=${sd.width}:${sd.height}:flags=lanczos[sa]`,
+    "[sc][sa]vstack=inputs=2[sd]",
+    "[hd]scale=out_color_matrix=bt709:out_range=tv,format=yuv420p[hdv]",
+    "[sd]scale=out_color_matrix=bt709:out_range=tv,format=yuv420p[sdv]",
+  ].join(";");
+  const encode = (crf: number) => [
+    "-c:v", "libx264", "-preset", "slow", "-profile:v", "high", "-crf", String(crf),
+    "-g", String(gop), "-rc-lookahead", "20",
+    "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv",
+    "-movflags", "+faststart", "-an", "-f", "mp4",
+  ];
+  return [
+    "-v", "error", "-y",
+    "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", `${color.width}x${color.height * 2}`, "-r", rate, "-i", "pipe:0",
+    "-filter_complex", graph,
+    "-map", "[hdv]", ...encode(HD_CRF), hdPath,
+    "-map", "[sdv]", ...encode(SD_CRF), sdPath,
+  ];
+}
+
+/** Coarse alpha + luma fingerprint used to compare poses between frames. */
+function thumbnail(alpha: Uint8Array, premul: Uint8Array, size: Size, thumb: Size): Uint8Array {
+  const out = new Uint8Array(thumb.width * thumb.height * 2);
+  for (let ty = 0; ty < thumb.height; ty += 1) {
+    const y0 = Math.floor((ty * size.height) / thumb.height);
+    const y1 = Math.max(y0 + 1, Math.floor(((ty + 1) * size.height) / thumb.height));
+    for (let tx = 0; tx < thumb.width; tx += 1) {
+      const x0 = Math.floor((tx * size.width) / thumb.width);
+      const x1 = Math.max(x0 + 1, Math.floor(((tx + 1) * size.width) / thumb.width));
+      let alphaSum = 0;
+      let lumaSum = 0;
+      for (let y = y0; y < y1; y += 1) {
+        for (let x = x0; x < x1; x += 1) {
+          const p = y * size.width + x;
+          const i = p * 3;
+          alphaSum += alpha[p] ?? 0;
+          lumaSum += 0.299 * (premul[i] ?? 0) + 0.587 * (premul[i + 1] ?? 0) + 0.114 * (premul[i + 2] ?? 0);
+        }
+      }
+      const count = (y1 - y0) * (x1 - x0);
+      const o = (ty * thumb.width + tx) * 2;
+      out[o] = Math.round(alphaSum / count);
+      out[o + 1] = Math.round(lumaSum / count);
+    }
   }
-  return 30;
+  return out;
 }
 
-function even(n: number): number {
-  const v = Math.max(2, Math.round(n));
-  return v % 2 === 0 ? v : v + 1;
+function thumbDistance(a: Uint8Array | undefined, b: Uint8Array | undefined): number {
+  if (!a || !b || a.length !== b.length || a.length === 0) {
+    return Number.POSITIVE_INFINITY;
+  }
+  let sum = 0;
+  for (let i = 0; i < a.length; i += 2) {
+    sum += Math.abs((a[i] ?? 0) - (b[i] ?? 0)) + 0.5 * Math.abs((a[i + 1] ?? 0) - (b[i + 1] ?? 0));
+  }
+  return sum / (a.length / 2);
 }
 
-function unionBox(a: HeroKeyBox | null, b: HeroKeyBox): HeroKeyBox {
-  if (!a) return b;
+function unionBox(a: MatteBox | null, b: MatteBox | null): MatteBox | null {
+  if (!a || !b) {
+    return a ?? b;
+  }
   return {
     minX: Math.min(a.minX, b.minX),
     minY: Math.min(a.minY, b.minY),
@@ -168,342 +376,448 @@ function unionBox(a: HeroKeyBox | null, b: HeroKeyBox): HeroKeyBox {
   };
 }
 
+function evenSpan(start: number, end: number, limit: number): [number, number] {
+  if ((end - start) % 2 === 0) {
+    return [start, end];
+  }
+  if (end < limit) {
+    return [start, end + 1];
+  }
+  return start > 0 ? [start - 1, end] : [start, end - 1];
+}
+
+/** Maps an analysis-frame box to a padded, even-sized crop of the working frame. */
+function cropRect(box: MatteBox, from: Size, to: Size): Rect {
+  const sx = to.width / from.width;
+  const sy = to.height / from.height;
+  const pad = Math.round(Math.max(to.width, to.height) * 0.02) + Math.ceil(Math.max(sx, sy));
+  const [x0, x1] = evenSpan(
+    Math.max(0, Math.floor(box.minX * sx) - pad),
+    Math.min(to.width, Math.ceil((box.maxX + 1) * sx) + pad),
+    to.width,
+  );
+  const [y0, y1] = evenSpan(
+    Math.max(0, Math.floor(box.minY * sy) - pad),
+    Math.min(to.height, Math.ceil((box.maxY + 1) * sy) + pad),
+    to.height,
+  );
+  return { x: x0, y: y0, width: x1 - x0, height: y1 - y0 };
+}
+
+/**
+ * Where the subject runs off the left, right or top of the source frame, fade it out over a
+ * short band instead of ending on a hard straight cut. The bottom stays solid: it tucks
+ * under the hero ribbon.
+ */
+function featherFrameEdges(alpha: Uint8Array, premul: Uint8Array, size: Size, requestedBand: number): void {
+  const { width: w, height: h } = size;
+  const band = Math.max(1, Math.min(requestedBand, Math.floor(w / 4), Math.floor(h / 4)));
+  const fade = (distance: number) => {
+    const t = Math.min(1, (distance + 0.5) / band);
+    return t * t * (3 - 2 * t);
+  };
+  const apply = (p: number, factor: number) => {
+    const a = alpha[p] ?? 0;
+    if (factor >= 1 || a === 0) return;
+    alpha[p] = Math.round(a * factor);
+    const i = p * 3;
+    premul[i] = Math.round((premul[i] ?? 0) * factor);
+    premul[i + 1] = Math.round((premul[i + 1] ?? 0) * factor);
+    premul[i + 2] = Math.round((premul[i + 2] ?? 0) * factor);
+  };
+  for (let y = 0; y < h; y += 1) {
+    const row = y * w;
+    if (y < band) {
+      const top = fade(y);
+      for (let x = 0; x < w; x += 1) {
+        apply(row + x, Math.min(top, fade(x), fade(w - 1 - x)));
+      }
+      continue;
+    }
+    for (let x = 0; x < band; x += 1) {
+      const factor = fade(x);
+      apply(row + x, factor);
+      apply(row + w - 1 - x, factor);
+    }
+  }
+}
+
+/** Crop → stacked frame: premultiplied colour on top, matte as grey below. */
+function stackFrame(premul: Uint8Array, alpha: Uint8Array, stride: number, crop: Rect): Buffer {
+  const rowBytes = crop.width * 3;
+  const out = Buffer.allocUnsafe(rowBytes * crop.height * 2);
+  const half = rowBytes * crop.height;
+  for (let y = 0; y < crop.height; y += 1) {
+    const rowStart = (crop.y + y) * stride + crop.x;
+    out.set(premul.subarray(rowStart * 3, rowStart * 3 + rowBytes), y * rowBytes);
+    let o = half + y * rowBytes;
+    for (let x = 0; x < crop.width; x += 1) {
+      const a = alpha[rowStart + x] ?? 0;
+      out[o] = a;
+      out[o + 1] = a;
+      out[o + 2] = a;
+      o += 3;
+    }
+  }
+  return out;
+}
+
+/** The loop's matted source frames, in memory or (when large) in a temp file. */
+class FrameStore {
+  private readonly memory = new Map<number, Buffer>();
+  private readonly offsets = new Map<number, number>();
+  private recent: Array<{ index: number; frame: Buffer }> = [];
+  private file: FileHandle | null = null;
+  private filePath: string | null = null;
+  private size = 0;
+
+  constructor(
+    private readonly frameBytes: number,
+    private readonly onDisk: boolean,
+  ) {}
+
+  async put(index: number, frame: Buffer): Promise<void> {
+    if (!this.onDisk) {
+      this.memory.set(index, frame);
+      return;
+    }
+    if (!this.file) {
+      this.filePath = path.join(os.tmpdir(), `oakrein-hero-${process.pid}-${randomBytes(4).toString("hex")}.raw`);
+      this.file = await open(this.filePath, "w+");
+    }
+    await this.file.write(frame, 0, frame.length, this.size);
+    this.offsets.set(index, this.size);
+    this.size += frame.length;
+  }
+
+  async get(index: number): Promise<Buffer> {
+    const held = this.memory.get(index) ?? this.recent.find((entry) => entry.index === index)?.frame;
+    if (held) {
+      return held;
+    }
+    const offset = this.offsets.get(index);
+    if (offset === undefined || !this.file) {
+      throw new Error(`Hero source frame ${index} was not rendered`);
+    }
+    const frame = Buffer.allocUnsafe(this.frameBytes);
+    await this.file.read(frame, 0, this.frameBytes, offset);
+    this.recent = [{ index, frame }, ...this.recent].slice(0, 3);
+    return frame;
+  }
+
+  async dispose(): Promise<void> {
+    await this.file?.close();
+    if (this.filePath) {
+      await rm(this.filePath, { force: true });
+    }
+  }
+}
+
+/** Weighted mix of stacked frames. Linear mixing is exact for premultiplied colour + matte. */
+async function composeFrame(mix: FrameMix, store: FrameStore): Promise<Buffer> {
+  const [head, second] = mix;
+  if (!head) {
+    throw new Error("Empty hero loop frame");
+  }
+  const a = await store.get(head.source);
+  if (!second) {
+    return a;
+  }
+  const b = await store.get(second.source);
+  const out = Buffer.allocUnsafe(a.length);
+  const wa = head.weight;
+  const wb = second.weight;
+  for (let i = 0; i < a.length; i += 1) {
+    out[i] = Math.round((a[i] ?? 0) * wa + (b[i] ?? 0) * wb);
+  }
+  return out;
+}
+
+type BleedScratch = { known: Uint8Array; queue: Int32Array };
+
+/**
+ * Premultiplied stacked frame in, encoder frame out. The colour half is un-premultiplied
+ * and spread a few pixels past the silhouette: the two halves are compressed separately,
+ * so their edges blur differently, and a colour half that drops to black at the edge would
+ * come back as a dark or bright rim once the player recombines them.
+ */
+function toEncodedFrame(stacked: Buffer, size: Size, scratch: BleedScratch): Buffer {
+  const { width: w, height: h } = size;
+  const n = w * h;
+  const half = n * 3;
+  const { known, queue } = scratch;
+  const out = Buffer.allocUnsafe(stacked.length);
+  stacked.copy(out, half, half);
+
+  let sumR = 0;
+  let sumG = 0;
+  let sumB = 0;
+  let solid = 0;
+  for (let p = 0; p < n; p += 1) {
+    const a = stacked[half + p * 3] ?? 0;
+    const i = p * 3;
+    if (a < BLEED_MIN_ALPHA) {
+      known[p] = 0;
+      continue;
+    }
+    const unmix = 255 / a;
+    const r = Math.min(255, Math.round((stacked[i] ?? 0) * unmix));
+    const g = Math.min(255, Math.round((stacked[i + 1] ?? 0) * unmix));
+    const b = Math.min(255, Math.round((stacked[i + 2] ?? 0) * unmix));
+    out[i] = r;
+    out[i + 1] = g;
+    out[i + 2] = b;
+    known[p] = 1;
+    sumR += r;
+    sumG += g;
+    sumB += b;
+    solid += 1;
+  }
+
+  let tail = 0;
+  const isUnknown = (q: number) => known[q] === 0;
+  for (let p = 0; p < n; p += 1) {
+    if (known[p] !== 1) continue;
+    const x = p % w;
+    if ((x > 0 && isUnknown(p - 1)) || (x < w - 1 && isUnknown(p + 1)) || (p >= w && isUnknown(p - w)) || (p < n - w && isUnknown(p + w))) {
+      queue[tail++] = p;
+    }
+  }
+  let head = 0;
+  for (let layer = 0; layer < BLEED_RADIUS && head < tail; layer += 1) {
+    const layerEnd = tail;
+    for (; head < layerEnd; head += 1) {
+      const p = queue[head] ?? 0;
+      const x = p % w;
+      const claim = (q: number) => {
+        if (known[q] === 0) {
+          known[q] = 2;
+          queue[tail++] = q;
+        }
+      };
+      if (x > 0) claim(p - 1);
+      if (x < w - 1) claim(p + 1);
+      if (p >= w) claim(p - w);
+      if (p < n - w) claim(p + w);
+    }
+    for (let k = layerEnd; k < tail; k += 1) {
+      const q = queue[k] ?? 0;
+      const x = q % w;
+      let r = 0;
+      let g = 0;
+      let b = 0;
+      let count = 0;
+      const take = (s: number) => {
+        if (known[s] !== 1) return;
+        r += out[s * 3] ?? 0;
+        g += out[s * 3 + 1] ?? 0;
+        b += out[s * 3 + 2] ?? 0;
+        count += 1;
+      };
+      if (x > 0) take(q - 1);
+      if (x < w - 1) take(q + 1);
+      if (q >= w) take(q - w);
+      if (q < n - w) take(q + w);
+      const i = q * 3;
+      out[i] = Math.round(r / Math.max(1, count));
+      out[i + 1] = Math.round(g / Math.max(1, count));
+      out[i + 2] = Math.round(b / Math.max(1, count));
+    }
+    for (let k = layerEnd; k < tail; k += 1) {
+      known[queue[k] ?? 0] = 1;
+    }
+  }
+
+  const fillR = solid > 0 ? Math.round(sumR / solid) : 0;
+  const fillG = solid > 0 ? Math.round(sumG / solid) : 0;
+  const fillB = solid > 0 ? Math.round(sumB / solid) : 0;
+  for (let p = 0; p < n; p += 1) {
+    if (known[p] !== 0) continue;
+    const i = p * 3;
+    out[i] = fillR;
+    out[i + 1] = fillG;
+    out[i + 2] = fillB;
+  }
+  return out;
+}
+
+async function posterWebp(encoded: Buffer, size: Size): Promise<Buffer> {
+  const pixels = size.width * size.height;
+  const half = pixels * 3;
+  const rgba = Buffer.alloc(pixels * 4);
+  for (let p = 0; p < pixels; p += 1) {
+    const i = p * 3;
+    const o = p * 4;
+    rgba[o] = encoded[i] ?? 0;
+    rgba[o + 1] = encoded[i + 1] ?? 0;
+    rgba[o + 2] = encoded[i + 2] ?? 0;
+    rgba[o + 3] = encoded[half + i] ?? 0;
+  }
+  return sharp(rgba, { raw: { width: size.width, height: size.height, channels: 4 } })
+    .webp({ quality: 86, alphaQuality: 100, effort: 6, smartSubsample: true })
+    .toBuffer();
+}
+
 function publicUrlFor(dir: string, filename: string, kind: "video" | "poster"): string {
   const normalized = path.resolve(dir).replace(/\\/g, "/").toLowerCase();
   if (normalized.includes("/uploads")) {
     return `/uploads/${filename}`;
   }
-  if (kind === "poster") {
-    return `/assets/images/${filename}`;
-  }
-  return `/assets/videos/${filename}`;
+  return kind === "poster" ? `/assets/images/${filename}` : `/assets/videos/${filename}`;
 }
 
-async function extractPngFrames(inputPath: string, outDir: string, workWidth: number, startSec: number): Promise<string[]> {
-  await mkdir(outDir, { recursive: true });
-  const pattern = path.join(outDir, "frame_%05d.png");
-  await runProcess(
-    ffmpegBinary(),
-    [
-      "-y",
-      "-ss",
-      String(startSec),
-      "-i",
-      inputPath,
-      "-vf",
-      `scale=${workWidth}:-2`,
-      "-an",
-      pattern,
-    ],
-    "ffmpeg extract",
-  );
-  const names = (await readdir(outDir))
-    .filter((name) => name.startsWith("frame_") && name.endsWith(".png"))
-    .sort();
-  return names.map((name) => path.join(outDir, name));
-}
+async function prerenderOnce(input: PrerenderHeroInput, signal: AbortSignal): Promise<PrerenderHeroResult> {
+  const info = await probeSource(input.inputPath, signal);
+  const work = workingSize(info);
+  const low = analysisSize(work);
 
-async function loadRgba(filePath: string): Promise<RgbaFrame> {
-  const { data, info } = await sharp(filePath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-  return {
-    data: new Uint8ClampedArray(data.buffer, data.byteOffset, data.byteLength),
-    width: info.width,
-    height: info.height,
-  };
-}
-
-function cropToStacked(frame: RgbaFrame, box: HeroKeyBox): Buffer {
-  const cropW = even(box.maxX - box.minX + 1);
-  const cropH = even(box.maxY - box.minY + 1);
-  const stackedH = cropH * 2;
-  const out = Buffer.alloc(cropW * stackedH * 3);
-
-  for (let y = 0; y < cropH; y += 1) {
-    const srcY = box.minY + y;
-    for (let x = 0; x < cropW; x += 1) {
-      const srcX = box.minX + x;
-      const srcI = (srcY * frame.width + srcX) * 4;
-      const r = frame.data[srcI] ?? 0;
-      const g = frame.data[srcI + 1] ?? 0;
-      const b = frame.data[srcI + 2] ?? 0;
-      const a = frame.data[srcI + 3] ?? 0;
-
-      const topI = (y * cropW + x) * 3;
-      if (a === 0) {
-        out[topI] = 0;
-        out[topI + 1] = 0;
-        out[topI + 2] = 0;
-      } else if (a === 255) {
-        out[topI] = r;
-        out[topI + 1] = g;
-        out[topI + 2] = b;
-      } else {
-        const t = a / 255;
-        out[topI] = Math.round(r * t);
-        out[topI + 1] = Math.round(g * t);
-        out[topI + 2] = Math.round(b * t);
-      }
-
-      const botI = ((cropH + y) * cropW + x) * 3;
-      out[botI] = a;
-      out[botI + 1] = a;
-      out[botI + 2] = a;
-    }
+  const lowFrames: Buffer[] = [];
+  for await (const frame of decodeFrames(input.inputPath, info, low, signal)) {
+    lowFrames.push(frame);
   }
-  return out;
-}
-
-function blendStacked(a: Buffer, b: Buffer, t: number): Buffer {
-  const out = Buffer.alloc(a.length);
-  const u = 1 - t;
-  for (let i = 0; i < a.length; i += 1) {
-    out[i] = Math.round((a[i] ?? 0) * u + (b[i] ?? 0) * t);
+  if (lowFrames.length < Math.max(24, Math.round(info.fps * 2))) {
+    throw new HeroVideoError("The hero clip is too short. Use at least 2 seconds of footage.");
   }
-  return out;
-}
 
-function applyLoopCrossfade(frames: Buffer[]): Buffer[] {
-  if (frames.length < CROSSFADE_FRAMES * 2 + 2) {
-    return frames;
-  }
-  const n = CROSSFADE_FRAMES;
-  const out = frames.slice();
-  for (let i = 0; i < n; i += 1) {
-    const t = (i + 1) / (n + 1);
-    const fromEnd = frames[frames.length - n + i];
-    const fromStart = frames[i];
-    if (!fromEnd || !fromStart) continue;
-    // Seam: early frames fade from end-of-loop into start-of-loop.
-    out[i] = blendStacked(fromEnd, fromStart, t);
-  }
-  return out.slice(0, frames.length - n);
-}
-
-async function encodeStackedVideo(
-  frames: Buffer[],
-  width: number,
-  height: number,
-  fps: number,
-  outputPath: string,
-): Promise<void> {
-  const rawPath = `${outputPath}.raw`;
-  const stream = createWriteStream(rawPath);
-  for (const frame of frames) {
-    if (!stream.write(frame)) {
-      await new Promise<void>((resolve) => stream.once("drain", resolve));
-    }
-  }
-  await new Promise<void>((resolve, reject) => {
-    stream.end(() => resolve());
-    stream.on("error", reject);
-  });
-
-  try {
-    await runProcess(
-      ffmpegBinary(),
-      [
-        "-y",
-        "-f",
-        "rawvideo",
-        "-pix_fmt",
-        "rgb24",
-        "-s",
-        `${width}x${height}`,
-        "-r",
-        String(fps),
-        "-i",
-        rawPath,
-        "-an",
-        "-c:v",
-        "libx264",
-        "-pix_fmt",
-        "yuv420p",
-        "-crf",
-        String(CRF),
-        "-preset",
-        "medium",
-        "-movflags",
-        "+faststart",
-        outputPath,
-      ],
-      "ffmpeg encode",
+  const estimates = lowFrames
+    .map((frame) => estimatePlate(frame, low.width, low.height))
+    .filter((estimate): estimate is PlateEstimate => estimate !== null);
+  const plate = estimates.length >= lowFrames.length / 2 ? combinePlates(estimates) : null;
+  if (!plate) {
+    throw new HeroVideoError(
+      "The hero clip needs a plain, evenly lit background (a white studio backdrop works best).",
     );
-  } finally {
-    await rm(rawPath, { force: true });
   }
-}
 
-async function scaleStackedFrames(frames: Buffer[], srcW: number, srcH: number, dstW: number): Promise<{ frames: Buffer[]; width: number; height: number }> {
-  const scale = dstW / srcW;
-  const dstH = even(srcH * scale);
-  const outW = even(dstW);
-  const out: Buffer[] = [];
-  for (const frame of frames) {
-    const scaled = await sharp(frame, {
-      raw: { width: srcW, height: srcH, channels: 3 },
-    })
-      .resize(outW, dstH, { fit: "fill" })
-      .raw()
-      .toBuffer();
-    out.push(scaled);
+  const lowParams = defaultMatteParams(low.width, low.height, plate);
+  const lowBuffers = createMatteBuffers(low.width, low.height);
+  const lowAlpha = new Uint8Array(low.width * low.height);
+  const lowPremul = new Uint8Array(low.width * low.height * 3);
+  const thumbSize = { width: THUMB_WIDTH, height: Math.max(8, Math.round((THUMB_WIDTH * low.height) / low.width)) };
+  const boxes: Array<MatteBox | null> = [];
+  const usable: boolean[] = [];
+  const thumbs: Uint8Array[] = [];
+  for (const frame of lowFrames) {
+    const stats = computeMatte(frame, plate, lowParams, lowBuffers, lowAlpha, lowPremul);
+    boxes.push(stats.box);
+    usable.push(!stats.clipped && stats.coverage > 0.01 && stats.coverage < 0.9);
+    thumbs.push(thumbnail(lowAlpha, lowPremul, low, thumbSize));
   }
-  return { frames: out, width: outW, height: dstH };
-}
+  const frameCount = lowFrames.length;
+  lowFrames.length = 0;
 
-async function writePoster(firstKeyed: RgbaFrame, box: HeroKeyBox, posterPath: string): Promise<void> {
-  const cropW = box.maxX - box.minX + 1;
-  const cropH = box.maxY - box.minY + 1;
-  const rgba = Buffer.alloc(cropW * cropH * 4);
-  for (let y = 0; y < cropH; y += 1) {
-    for (let x = 0; x < cropW; x += 1) {
-      const srcI = ((box.minY + y) * firstKeyed.width + (box.minX + x)) * 4;
-      const dstI = (y * cropW + x) * 4;
-      rgba[dstI] = firstKeyed.data[srcI] ?? 0;
-      rgba[dstI + 1] = firstKeyed.data[srcI + 1] ?? 0;
-      rgba[dstI + 2] = firstKeyed.data[srcI + 2] ?? 0;
-      rgba[dstI + 3] = firstKeyed.data[srcI + 3] ?? 0;
-    }
+  const plan = planLoop({
+    frameCount,
+    fps: info.fps,
+    usable,
+    distance: (a, b) => thumbDistance(thumbs[a], thumbs[b]),
+    crossfade: Math.min(12, Math.max(4, Math.round(info.fps * 0.3))),
+  });
+  const sources = planSources(plan);
+  const mixes = planFrames(plan);
+
+  let union: MatteBox | null = null;
+  for (let k = sources.first; k <= sources.last; k += 1) {
+    union = unionBox(union, boxes[k] ?? null);
   }
-  await sharp(rgba, { raw: { width: cropW, height: cropH, channels: 4 } })
-    .webp({ quality: 85, alphaQuality: 90 })
-    .toFile(posterPath);
-}
+  if (!union) {
+    throw new HeroVideoError("Couldn't find a subject in the hero clip.");
+  }
+  const crop = cropRect(union, low, work);
+  const sdHeight = even(crop.height * SD_SCALE);
+  const sd = { width: even((crop.width * sdHeight) / crop.height), height: sdHeight };
 
-async function prerenderOnce(input: PrerenderHeroInput): Promise<PrerenderHeroResult> {
-  const startSec = input.startSec ?? DEFAULT_START_SEC;
   const posterDir = input.posterDir ?? input.outputDir;
   await mkdir(input.outputDir, { recursive: true });
   await mkdir(posterDir, { recursive: true });
+  const names = {
+    hd: `${input.basename}${HERO_ALPHA_SUFFIX.hd}`,
+    sd: `${input.basename}${HERO_ALPHA_SUFFIX.sd}`,
+    poster: `${input.basename}${HERO_ALPHA_SUFFIX.poster}`,
+  };
+  const finalPaths = {
+    hd: path.join(input.outputDir, names.hd),
+    sd: path.join(input.outputDir, names.sd),
+    poster: path.join(posterDir, names.poster),
+  };
+  const partPaths = {
+    hd: `${finalPaths.hd}.part`,
+    sd: `${finalPaths.sd}.part`,
+    poster: `${finalPaths.poster}.part`,
+  };
 
-  const fps = await probeFps(input.inputPath);
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "oakrein-hero-"));
+  const frameBytes = crop.width * crop.height * 6;
+  const store = new FrameStore(frameBytes, (sources.last - sources.first + 1) * frameBytes > MEMORY_FRAME_BUDGET);
+  let encoder: Encoder | null = null;
   try {
-    const frameDir = path.join(tempRoot, "png");
-    const pngPaths = await extractPngFrames(input.inputPath, frameDir, DESKTOP_WIDTH, startSec);
-    if (pngPaths.length === 0) {
-      throw new Error("No frames extracted from hero source video");
-    }
-
-    const quality: HeroKeyQuality = { ...KEY_QUALITY, workWidth: DESKTOP_WIDTH };
-    let buffers: ReturnType<typeof createHeroKeyBuffers> | null = null;
-    let union: HeroKeyBox | null = null;
-    const keyed: RgbaFrame[] = [];
-
-    for (const pngPath of pngPaths) {
-      const frame = await loadRgba(pngPath);
-      const pixels = frame.width * frame.height;
-      if (!buffers || buffers.pixels !== pixels) {
-        buffers = createHeroKeyBuffers(pixels);
-      }
-      const box = keyHeroFrame(frame as HeroRgbaFrame, buffers, quality);
-      if (!box) {
+    const params = defaultMatteParams(work.width, work.height, plate);
+    const buffers = createMatteBuffers(work.width, work.height);
+    const alpha = new Uint8Array(work.width * work.height);
+    const premul = new Uint8Array(work.width * work.height * 3);
+    const featherBand = Math.round(work.width * EDGE_FEATHER);
+    let index = 0;
+    for await (const frame of decodeFrames(input.inputPath, info, work, signal)) {
+      const k = index;
+      index += 1;
+      if (k < sources.first) {
         continue;
       }
-      union = unionBox(union, box);
-      keyed.push(frame);
+      computeMatte(frame, plate, params, buffers, alpha, premul);
+      featherFrameEdges(alpha, premul, work, featherBand);
+      await store.put(k, stackFrame(premul, alpha, work.width, crop));
+      if (k >= sources.last) {
+        break;
+      }
+    }
+    if (index <= sources.last) {
+      throw new Error(`Hero clip ended at frame ${index}, before loop frame ${sources.last}`);
     }
 
-    if (!union || keyed.length === 0) {
-      throw new Error("Hero keying produced no opaque frames");
+    const scratch = { known: new Uint8Array(crop.width * crop.height), queue: new Int32Array(crop.width * crop.height) };
+    encoder = startEncoder(encoderArgs(crop, sd, info.rate, mixes.length, partPaths.hd, partPaths.sd), signal);
+    let poster: Buffer | null = null;
+    for (const mix of mixes) {
+      const encoded = toEncodedFrame(await composeFrame(mix, store), crop, scratch);
+      poster ??= encoded;
+      await encoder.write(encoded);
     }
-
-    const cropW = even(union.maxX - union.minX + 1);
-    const cropH = even(union.maxY - union.minY + 1);
-    // Snap union max so crop matches even dimensions used for encode.
-    const snapped: HeroKeyBox = {
-      minX: union.minX,
-      minY: union.minY,
-      maxX: union.minX + cropW - 1,
-      maxY: union.minY + cropH - 1,
-    };
-    if (snapped.maxX >= (keyed[0]?.width ?? 0)) {
-      snapped.minX = Math.max(0, (keyed[0]?.width ?? cropW) - cropW);
-      snapped.maxX = snapped.minX + cropW - 1;
+    await encoder.finish();
+    if (!poster) {
+      throw new Error("Hero loop has no frames");
     }
-    if (snapped.maxY >= (keyed[0]?.height ?? 0)) {
-      snapped.minY = Math.max(0, (keyed[0]?.height ?? cropH) - cropH);
-      snapped.maxY = snapped.minY + cropH - 1;
-    }
+    await writeFile(partPaths.poster, await posterWebp(poster, crop));
 
-    const stacked: Buffer[] = keyed.map((frame) => cropToStacked(frame, snapped));
-    const faded = applyLoopCrossfade(stacked);
-    const stackedH = cropH * 2;
-
-    const desktopName = `${input.basename}-720.mp4`;
-    const mobileName = `${input.basename}-480.mp4`;
-    const posterName = `${input.basename}-poster.webp`;
-    const desktopPath = path.join(input.outputDir, desktopName);
-    const mobilePath = path.join(input.outputDir, mobileName);
-    const posterPath = path.join(posterDir, posterName);
-
-    await encodeStackedVideo(faded, cropW, stackedH, fps, desktopPath);
-
-    const mobile = await scaleStackedFrames(faded, cropW, stackedH, MOBILE_WIDTH);
-    await encodeStackedVideo(mobile.frames, mobile.width, mobile.height, fps, mobilePath);
-
-    const first = keyed[0];
-    if (!first) {
-      throw new Error("Missing first keyed frame for poster");
-    }
-    await writePoster(first, snapped, posterPath);
-
-    return {
-      src: publicUrlFor(input.outputDir, desktopName, "video"),
-      mobileSrc: publicUrlFor(input.outputDir, mobileName, "video"),
-      posterSrc: publicUrlFor(posterDir, posterName, "poster"),
-    };
+    await rename(partPaths.hd, finalPaths.hd);
+    await rename(partPaths.sd, finalPaths.sd);
+    await rename(partPaths.poster, finalPaths.poster);
+  } catch (error) {
+    encoder?.abort();
+    await Promise.all(Object.values(partPaths).map((part) => rm(part, { force: true })));
+    throw error;
   } finally {
-    await rm(tempRoot, { recursive: true, force: true });
+    await store.dispose();
   }
+
+  return {
+    src: publicUrlFor(input.outputDir, names.hd, "video"),
+    mobileSrc: publicUrlFor(input.outputDir, names.sd, "video"),
+    posterSrc: publicUrlFor(posterDir, names.poster, "poster"),
+    width: crop.width,
+    height: crop.height,
+    fps: info.fps,
+    frames: mixes.length,
+    plan,
+  };
 }
 
 /**
- * Decode → chroma-key → stacked-alpha H.264 (720 + 480) + WebP poster.
- * One job at a time; 120s timeout.
+ * Renders the stacked-alpha hero set. Jobs run one at a time and are cancelled after
+ * JOB_TIMEOUT_MS (nginx gives the upload request 120 s).
  */
 export function prerenderHeroVideo(input: PrerenderHeroInput): Promise<PrerenderHeroResult> {
-  return enqueueJob(() => withTimeout(prerenderOnce(input), JOB_TIMEOUT_MS, "Hero prerender"));
-}
-
-/** Re-encode an arbitrary video upload to H.264 ≤1080p, no audio, faststart + poster. */
-export async function transcodeUploadVideo(inputPath: string, outputMp4Path: string, posterPath: string): Promise<void> {
-  await runProcess(
-    ffmpegBinary(),
-    [
-      "-y",
-      "-i",
-      inputPath,
-      "-an",
-      "-vf",
-      "scale='min(1920,iw)':'min(1080,ih)':force_original_aspect_ratio=decrease,scale=trunc(iw/2)*2:trunc(ih/2)*2",
-      "-c:v",
-      "libx264",
-      "-pix_fmt",
-      "yuv420p",
-      "-crf",
-      "23",
-      "-preset",
-      "medium",
-      "-movflags",
-      "+faststart",
-      outputMp4Path,
-    ],
-    "ffmpeg transcode",
-  );
-
-  const tmpJpg = `${posterPath}.tmp.jpg`;
-  try {
-    await runProcess(
-      ffmpegBinary(),
-      ["-y", "-ss", "0", "-i", outputMp4Path, "-frames:v", "1", "-q:v", "2", tmpJpg],
-      "ffmpeg poster",
-    );
-    if (posterPath.endsWith(".webp")) {
-      await sharp(tmpJpg).webp({ quality: 82 }).toFile(posterPath);
-    } else {
-      await sharp(tmpJpg).jpeg({ quality: 85 }).toFile(posterPath);
-    }
-  } finally {
-    await rm(tmpJpg, { force: true });
-  }
+  return enqueueJob(() => {
+    const timeout = AbortSignal.timeout(JOB_TIMEOUT_MS);
+    const signal = input.signal ? AbortSignal.any([input.signal, timeout]) : timeout;
+    return prerenderOnce(input, signal);
+  });
 }

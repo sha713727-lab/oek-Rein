@@ -5,7 +5,7 @@ import path from "node:path";
 import { AppError } from "@/lib/app-error";
 import { getEnv } from "@/lib/env";
 import { uploadDirectory } from "@/server/http/serve-upload";
-import { transcodeUploadVideo } from "@/server/media/prerender-hero";
+import { transcodeUploadVideo } from "@/server/media/transcode-video";
 
 const ALLOWED = new Map([
   ["image/png", "png"],

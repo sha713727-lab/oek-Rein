@@ -1,10 +1,10 @@
 import { randomBytes } from "node:crypto";
-import { access } from "node:fs/promises";
+import { access, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import { logger } from "@/lib/logger";
 import { uploadDirectory } from "@/server/http/serve-upload";
-import { prerenderHeroVideo } from "@/server/media/prerender-hero";
+import { HeroVideoError, isStackedAlphaVideoName, prerenderHeroVideo } from "@/server/media/prerender-hero";
 import { storefrontService } from "@/server/services/storefront/storefront.service";
 
 async function fileExists(filePath: string): Promise<boolean> {
@@ -28,78 +28,56 @@ function uploadsBasename(src: string): string | null {
 }
 
 /**
- * When PRERENDER_HERO_ON_START=1: if the published hero is a raw /uploads video
- * without mobile + poster siblings, queue a stacked-alpha prerender and persist URLs.
- * Default off — avoids slow container boots.
+ * A hero published as a plain clip (uploaded before the cutout pipeline existed, or through
+ * the generic media uploader) can't be drawn transparently. Convert it once in the
+ * background and point the published storefront at the cutout.
+ * PRERENDER_HERO_ON_START=0 turns this off.
  */
 export async function prerenderHeroOnStartIfNeeded(): Promise<void> {
-  if (process.env.PRERENDER_HERO_ON_START !== "1") {
+  if (process.env.PRERENDER_HERO_ON_START === "0") {
     return;
   }
 
   const storefront = await storefrontService.getFull();
-  const content = storefront.content as typeof storefront.content & {
-    heroVideoMobileSrc?: string;
-    heroVideoPosterSrc?: string;
-  };
-  const heroSrc = String(content.heroVideoSrc ?? "").trim();
-  const basename = uploadsBasename(heroSrc);
-  if (!basename) {
-    logger.info({ heroSrc }, "PRERENDER_HERO_ON_START: hero is not a raw /uploads video; skip");
+  const heroSrc = String(storefront.content.heroVideoSrc ?? "").trim();
+  const name = uploadsBasename(heroSrc);
+  if (!name || isStackedAlphaVideoName(name)) {
     return;
   }
 
   const directory = uploadDirectory();
-  const inputPath = path.join(directory, basename);
-  if (!(await fileExists(inputPath))) {
-    logger.warn({ inputPath }, "PRERENDER_HERO_ON_START: hero upload file missing; skip");
+  const inputPath = path.join(directory, name);
+  // Left behind when a clip can't be cut out, so every boot doesn't retry it.
+  const failedMarker = path.join(directory, `.${name}.hero-failed`);
+  if (!(await fileExists(inputPath)) || (await fileExists(failedMarker))) {
     return;
   }
 
-  const mobileSrc = String(content.heroVideoMobileSrc ?? "").trim();
-  const posterSrc = String(content.heroVideoPosterSrc ?? "").trim();
-  const mobileName = uploadsBasename(mobileSrc);
-  const posterName = uploadsBasename(posterSrc);
-  const hasMobile =
-    Boolean(mobileName) && (await fileExists(path.join(directory, mobileName as string)));
-  const hasPoster =
-    Boolean(posterName) && (await fileExists(path.join(directory, posterName as string)));
-
-  // Already prerendered assets referenced in CMS.
-  if (hasMobile && hasPoster) {
-    logger.info("PRERENDER_HERO_ON_START: mobile + poster siblings present; skip");
-    return;
-  }
-
-  // Sibling files next to a -720.mp4 desktop cut (CLI / prior prerender naming).
-  if (basename.endsWith("-720.mp4")) {
-    const stem = basename.slice(0, -"-720.mp4".length);
-    const siblingMobile = path.join(directory, `${stem}-480.mp4`);
-    const siblingPoster = path.join(directory, `${stem}-poster.webp`);
-    if ((await fileExists(siblingMobile)) && (await fileExists(siblingPoster))) {
-      logger.info("PRERENDER_HERO_ON_START: on-disk -480/-poster siblings found; skip");
-      return;
+  logger.info({ heroSrc }, "Converting the published hero clip to a transparent cutout");
+  let result: Awaited<ReturnType<typeof prerenderHeroVideo>>;
+  try {
+    result = await prerenderHeroVideo({
+      inputPath,
+      outputDir: directory,
+      basename: `hero-${Date.now()}-${randomBytes(4).toString("hex")}`,
+    });
+  } catch (error) {
+    if (error instanceof HeroVideoError) {
+      await writeFile(failedMarker, error.message).catch(() => undefined);
     }
+    throw error;
   }
 
-  const outBase = `hero-${Date.now()}-${randomBytes(4).toString("hex")}`;
-  logger.info({ inputPath, outBase }, "PRERENDER_HERO_ON_START: queueing hero prerender");
-  const result = await prerenderHeroVideo({
-    inputPath,
-    outputDir: directory,
-    basename: outBase,
-    startSec: 3.6,
-  });
-
-  await storefrontService.updatePublished(storefront.commerce, storefront.theme, {
-    ...content,
+  const latest = await storefrontService.getFull();
+  if (String(latest.content.heroVideoSrc ?? "").trim() !== heroSrc) {
+    logger.info("Hero changed while converting; keeping the newer one");
+    return;
+  }
+  await storefrontService.updatePublished(latest.commerce, latest.theme, {
+    ...latest.content,
     heroVideoSrc: result.src,
     heroVideoMobileSrc: result.mobileSrc,
     heroVideoPosterSrc: result.posterSrc,
-  } as typeof storefront.content);
-
-  logger.info(
-    { src: result.src, mobileSrc: result.mobileSrc, posterSrc: result.posterSrc },
-    "PRERENDER_HERO_ON_START: storefront hero updated",
-  );
+  });
+  logger.info({ src: result.src, mobileSrc: result.mobileSrc }, "Published hero now uses the transparent cutout");
 }

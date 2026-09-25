@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { access, mkdir, writeFile } from "node:fs/promises";
+import { access, mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import { z } from "zod";
@@ -10,7 +10,7 @@ import { parseSchema } from "@/lib/parse-schema";
 import type { RouteDefinition } from "@/server/http/load-routes";
 import type { RequestContext } from "@/server/http/respond";
 import { uploadDirectory } from "@/server/http/serve-upload";
-import { prerenderHeroVideo } from "@/server/media/prerender-hero";
+import { HeroVideoError, prerenderHeroVideo } from "@/server/media/prerender-hero";
 import { requireAdmin } from "@/server/middleware/authorize";
 import { authService } from "@/server/services/auth/auth.service";
 
@@ -67,6 +67,7 @@ export async function handler(ctx: RequestContext) {
   const body = parseSchema(bodySchema, ctx.body);
 
   let inputPath: string;
+  let savedHere = false;
   if ("url" in body) {
     const name = path.basename(body.url);
     if (!body.url.startsWith("/uploads/") || name !== body.url.slice("/uploads/".length).replace(/\\/g, "/")) {
@@ -80,13 +81,24 @@ export async function handler(ctx: RequestContext) {
     }
   } else {
     inputPath = await saveRawVideo(body);
+    savedHere = true;
   }
 
   const basename = `hero-${Date.now()}-${randomBytes(4).toString("hex")}`;
-  return prerenderHeroVideo({
-    inputPath,
-    outputDir: uploadDirectory(),
-    basename,
-    startSec: 3.6,
-  });
+  try {
+    const result = await prerenderHeroVideo({ inputPath, outputDir: uploadDirectory(), basename });
+    return { src: result.src, mobileSrc: result.mobileSrc, posterSrc: result.posterSrc };
+  } catch (error) {
+    if (error instanceof HeroVideoError) {
+      throw AppError.unprocessable(error.message);
+    }
+    if (error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError")) {
+      throw AppError.unprocessable("Processing took too long. Try a shorter clip (under 10 seconds).");
+    }
+    throw error;
+  } finally {
+    if (savedHere) {
+      await rm(inputPath, { force: true });
+    }
+  }
 }

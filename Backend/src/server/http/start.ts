@@ -35,12 +35,11 @@ async function main(): Promise<void> {
     throw new Error("PostgreSQL is not reachable");
   }
 
-  // Optional: PRERENDER_HERO_ON_START=1 queues stacked-alpha siblings for a raw /uploads hero.
-  // Default off so boots stay fast; safe to enable once after uploading a source video.
+  // Background: a published hero that is still a plain clip gets converted to the cutout once.
   void prerenderHeroOnStartIfNeeded().catch((error) => {
     logger.error(
       { err: error instanceof Error ? error.message : String(error) },
-      "PRERENDER_HERO_ON_START job failed",
+      "Hero cutout conversion failed",
     );
   });
 

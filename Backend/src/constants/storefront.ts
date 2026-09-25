@@ -164,6 +164,8 @@ export type StorefrontContent = {
   heroProductAlt: string;
   /** Homepage hero cutout video (MP4/MOV/WEBM). */
   heroVideoSrc: string;
+  heroVideoMobileSrc?: string;
+  heroVideoPosterSrc?: string;
   brandStoryPrimarySrc: string;
   brandStorySecondarySrc: string;
   brandStoryPortraitSrc: string;
