@@ -320,9 +320,9 @@ export function StorefrontEditor({
               <HeroVideoField
                 label="Hero video"
                 defaultSrc={content.heroVideoSrc}
-                {...(content.heroVideoMobileSrc ? { defaultMobileSrc: content.heroVideoMobileSrc } : {})}
-                {...(content.heroVideoPosterSrc ? { defaultPosterSrc: content.heroVideoPosterSrc } : {})}
-                hint="Transparent-background MP4 or MOV of the horse and rider. Replace to update the live homepage hero."
+                defaultMobileSrc={content.heroVideoMobileSrc}
+                defaultPosterSrc={content.heroVideoPosterSrc}
+                hint="A short clip of the horse on a plain, evenly lit backdrop (white works best). The background is removed automatically and the clip loops seamlessly."
               />
               <ImageUrlField name="heroProductSrc" label="Hero product" defaultValue={content.heroProductSrc} />
               <div className="admin-storefront-nested">

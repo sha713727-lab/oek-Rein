@@ -5749,6 +5749,34 @@
     @apply max-h-[7.25rem] w-auto object-contain;
   }
 
+  .admin-hero-preview {
+    @apply relative flex h-[7.25rem] w-[9rem] items-end justify-center overflow-hidden rounded-md;
+    background: linear-gradient(168deg, #8f9d6e 0%, #6f7c4f 100%);
+  }
+
+  .admin-hero-preview-poster,
+  .admin-hero-preview-canvas {
+    object-fit: contain;
+    object-position: bottom center;
+    transition: opacity 200ms ease;
+  }
+
+  .admin-hero-preview-poster.is-hidden {
+    opacity: 0;
+  }
+
+  .admin-hero-preview-source {
+    @apply pointer-events-none absolute h-px w-px opacity-0;
+  }
+
+  .admin-hero-preview-canvas {
+    @apply relative block h-full w-auto max-w-full opacity-0;
+  }
+
+  .admin-hero-preview-canvas.is-live {
+    @apply opacity-100;
+  }
+
   .admin-storefront-image-actions {
     @apply flex items-center gap-3;
   }

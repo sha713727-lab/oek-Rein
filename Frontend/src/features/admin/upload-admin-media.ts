@@ -67,7 +67,7 @@ export async function uploadAdminMediaAction(
   }
 }
 
-/** Upload + chroma-key prerender for the homepage hero horse video. */
+/** Upload the homepage hero clip; the API cuts it out and renders the looping stacked-alpha set. */
 export async function uploadAdminHeroVideoAction(
   formData: FormData,
 ): Promise<{ src?: string; mobileSrc?: string; posterSrc?: string; error?: string }> {

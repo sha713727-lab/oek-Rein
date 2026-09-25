@@ -1,31 +1,20 @@
-import {
-  brandName,
-  heroCtaHref,
-  heroCtaLabel,
-  heroHeadline,
-  heroVideoMobileSrc as defaultHeroVideoMobileSrc,
-  heroVideoPosterSrc as defaultHeroVideoPosterSrc,
-  heroVideoSrc as defaultHeroVideoSrc,
-} from "@/constants/brand";
+import { brandName, heroCtaHref, heroCtaLabel, heroHeadline } from "@/constants/brand";
 import type { StorefrontContent } from "@/constants/storefront";
 import { HeroTransparentVideo } from "@/features/catalog/hero-transparent-video";
 import { RibbonMarquee } from "@/features/catalog/ribbon-marquee";
 import { PillCta } from "@/features/motion/pill-cta";
+import { resolveHeroVideoSet } from "@/lib/hero-video";
 
 export function HeroHome({ content }: { content: StorefrontContent }) {
   const title = content.heroHeadline || heroHeadline;
-  const videoSrc = content.heroVideoSrc || defaultHeroVideoSrc;
-  const mobileSrc = content.heroVideoMobileSrc || defaultHeroVideoMobileSrc;
-  const posterSrc = content.heroVideoPosterSrc || defaultHeroVideoPosterSrc;
-  const usesBundledPoster =
-    !posterSrc || posterSrc === defaultHeroVideoPosterSrc;
+  const hero = resolveHeroVideoSet({
+    src: content.heroVideoSrc,
+    mobileSrc: content.heroVideoMobileSrc,
+    posterSrc: content.heroVideoPosterSrc,
+  });
 
   return (
     <section className="home-hero" aria-label={title}>
-      {/* Preload poster only — `as="video"` is unsupported by browsers. */}
-      {usesBundledPoster ? (
-        <link rel="preload" as="image" href={posterSrc} type="image/webp" />
-      ) : null}
       <div className="home-hero-layout">
         <div className="home-hero-scroll">
           <div className="home-hero-panel">
@@ -41,14 +30,12 @@ export function HeroHome({ content }: { content: StorefrontContent }) {
               </span>
             </h1>
 
-            {videoSrc ? (
-              <HeroTransparentVideo
-                key={videoSrc}
-                src={videoSrc}
-                mobileSrc={mobileSrc}
-                posterSrc={posterSrc}
-              />
-            ) : null}
+            <HeroTransparentVideo
+              key={hero.src}
+              src={hero.src}
+              mobileSrc={hero.mobileSrc}
+              posterSrc={hero.posterSrc}
+            />
 
             <div className="home-hero-cta-wrap">
               <PillCta href={heroCtaHref} className="home-hero-cta">

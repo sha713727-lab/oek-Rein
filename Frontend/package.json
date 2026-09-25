@@ -12,7 +12,7 @@
     "start": "next start --port 3000",
     "lint": "eslint src --max-warnings 0",
     "typecheck": "tsc --noEmit -p tsconfig.json --pretty false",
-    "test": "node scripts/run-tests.mjs",
+    "test": "node scripts/run-tests.mjs && tsx --test src/lib/hero-video.test.ts",
     "audit": "npm audit --audit-level=high",
     "deps:circular": "depcruise src --config dependency-cruiser.cjs"
   },

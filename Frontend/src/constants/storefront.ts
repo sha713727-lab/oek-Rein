@@ -168,12 +168,12 @@ export type StorefrontContent = {
   heroSupport: string;
   heroProductSrc: string;
   heroProductAlt: string;
-  /** Homepage hero cutout video (MP4/MOV/WEBM). */
+  /** Homepage hero cutout: stacked-alpha MP4 (colour over matte). A plain clip is converted on API start. */
   heroVideoSrc: string;
-  /** Lower-res stacked-alpha hero for coarse / narrow / low-core devices. */
-  heroVideoMobileSrc?: string;
-  /** Instant LCP poster until the first live WebGL frame. */
-  heroVideoPosterSrc?: string;
+  /** The same render at phone size. */
+  heroVideoMobileSrc: string;
+  /** The render's first frame as a transparent WebP; paints before the video. */
+  heroVideoPosterSrc: string;
   brandStoryPrimarySrc: string;
   brandStorySecondarySrc: string;
   brandStoryPortraitSrc: string;
@@ -878,16 +878,6 @@ function asCollectionTitles(value: unknown): Record<string, StorefrontCollection
   return next;
 }
 
-const LEGACY_HERO_VIDEO = "/assets/videos/heroVideo.mp4";
-
-function resolveHeroVideoSrc(value: unknown, fallback: string): string {
-  const src = asAssetSrc(value, fallback);
-  if (src === LEGACY_HERO_VIDEO || src.endsWith("/heroVideo.mp4")) {
-    return DEFAULT_STOREFRONT_CONTENT.heroVideoSrc;
-  }
-  return src;
-}
-
 export function resolveStorefrontContent(raw: unknown): StorefrontContent {
   const record = asRecord(raw);
   const LEGACY_BEST_SELLER_SKUS: Record<string, string> = {
@@ -913,15 +903,9 @@ export function resolveStorefrontContent(raw: unknown): StorefrontContent {
     heroSupport: asStoredText(record.heroSupport, DEFAULT_STOREFRONT_CONTENT.heroSupport),
     heroProductSrc: asAssetSrc(record.heroProductSrc, DEFAULT_STOREFRONT_CONTENT.heroProductSrc),
     heroProductAlt: asStoredText(record.heroProductAlt, DEFAULT_STOREFRONT_CONTENT.heroProductAlt),
-    heroVideoSrc: resolveHeroVideoSrc(record.heroVideoSrc, DEFAULT_STOREFRONT_CONTENT.heroVideoSrc),
-    heroVideoMobileSrc: asAssetSrc(
-      record.heroVideoMobileSrc,
-      DEFAULT_STOREFRONT_CONTENT.heroVideoMobileSrc ?? heroVideoMobileSrc,
-    ),
-    heroVideoPosterSrc: asAssetSrc(
-      record.heroVideoPosterSrc,
-      DEFAULT_STOREFRONT_CONTENT.heroVideoPosterSrc ?? heroVideoPosterSrc,
-    ),
+    heroVideoSrc: asAssetSrc(record.heroVideoSrc, DEFAULT_STOREFRONT_CONTENT.heroVideoSrc),
+    heroVideoMobileSrc: asAssetSrc(record.heroVideoMobileSrc, DEFAULT_STOREFRONT_CONTENT.heroVideoMobileSrc),
+    heroVideoPosterSrc: asAssetSrc(record.heroVideoPosterSrc, DEFAULT_STOREFRONT_CONTENT.heroVideoPosterSrc),
     brandStoryPrimarySrc: asAssetSrc(record.brandStoryPrimarySrc, DEFAULT_STOREFRONT_CONTENT.brandStoryPrimarySrc),
     brandStorySecondarySrc: asAssetSrc(record.brandStorySecondarySrc, DEFAULT_STOREFRONT_CONTENT.brandStorySecondarySrc),
     brandStoryPortraitSrc: asAssetSrc(record.brandStoryPortraitSrc, DEFAULT_STOREFRONT_CONTENT.brandStoryPortraitSrc),

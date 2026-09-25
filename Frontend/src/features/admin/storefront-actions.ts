@@ -138,11 +138,10 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
     // Force exact image paths from the form (including intentional clears) so resolve defaults
     // cannot resurrect stock FAQ / homepage art after Remove.
     published.content.heroProductSrc = heroProductSrc;
-    published.content.heroVideoSrc = heroVideoSrc || DEFAULT_STOREFRONT_CONTENT.heroVideoSrc;
-    published.content.heroVideoMobileSrc =
-      heroVideoMobileSrc || DEFAULT_STOREFRONT_CONTENT.heroVideoMobileSrc || "";
-    published.content.heroVideoPosterSrc =
-      heroVideoPosterSrc || DEFAULT_STOREFRONT_CONTENT.heroVideoPosterSrc || "";
+    // The three hero files are one render: store them together, or clear all three for the default.
+    published.content.heroVideoSrc = heroVideoSrc;
+    published.content.heroVideoMobileSrc = heroVideoSrc ? heroVideoMobileSrc : "";
+    published.content.heroVideoPosterSrc = heroVideoSrc ? heroVideoPosterSrc : "";
     published.content.brandStoryPrimarySrc = brandStoryPrimarySrc;
     published.content.brandStorySecondarySrc = brandStorySecondarySrc;
     published.content.brandStoryPortraitSrc = brandStoryPortraitSrc;

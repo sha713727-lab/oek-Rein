@@ -24,6 +24,13 @@ const LEGACY_PUBLIC_ASSETS: Record<string, string> = {
   "/assets/images/premium_halter.png": "/assets/images/western_floral_halter.png",
   "/assets/images/leather_care.jpg": "/assets/images/saddlera_leather_care.png",
   "/assets/images/leather_care.png": "/assets/images/saddlera_leather_care.png",
+  // Earlier bundled hero renders → current stacked-alpha cutout
+  "/assets/videos/heroVideo.mp4": "/assets/videos/hero-horse-alpha-hd.mp4",
+  "/assets/videos/hero-horse-720.mp4": "/assets/videos/hero-horse-alpha-hd.mp4",
+  "/assets/videos/hero-horse-480.mp4": "/assets/videos/hero-horse-alpha-sd.mp4",
+  "/assets/images/hero-horse-poster.webp": "/assets/images/hero-horse-alpha-poster.webp",
+  "/assets/images/hero-poster.webp": "/assets/images/hero-horse-alpha-poster.webp",
+  "/assets/images/hero-poster.png": "/assets/images/hero-horse-alpha-poster.webp",
 };
 
 /** Remap removed or superseded public image paths. */

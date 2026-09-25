@@ -27,11 +27,9 @@ export const heroCtaLabel = "Shop Now";
 export const heroCtaHref = "/collections/all";
 export const heroProductSrc = "/assets/images/western_floral_saddle.png";
 export const heroProductAlt = `${brandName} Western Floral Saddle`;
-export const heroVideoSrc = "/assets/videos/hero-horse-720.mp4";
-export const heroVideoMobileSrc = "/assets/videos/hero-horse-480.mp4";
-export const heroVideoPosterSrc = "/assets/images/hero-horse-poster.webp";
-/** Legacy seek offset; stacked-alpha assets are pre-cut to the loop start. */
-export const heroVideoStartSec = 3.6;
+export const heroVideoSrc = "/assets/videos/hero-horse-alpha-hd.mp4";
+export const heroVideoMobileSrc = "/assets/videos/hero-horse-alpha-sd.mp4";
+export const heroVideoPosterSrc = "/assets/images/hero-horse-alpha-poster.webp";
 export const heroWaveText =
   "Premium Hand Crafted Pakistani Leather Equestrian Brand For North America";
 export const heroExploreLabel = "Shop Collection";

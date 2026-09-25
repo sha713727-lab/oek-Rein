@@ -66,7 +66,7 @@ export async function saveUpload(file: File | null): Promise<string | null> {
   return result?.url ?? null;
 }
 
-/** Prerender transparent hero video → desktop + mobile MP4 + poster. */
+/** Hero clip → transparent cutout render: desktop + mobile stacked-alpha MP4 + poster. */
 export async function saveHeroVideoUpload(file: File | null): Promise<HeroVideoUploadResult | null> {
   if (!file || file.size < 1) {
     return null;
@@ -80,7 +80,7 @@ export async function saveHeroVideoUpload(file: File | null): Promise<HeroVideoU
       data: buffer.toString("base64"),
     },
     {},
-    // Chroma-key prerender is capped at 120s on the backend.
+    // The backend cancels a hero render after 110s.
     { timeoutMs: 130_000 },
   );
 }

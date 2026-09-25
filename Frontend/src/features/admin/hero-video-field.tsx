@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, useTransition } from "react";
+import { useId, useRef, useState, useTransition } from "react";
 
 import { markAdminFormDirty } from "@/features/admin/unsaved-guard";
 import { uploadAdminHeroVideoAction } from "@/features/admin/upload-admin-media";
 import { useAdminUploadBusy } from "@/features/admin/upload-busy";
 import { CmsImage } from "@/features/media/cms-image";
+import { useStackedAlphaPlayer } from "@/features/media/stacked-alpha-player";
+import { type HeroVideoSet, isStackedAlphaVideoSrc, resolveHeroVideoSet } from "@/lib/hero-video";
 
 const MAX_BYTES = 25 * 1024 * 1024;
 const ACCEPT = "video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov";
@@ -20,7 +22,29 @@ function isAllowed(file: File) {
   return name.endsWith(".mp4") || name.endsWith(".webm") || name.endsWith(".mov");
 }
 
-/** Homepage hero: upload → chroma-key prerender → desktop / mobile / poster URLs. */
+/** The cutout as the storefront shows it, on the hero's olive backdrop. */
+function HeroCutoutPreview({ hero }: { hero: HeroVideoSet }) {
+  const stageRef = useRef<HTMLSpanElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const live = useStackedAlphaPlayer({ src: hero.mobileSrc }, { video: videoRef, canvas: canvasRef, viewport: stageRef });
+
+  return (
+    <span ref={stageRef} className="admin-hero-preview">
+      <CmsImage
+        src={hero.posterSrc}
+        alt=""
+        fill
+        sizes="9rem"
+        className={`admin-hero-preview-poster${live ? " is-hidden" : ""}`}
+      />
+      <video ref={videoRef} className="admin-hero-preview-source" muted playsInline loop preload="auto" aria-hidden="true" />
+      <canvas ref={canvasRef} className={`admin-hero-preview-canvas${live ? " is-live" : ""}`} aria-hidden="true" />
+    </span>
+  );
+}
+
+/** Homepage hero: upload → background removal + seamless loop → desktop / mobile / poster URLs. */
 export function HeroVideoField({
   label,
   defaultSrc,
@@ -30,29 +54,22 @@ export function HeroVideoField({
 }: {
   label: string;
   defaultSrc: string;
-  defaultMobileSrc?: string;
-  defaultPosterSrc?: string;
+  defaultMobileSrc: string;
+  defaultPosterSrc: string;
   hint?: string;
 }) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const { registerPending, clearPending } = useAdminUploadBusy();
   const [src, setSrc] = useState(defaultSrc);
-  const [mobileSrc, setMobileSrc] = useState(defaultMobileSrc ?? "");
-  const [posterSrc, setPosterSrc] = useState(defaultPosterSrc ?? "");
-  const [preview, setPreview] = useState(defaultSrc);
+  const [mobileSrc, setMobileSrc] = useState(defaultMobileSrc);
+  const [posterSrc, setPosterSrc] = useState(defaultPosterSrc);
   const [cleared, setCleared] = useState(false);
   const [error, setError] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const [pending, startTransition] = useTransition();
-
-  useEffect(() => {
-    return () => {
-      if (preview.startsWith("blob:")) {
-        URL.revokeObjectURL(preview);
-      }
-    };
-  }, [preview]);
+  const shown = resolveHeroVideoSet({ src, mobileSrc, posterSrc });
+  const awaitingConversion = Boolean(src) && !isStackedAlphaVideoSrc(src);
 
   function assignFile(file: File) {
     if (!isAllowed(file)) {
@@ -67,13 +84,6 @@ export function HeroVideoField({
       inputRef.current.value = "";
     }
     setError("");
-    setCleared(false);
-    setPreview((current) => {
-      if (current.startsWith("blob:")) {
-        URL.revokeObjectURL(current);
-      }
-      return URL.createObjectURL(file);
-    });
 
     const body = new FormData();
     body.set("file", file);
@@ -81,33 +91,22 @@ export function HeroVideoField({
     startTransition(async () => {
       try {
         const result = await uploadAdminHeroVideoAction(body);
-        if (result.error || !result.src) {
+        if (result.error || !result.src || !result.mobileSrc || !result.posterSrc) {
           setError(result.error || "Hero video processing failed.");
-          setPreview((current) => {
-            if (current.startsWith("blob:")) {
-              URL.revokeObjectURL(current);
-            }
-            return src || defaultSrc;
-          });
           return;
         }
+        setCleared(false);
         setSrc(result.src);
-        setMobileSrc(result.mobileSrc ?? "");
-        setPosterSrc(result.posterSrc ?? "");
+        setMobileSrc(result.mobileSrc);
+        setPosterSrc(result.posterSrc);
         markAdminFormDirty();
-        setPreview((current) => {
-          if (current.startsWith("blob:")) {
-            URL.revokeObjectURL(current);
-          }
-          return result.src!;
-        });
       } finally {
         clearPending();
       }
     });
   }
 
-  function clear() {
+  function resetToDefault() {
     if (inputRef.current) {
       inputRef.current.value = "";
     }
@@ -117,15 +116,7 @@ export function HeroVideoField({
     setPosterSrc("");
     setError("");
     markAdminFormDirty();
-    setPreview((current) => {
-      if (current.startsWith("blob:")) {
-        URL.revokeObjectURL(current);
-      }
-      return "";
-    });
   }
-
-  const showPosterFallback = Boolean(posterSrc) && !preview;
 
   return (
     <div className="admin-product-field admin-product-field--full">
@@ -167,35 +158,22 @@ export function HeroVideoField({
             assignFile(file);
           }
         }}
-        aria-label={preview || posterSrc ? `Replace ${label}` : `Upload ${label}`}
+        aria-label={`Replace ${label}`}
         disabled={pending}
       >
         {pending ? (
           <span className="admin-storefront-preview--empty">Processing…</span>
-        ) : preview ? (
-          <video
-            src={preview}
-            poster={posterSrc || undefined}
-            className="admin-storefront-preview-img"
-            muted
-            playsInline
-            loop
-            autoPlay
-            controls={false}
-          />
-        ) : showPosterFallback ? (
-          <CmsImage src={posterSrc} alt="" width={160} height={160} className="admin-storefront-preview-img" />
         ) : (
-          <span className="admin-storefront-preview--empty">Drop an MP4 or MOV here or click to upload</span>
+          <HeroCutoutPreview key={shown.src} hero={shown} />
         )}
       </button>
       <div className="admin-storefront-image-actions">
         <button type="button" className="admin-orders-open" onClick={() => inputRef.current?.click()} disabled={pending}>
-          {pending ? "Processing…" : preview || posterSrc ? "Replace" : "Upload"}
+          {pending ? "Processing…" : "Replace"}
         </button>
-        {preview || posterSrc ? (
-          <button type="button" className="admin-product-delete" onClick={clear} disabled={pending}>
-            Remove
+        {src ? (
+          <button type="button" className="admin-product-delete" onClick={resetToDefault} disabled={pending}>
+            Use default
           </button>
         ) : null}
       </div>
@@ -206,8 +184,12 @@ export function HeroVideoField({
       ) : (
         <p className="admin-product-kicker">
           {pending
-            ? "Processing transparent hero video… this can take a minute."
-            : "MP4, MOV, or WEBM. Up to 25MB. Wait for processing, then Publish to update the live hero."}
+            ? "Removing the background and building the loop… this can take up to a minute."
+            : awaitingConversion
+              ? "This clip hasn't been cut out yet, so the default hero is showing. Upload it again to convert it now."
+              : !src
+                ? "Showing the default hero. Upload a clip to replace it."
+                : "MP4, MOV, or WEBM, 2–10 seconds, up to 25MB. Publish after processing to update the live hero."}
         </p>
       )}
     </div>

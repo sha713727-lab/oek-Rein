@@ -129,35 +129,19 @@
   opacity: 1;
 }
 
-.home-hero-ground-shadow {
-  position: absolute;
-  left: 50%;
-  bottom: 2%;
-  z-index: 0;
-  width: min(52%, 28rem);
-  height: 8%;
-  transform: translateX(-50%);
-  border-radius: 50%;
-  background: rgba(20, 34, 33, 0.25);
-  box-shadow: 0 0 2.5rem 1.25rem rgba(20, 34, 33, 0.18);
+/* Poster (a `fill` image over the whole box) and canvas share containment and anchoring,
+ * so the handover from poster to first video frame never shifts the horse. */
+.home-hero-poster,
+.home-hero-video-canvas {
+  object-fit: contain;
+  object-position: bottom center;
   pointer-events: none;
 }
 
 .home-hero-poster {
-  position: absolute;
-  inset: 0;
   z-index: 1;
-  margin: auto auto 0;
-  display: block;
-  width: auto;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  object-position: bottom center;
   opacity: 1;
   transition: opacity 220ms ease;
-  pointer-events: none;
 }
 
 .home-hero-poster.is-hidden {
@@ -180,8 +164,6 @@
   height: 100%;
   max-width: 100%;
   max-height: 100%;
-  object-fit: contain;
-  object-position: bottom center;
   opacity: 0;
   transition: opacity 180ms ease;
 }
@@ -191,6 +173,7 @@
 }
 
 @media (min-width: 768px) {
+  .home-hero-poster,
   .home-hero-video-canvas {
     /* Small tuck into the ribbon overlap zone (panel clips overflow). */
     transform: translateY(1.15rem);
@@ -306,13 +289,8 @@
     max-height: 100%;
   }
 
+  .home-hero-poster,
   .home-hero-video-canvas {
-    width: auto;
-    height: 100%;
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    object-position: bottom center;
     transform: none;
   }
 
@@ -353,6 +331,7 @@
     width: min(98rem, 99%);
   }
 
+  .home-hero-poster,
   .home-hero-video-canvas {
     transform: translateY(1.35rem);
   }
