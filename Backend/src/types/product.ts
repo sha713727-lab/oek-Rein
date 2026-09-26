@@ -15,6 +15,7 @@ export type ProductRecord = {
   readonly slug: string;
   readonly sku: string;
   readonly category: string;
+  readonly categories: readonly string[];
   readonly price: number;
   readonly originalPrice: number | null;
   readonly discount: number;

@@ -37,6 +37,7 @@ export type ProductWrite = {
   slug: string;
   sku: string;
   category: string;
+  categories: readonly string[];
   price: number;
   originalPrice: number | null;
   discount: number;
@@ -179,7 +180,7 @@ export class ProductRepository {
     }
     if (params.category) {
       values.push(params.category);
-      where.push(`category = $${values.length}`);
+      where.push(`(category = $${values.length} OR categories @> ARRAY[$${values.length}]::text[])`);
     }
     if (typeof params.bestSeller === "boolean") {
       values.push(params.bestSeller);
@@ -239,18 +240,19 @@ export class ProductRepository {
   async create(input: ProductWrite, client?: PoolClient): Promise<ProductRecord> {
     const inserted = await query<ProductSqlRow>(
       `INSERT INTO product (
-         title, slug, sku, category, price, original_price, discount, discount_type,
+         title, slug, sku, category, categories, price, original_price, discount, discount_type,
          description_intro, description_detail, description_highlights,
          spec_composition, spec_care, spec_includes, return_policy, sizes, tile_color,
          best_seller, stock, status
        ) VALUES (
-         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20
+         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
        ) RETURNING ${PRODUCT_COLUMNS}`,
       [
         input.title,
         input.slug,
         input.sku,
         input.category,
+        [...input.categories],
         input.price,
         input.originalPrice,
         input.discount,
@@ -285,12 +287,12 @@ export class ProductRepository {
   async updateById(id: string, input: ProductWrite, version: number, client?: PoolClient): Promise<ProductRecord> {
     const updated = await query<ProductSqlRow>(
       `UPDATE product SET
-         title = $2, slug = $3, sku = $4, category = $5, price = $6, original_price = $7,
-         discount = $8, discount_type = $9, description_intro = $10, description_detail = $11,
-         description_highlights = $12, spec_composition = $13, spec_care = $14, spec_includes = $15,
-         return_policy = $16, sizes = $17, tile_color = $18, best_seller = $19, stock = $20, status = $21,
+         title = $2, slug = $3, sku = $4, category = $5, categories = $6, price = $7, original_price = $8,
+         discount = $9, discount_type = $10, description_intro = $11, description_detail = $12,
+         description_highlights = $13, spec_composition = $14, spec_care = $15, spec_includes = $16,
+         return_policy = $17, sizes = $18, tile_color = $19, best_seller = $20, stock = $21, status = $22,
          version = version + 1
-       WHERE id = $1 AND deleted_at IS NULL AND version = $22
+       WHERE id = $1 AND deleted_at IS NULL AND version = $23
        RETURNING ${PRODUCT_COLUMNS}`,
       [
         id,
@@ -298,6 +300,7 @@ export class ProductRepository {
         input.slug,
         input.sku,
         input.category,
+        [...input.categories],
         input.price,
         input.originalPrice,
         input.discount,

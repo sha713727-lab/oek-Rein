@@ -11,6 +11,7 @@ export const PRODUCT_CATEGORIES = [
   "custom-colors",
   "personalized",
   "complete-sets",
+  "tack-accessories",
 ] as const;
 
 export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number];
@@ -50,6 +51,8 @@ export const FRONTEND_TO_BACKEND_CATEGORY: Record<string, ProductCategory | null
   "custom-colors": "custom-colors",
   personalized: "personalized",
   "complete-sets": "complete-sets",
+  "tack-accessories": "tack-accessories",
+  tack: "tack-accessories",
   // Legacy Zermae slugs (existing DB rows / bookmarks)
   serums: "saddles",
   creams: "bridles",
@@ -71,6 +74,7 @@ export const BACKEND_TO_FRONTEND_CATEGORY: Record<string, string> = {
   "custom-colors": "custom-colors",
   personalized: "personalized",
   "complete-sets": "complete-sets",
+  "tack-accessories": "tack-accessories",
   serums: "saddles",
   creams: "bridles",
   cleansers: "halters",
@@ -110,6 +114,8 @@ export const CATEGORY_LABELS: Record<string, string> = {
   "custom-colors": "Custom Colors",
   personalized: "Personalized Name & Logo",
   "complete-sets": "Matching Tack Sets",
+  "tack-accessories": "Tack & Accessories",
+  tack: "Tack & Accessories",
   // Legacy labels
   serums: "Saddles",
   creams: "Bridles",

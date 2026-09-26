@@ -11,6 +11,7 @@ export type ProductFormImage = {
 export type ProductFormPayload = {
   title: string;
   category: ProductCategory;
+  categories: ProductCategory[];
   price: number;
   originalPrice: number | null;
   discount: number;
@@ -35,8 +36,16 @@ export type ProductFormPayload = {
   images: ProductFormImage[] | undefined;
 };
 
+function isCategory(value: string): value is ProductCategory {
+  return (PRODUCT_CATEGORIES as readonly string[]).includes(value);
+}
+
 function asCategory(value: string): ProductCategory {
-  return (PRODUCT_CATEGORIES as readonly string[]).includes(value) ? (value as ProductCategory) : "new-arrivals";
+  return isCategory(value) ? value : "new-arrivals";
+}
+
+function asCategories(values: FormDataEntryValue[]): ProductCategory[] {
+  return [...new Set(values.map((value) => String(value).trim()).filter(isCategory))];
 }
 
 function parseLines(value: string): string[] {
@@ -74,9 +83,12 @@ export function productPayloadFromForm(formData: FormData, images: ProductFormIm
   const discount = Number(formData.get("discount") ?? 0);
   const discountType = String(formData.get("discountType") ?? DISCOUNT_TYPES.PERCENTAGE);
   const price = Number(formData.get("price") ?? 0);
+  const picked = asCategories(formData.getAll("categories"));
+  const category = picked[0] ?? asCategory(String(formData.get("category") ?? ""));
   return {
     title,
-    category: asCategory(String(formData.get("category") ?? "")),
+    category,
+    categories: picked.length > 0 ? picked : [category],
     price,
     originalPrice: discount > 0 ? price : originalRaw ? Number(originalRaw) : null,
     discount: Number.isFinite(discount) ? discount : 0,

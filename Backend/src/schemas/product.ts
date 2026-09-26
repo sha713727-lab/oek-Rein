@@ -36,6 +36,7 @@ export const createProductSchema = z.object({
   title: z.string().trim().min(2).max(200),
   sku: z.string().trim().toUpperCase().min(2).max(40).optional(),
   category: z.enum(PRODUCT_CATEGORIES),
+  categories: z.array(z.enum(PRODUCT_CATEGORIES)).min(1).max(PRODUCT_CATEGORIES.length).optional(),
   price: z.coerce.number().min(0),
   originalPrice: z.coerce.number().min(0).nullable().optional(),
   discount: z.coerce.number().min(0).optional(),

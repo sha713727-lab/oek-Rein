@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { IconShield, IconTruck } from "@/components/icons/icons";
 import { brandName } from "@/constants/brand";
-import { formatSupportPhoneDisplay, supportWhatsAppUrlFromPhone } from "@/constants/site";
+import { formatSupportContactsLine, SUPPORT_CONTACTS } from "@/constants/site";
 import { OrderSummary } from "@/features/orders/order-summary";
 import { orderService } from "@/lib/api/orders";
 import { readOrderReceipt } from "@/lib/order-receipt-cookie";
@@ -47,11 +47,10 @@ export default async function OrderConfirmationPage({
   }
 
   const storefront = await getStorefront();
-  const supportDisplay = formatSupportPhoneDisplay(storefront.content.supportPhone);
-  const whatsappHref = supportWhatsAppUrlFromPhone(
-    storefront.content.supportPhone,
+  const supportDisplay = formatSupportContactsLine();
+  const whatsappHref = `https://wa.me/${SUPPORT_CONTACTS[0]!.digits}?text=${encodeURIComponent(
     `Assalam o Alaikum ${brandName}, I just placed order ${order.orderNumber}. Please confirm.`,
-  );
+  )}`;
   return (
     <div className="order-confirmation-page">
       <div className="mx-auto max-w-[42rem] px-6 md:px-20">

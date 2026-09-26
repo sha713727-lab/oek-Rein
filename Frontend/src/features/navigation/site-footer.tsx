@@ -3,7 +3,7 @@ import type { ComponentType } from "react";
 
 import { IconFacebook, IconHorseshoe,IconInstagram, IconPinterest } from "@/components/icons/icons";
 import { brandName, footerSocialLabel, heroCtaHref, heroExploreLabel } from "@/constants/brand";
-import { FOOTER_NAV, FOOTER_SOCIAL } from "@/constants/site";
+import { FOOTER_NAV, FOOTER_SOCIAL, SUPPORT_CONTACTS } from "@/constants/site";
 import { type StorefrontContent, visibleNavLinks } from "@/constants/storefront";
 import { FooterTrail } from "@/features/motion/footer-trail";
 import { NewsletterForm } from "@/features/newsletter/newsletter-form";
@@ -80,6 +80,19 @@ export function SiteFooter({ content }: { content: StorefrontContent }) {
                 </li>
               );
             })}
+          </ul>
+        </div>
+        <div className="site-footer-phones">
+          <p className="site-footer-link-title">Call / WhatsApp</p>
+          <ul className="site-footer-link-list">
+            {SUPPORT_CONTACTS.map((item) => (
+              <li key={item.id}>
+                <a href={`tel:${item.e164}`} className="site-footer-link">
+                  {item.display}
+                </a>
+                <span className="site-footer-phone-label"> {item.label}</span>
+              </li>
+            ))}
           </ul>
         </div>
         <nav className="site-footer-links" aria-label="Footer">

@@ -36,16 +36,27 @@ function asTileColor(value: unknown, fallback: string | null): string | null {
   return /^#[0-9A-Fa-f]{6}$/.test(text) ? text : fallback;
 }
 
+/** Primary category first. A payload that sends only `category` replaces the list with that one category. */
+function productCategories(payload: Record<string, unknown>, existing?: ProductRecord): string[] {
+  const listed = payload.categories === undefined ? null : asStringArray(payload.categories);
+  const primary =
+    payload.category !== undefined ? String(payload.category) : (listed?.[0] ?? existing?.category ?? "");
+  const rest = listed ?? (payload.category !== undefined ? [] : [...(existing?.categories ?? [])]);
+  return [...new Set([primary, ...rest].map((item) => item.trim()).filter(Boolean))];
+}
+
 function toWrite(payload: Record<string, unknown>, slug: string, sku: string, existing?: ProductRecord): ProductWrite {
   const description = asRecord(payload.description ?? existing?.description);
   const specifications = asRecord(payload.specifications ?? existing?.specifications);
   const imagesRaw = (payload.images as ProductImage[] | undefined) ?? existing?.images ?? [];
   const colorsRaw = (payload.colors as ProductColor[] | undefined) ?? existing?.colors ?? [];
+  const categories = productCategories(payload, existing);
   return {
     title: String(payload.title ?? existing?.title ?? ""),
     slug,
     sku,
-    category: String(payload.category ?? existing?.category ?? ""),
+    category: categories[0] ?? "",
+    categories,
     price: Number(payload.price ?? existing?.price ?? 0),
     originalPrice:
       payload.originalPrice === undefined
@@ -207,6 +218,7 @@ export class ProductService {
         slug,
         sku: slot.sku,
         category: slot.category,
+        categories: [slot.category],
         price: slot.price,
         originalPrice: null,
         discount: 0,

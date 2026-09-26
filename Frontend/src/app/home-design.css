@@ -1115,26 +1115,6 @@ html.home-motion-ready .home-flow .home-reveal {
   scroll-snap-stop: always;
 }
 
-/* When only a few cards fit the homepage slot, center the row on wide screens */
-@media (min-width: 1100px) {
-  .best-sellers-rail-track.is-centered {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .best-sellers-rail-track.is-centered .vd-card-entrance,
-  .best-sellers-rail-track.is-centered .product-card {
-    flex-basis: min(22rem, 28vw);
-    width: min(22rem, 28vw);
-  }
-
-  /* No swipe chrome when the whole row already fits */
-  .best-sellers-rail-viewport:has(.best-sellers-rail-track.is-centered) {
-    overflow: visible;
-    scroll-snap-type: none;
-  }
-}
-
 .best-sellers-rail-track .vd-card-entrance,
 .best-sellers-rail-track .product-card {
   flex: 0 0 min(22rem, 78vw);
@@ -1165,11 +1145,31 @@ html.home-motion-ready .home-flow .home-reveal {
   }
 }
 
-@media (min-width: 768px) {
+@media (min-width: 768px) and (max-width: 1023px) {
   .best-sellers-rail-track .vd-card-entrance,
   .best-sellers-rail-track .product-card {
     flex-basis: min(26rem, 42vw);
     width: min(26rem, 42vw);
+  }
+}
+
+@media (min-width: 1024px) {
+  .best-sellers-rail-track.is-centered {
+    width: 100%;
+    gap: 1.75rem;
+    justify-content: center;
+  }
+
+  .best-sellers-rail-track.is-centered .vd-card-entrance,
+  .best-sellers-rail-track.is-centered .product-card {
+    flex: 0 0 calc((100% - 3.5rem) / 3);
+    width: calc((100% - 3.5rem) / 3);
+    max-width: none;
+  }
+
+  .best-sellers-rail-viewport:has(.best-sellers-rail-track.is-centered) {
+    overflow: visible;
+    scroll-snap-type: none;
   }
 }
 

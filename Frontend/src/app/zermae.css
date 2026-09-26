@@ -4163,6 +4163,17 @@
     font-family: var(--font-body);
   }
 
+  .info-page-contact-region {
+    display: block;
+    margin-bottom: 0.15rem;
+    font-family: var(--font-ui);
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
   .info-page-link {
     @apply transition-colors hover:text-brand-accent;
   }
@@ -5523,6 +5534,18 @@
 
   .admin-product-radio.is-selected {
     @apply font-medium text-[#18301d];
+  }
+
+  .admin-product-categories {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    gap: 0.6rem 1rem;
+  }
+
+  .admin-product-category-main {
+    @apply rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.08em];
+    background: color-mix(in srgb, var(--color-brand-mint) 70%, var(--color-brand-accent));
+    color: #18301d;
   }
 
   .admin-product-upload-block {

@@ -134,6 +134,18 @@
   outline-offset: 4px;
 }
 
+.site-footer-phones {
+  width: 100%;
+  max-width: 36rem;
+  margin-top: 2rem;
+  text-align: left;
+}
+
+.site-footer-phone-label {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
 .site-footer-links {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

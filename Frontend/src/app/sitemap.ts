@@ -11,6 +11,7 @@ const paths = [
   "/collections/bridles",
   "/collections/halters",
   "/collections/care",
+  "/collections/tack-accessories",
   "/custom",
   "/disciplines",
   "/tack",

@@ -14,15 +14,45 @@ export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "en";
 
 export const SUPPORT_EMAIL = "support@oakrein.com";
-/** Display form for customers */
-export const SUPPORT_PHONE = "0311 700 3196";
+
+export type SupportContact = {
+  readonly id: "pk" | "us";
+  readonly label: string;
+  readonly e164: string;
+  readonly digits: string;
+  readonly display: string;
+};
+
+export const SUPPORT_CONTACTS: readonly SupportContact[] = [
+  {
+    id: "pk",
+    label: "Pakistan",
+    e164: "+923214433514",
+    digits: "923214433514",
+    display: "+92 321 4433514",
+  },
+  {
+    id: "us",
+    label: "United States / Canada",
+    e164: "+17262334805",
+    digits: "17262334805",
+    display: "+1 726 233 4805",
+  },
+];
+
+/** Display form for customers (Pakistan line) */
+export const SUPPORT_PHONE = SUPPORT_CONTACTS[0]!.display;
 /** Local Pakistan mobile (no spaces) */
-export const SUPPORT_PHONE_LOCAL = "03117003196";
+export const SUPPORT_PHONE_LOCAL = "03214433514";
 /** E.164 for tel: links and WhatsApp */
-export const SUPPORT_PHONE_E164 = "+923117003196";
-export const SUPPORT_PHONE_DIGITS = "923117003196";
+export const SUPPORT_PHONE_E164 = SUPPORT_CONTACTS[0]!.e164;
+export const SUPPORT_PHONE_DIGITS = SUPPORT_CONTACTS[0]!.digits;
 export const SUPPORT_WHATSAPP_URL = `https://wa.me/${SUPPORT_PHONE_DIGITS}`;
 export const SUPPORT_ADDRESS = "12 Gulberg III, Lahore, Pakistan 54000";
+
+export function formatSupportContactsLine(): string {
+  return SUPPORT_CONTACTS.map((item) => `${item.display} (${item.label})`).join(" / ");
+}
 
 export function supportWhatsAppUrl(prefill?: string): string {
   if (!prefill?.trim()) {
@@ -55,9 +85,16 @@ export function resolveSupportPhoneDigits(phone?: string | null): string {
 
 export function formatSupportPhoneDisplay(phone?: string | null): string {
   const digits = resolveSupportPhoneDigits(phone);
+  const known = SUPPORT_CONTACTS.find((item) => item.digits === digits);
+  if (known) {
+    return known.display;
+  }
   if (digits.startsWith("92") && digits.length === 12) {
     const local = `0${digits.slice(2)}`;
     return `${local.slice(0, 4)} ${local.slice(4, 7)} ${local.slice(7)}`;
+  }
+  if (digits.startsWith("1") && digits.length === 11) {
+    return `+1 ${digits.slice(1, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`;
   }
   const trimmed = String(phone ?? "").trim();
   return trimmed || SUPPORT_PHONE;
@@ -130,7 +167,7 @@ export const SHOP_RANGE_CATEGORIES = [
     id: "tack-accessories",
     title: "Tack & Accessories",
     description: "Bridles, breast collars, reins and saddle pads.",
-    href: "/tack",
+    href: "/collections/tack-accessories",
     image: "/assets/images/western_floral_bridle.png",
     alt: `${brandName} tack and accessories`,
     tone: "mint",
@@ -550,6 +587,13 @@ export const COLLECTION_HEROES: Record<
     alt: `${brandName} matching complete set`,
     tone: "olive",
   },
+  "tack-accessories": {
+    first: "Tack &",
+    second: "Accessories",
+    image: "/assets/images/western_floral_bridle.png",
+    alt: `${brandName} tack and accessories`,
+    tone: "mint",
+  },
 };
 
 export const RITUAL_FEATURE_TITLE = "Gear Made For";
@@ -744,6 +788,14 @@ export const COLLECTION_RITUALS: Record<
     notes: [
       { title: "Full Match", description: "Bridle, breast collar, reins, and pad designed to go together.", icon: "horseshoe" },
       { title: "Ready to Ride", description: "Coordinated leather sets without mixing mismatched pieces.", icon: "leather" },
+    ],
+  },
+  "tack-accessories": {
+    title: "Tack Made For",
+    mark: "Every Ride",
+    notes: [
+      { title: "Coordinated Pieces", description: "Bridles, reins, breast collars, and pads that work together.", icon: "bridle" },
+      { title: "Built to Last", description: "Full-grain leather and solid hardware for daily barn use.", icon: "leather" },
     ],
   },
 

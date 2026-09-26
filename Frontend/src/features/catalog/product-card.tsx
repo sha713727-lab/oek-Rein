@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import { IconHeart } from "@/components/icons/icons";
-import { formatMoney } from "@/constants/storefront";
+import { formatMoney, tileStyle } from "@/constants/storefront";
 import { CmsImage } from "@/features/media/cms-image";
 import { PillCta } from "@/features/motion/pill-cta";
 import { toggleWishlistAction } from "@/features/wishlist/actions";
@@ -21,10 +22,23 @@ export type CatalogProduct = {
   tileColor?: string | null;
 };
 
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setReduced(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
+  return reduced;
+}
+
 /** VOLDOG soft-gray product card — same language as category cards. */
 export function ProductCard({
   product,
   wished,
+  color,
   currency = "USD",
   ctaLabel = "Shop",
 }: {
@@ -35,24 +49,68 @@ export function ProductCard({
   currency?: string;
   ctaLabel?: string;
 }) {
-  const primary = product.images[0];
+  const photos = product.images.filter(Boolean);
+  const backdrop = color || product.tileColor || undefined;
   const href = `/product/${product.id}`;
   const hasSale = Boolean(product.originalPrice && product.originalPrice > product.price);
+  const reducedMotion = usePrefersReducedMotion();
+  const [hovered, setHovered] = useState(false);
+  const [cycle, setCycle] = useState(0);
+
+  useEffect(() => {
+    if (!hovered || reducedMotion || photos.length < 3) {
+      return;
+    }
+    const timer = window.setInterval(() => {
+      setCycle((current) => current + 1);
+    }, 1100);
+    return () => window.clearInterval(timer);
+  }, [hovered, reducedMotion, photos.length]);
+
+  useEffect(() => {
+    if (!hovered) {
+      setCycle(0);
+    }
+  }, [hovered]);
+
+  const activeIndex = (() => {
+    if (photos.length < 2 || !hovered) {
+      return 0;
+    }
+    if (reducedMotion || photos.length === 2) {
+      return 1;
+    }
+    return (1 + cycle) % photos.length;
+  })();
 
   return (
-    <article className="product-card">
+    <article
+      className={cn("product-card", photos.length > 1 && "product-card--gallery")}
+      style={backdrop ? tileStyle(backdrop) : undefined}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocusCapture={() => setHovered(true)}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setHovered(false);
+        }
+      }}
+    >
       <Link href={href} className="product-card-hit" aria-label={product.title} />
-      <div className="product-card-media" aria-hidden={primary ? true : undefined}>
+      <div className="product-card-media" aria-hidden={photos[0] ? true : undefined}>
         <span className="product-card-glow" aria-hidden="true" />
         <div className="product-card-product">
-          {primary ? (
-            <CmsImage
-              src={primary}
-              alt=""
-              fill
-              sizes="(min-width: 1024px) 28vw, (min-width: 768px) 40vw, 45vw"
-              className="product-card-still"
-            />
+          {photos.length > 0 ? (
+            photos.map((src, index) => (
+              <CmsImage
+                key={`${src}-${index}`}
+                src={src}
+                alt=""
+                fill
+                sizes="(min-width: 1024px) 28vw, (min-width: 768px) 40vw, 45vw"
+                className={cn("product-card-still", index === activeIndex && "is-active")}
+              />
+            ))
           ) : (
             <span className="product-card-empty">No image</span>
           )}

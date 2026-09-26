@@ -127,12 +127,14 @@ export function BestSellers({ items, currency = "USD" }: { items: ResolvedBestSe
                         wished={item.wished}
                         currency={currency}
                         ctaLabel="Shop"
+                        color={item.color}
                         product={{
                           id: item.productId,
                           title: item.title,
                           description: item.description,
                           price: item.price,
-                          images: item.image ? [item.image] : [],
+                          images: item.images,
+                          tileColor: item.color,
                         }}
                       />
                     </div>

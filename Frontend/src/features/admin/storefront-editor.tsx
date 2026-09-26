@@ -956,7 +956,7 @@ export function StorefrontEditor({
                 label="WhatsApp / shop phone"
                 name="supportPhone"
                 defaultValue={content.supportPhone}
-                hint="e.g. 03117003196"
+                hint="Primary WhatsApp, e.g. 03214433514. Contact page also lists +1 726 233 4805."
               />
               <SoftInput
                 label="Footer statement lead"

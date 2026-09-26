@@ -1,10 +1,6 @@
 import { brandName } from "@/constants/brand";
 import { DEFAULT_COMMERCE_SETTINGS } from "@/constants/commerce";
-import {
-  formatSupportPhoneDisplay,
-  supportPhoneE164,
-  toWhatsAppDigits,
-} from "@/constants/site";
+import { formatSupportContactsLine, toWhatsAppDigits } from "@/constants/site";
 import { formatMoney } from "@/constants/storefront";
 
 type OrderWhatsAppInput = {
@@ -20,8 +16,7 @@ type OrderWhatsAppInput = {
 export function customerOrderWhatsAppMessage(order: OrderWhatsAppInput): string {
   const lines = order.items.map((item) => `• ${item.name} × ${item.quantity}`).join("\n");
   const money = formatMoney(order.total, order.currency ?? DEFAULT_COMMERCE_SETTINGS.currency);
-  const display = formatSupportPhoneDisplay(order.supportPhone);
-  const e164 = supportPhoneE164(order.supportPhone);
+  const contacts = formatSupportContactsLine();
   return [
     `Assalam o Alaikum ${order.customer},`,
     ``,
@@ -34,7 +29,7 @@ export function customerOrderWhatsAppMessage(order: OrderWhatsAppInput): string 
     `Payment: Cash on delivery`,
     `Delivery: Ships to North America`,
     ``,
-    `Questions? WhatsApp us on ${display} (${e164}).`,
+    `Questions? WhatsApp us on ${contacts}.`,
     ``,
     `— ${brandName}`,
   ].join("\n");

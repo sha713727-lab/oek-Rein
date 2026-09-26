@@ -8,9 +8,11 @@ import { ConfirmSubmit } from "@/components/ui/confirm-submit";
 import {
   CATEGORY_LABELS,
   DISCOUNT_TYPES,
+  normalizeCategoryFilter,
   PRODUCT_CATEGORIES,
   PRODUCT_STATUS,
   PRODUCT_VOLUME_OPTIONS,
+  type ProductCategory,
 } from "@/constants/catalog";
 import { currencySymbol, DEFAULT_COMMERCE_SETTINGS } from "@/constants/commerce";
 import { HORSE_COAT } from "@/constants/storefront";
@@ -27,6 +29,17 @@ function omitError(errors: FieldErrors, key: keyof FieldErrors): FieldErrors {
   const next = { ...errors };
   delete next[key];
   return next;
+}
+
+/** Stored slugs come back as storefront slugs (e.g. `new`); map them to admin category values. */
+function initialCategories(product: SerializedProduct | undefined): ProductCategory[] {
+  if (!product) {
+    return ["new-arrivals"];
+  }
+  const mapped = [product.category, ...(product.categories ?? [])]
+    .map((item) => normalizeCategoryFilter(item))
+    .filter((item): item is ProductCategory => Boolean(item));
+  return mapped.length > 0 ? [...new Set(mapped)] : ["new-arrivals"];
 }
 
 function Field({
@@ -77,6 +90,7 @@ export function ProductForm({
   }, [product]);
   const [sizes, setSizes] = useState<string[]>(product?.sizes?.length ? [...product.sizes] : []);
   const [bestSeller, setBestSeller] = useState(product?.bestSeller ?? false);
+  const [categories, setCategories] = useState<ProductCategory[]>(() => initialCategories(product));
   const [discountType, setDiscountType] = useState(product?.discountType || DISCOUNT_TYPES.PERCENTAGE);
   const [slots, setSlots] = useState<ProductImageSlot[]>(() =>
     (product?.images ?? []).filter((image) => image.url).map((image) => createImageSlot(image)),
@@ -110,9 +124,8 @@ export function ProductForm({
     if (stock === "" || Number(stock) < 0) {
       next.stock = "Stock is required.";
     }
-    const category = String((document.getElementById("category") as HTMLSelectElement | null)?.value ?? "").trim();
-    if (!category) {
-      next.category = "Category is required.";
+    if (categories.length === 0) {
+      next.category = "Pick at least one category.";
     }
     if (slots.length === 0) {
       next.images = "Add a main product photo.";
@@ -134,6 +147,8 @@ export function ProductForm({
     formData.set("status", nextIntent === "draft" ? PRODUCT_STATUS.DRAFT : PRODUCT_STATUS.PUBLISHED);
     formData.set("sizes", sizes.join("\n"));
     formData.set("includes", sizes[0] ?? "");
+    formData.delete("categories");
+    categories.forEach((category) => formData.append("categories", category));
     formData.set(
       "tileColor",
       asHexColor((form.querySelector('input[name="tileColor"]') as HTMLInputElement | null)?.value, blush),
@@ -167,6 +182,16 @@ export function ProductForm({
           setSaveError(error instanceof Error ? error.message : "Product could not be saved");
         });
     });
+  }
+
+  function toggleCategory(category: ProductCategory) {
+    const next = categories.includes(category)
+      ? categories.filter((item) => item !== category)
+      : [...categories, category];
+    setCategories(next);
+    if (next.length > 0) {
+      setErrors((current) => omitError(current, "category"));
+    }
   }
 
   function toggleSize(size: string) {
@@ -399,23 +424,32 @@ export function ProductForm({
             <h2 id="category-heading" className="admin-product-card-title">
               Category
             </h2>
-            <Field label="Product Category" htmlFor="category" error={errors.category}>
-              <select
-                id="category"
-                className="admin-product-soft admin-product-select"
-                name="category"
-                defaultValue={product?.category ?? "new-arrivals"}
-                required
-                aria-invalid={Boolean(errors.category)}
-                aria-describedby={errors.category ? "category-error" : undefined}
-              >
-                {PRODUCT_CATEGORIES.map((category) => (
-                  <option key={category} value={category}>
-                    {CATEGORY_LABELS[category] ?? category}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            <fieldset
+              className={cn("admin-product-field", errors.category && "has-error")}
+              aria-describedby={errors.category ? "category-error" : undefined}
+            >
+              <legend className="admin-product-label">Product Categories</legend>
+              <p className="admin-product-kicker">
+                Tick every collection this product belongs in. The first one ticked is its main category.
+              </p>
+              <div className="admin-product-categories">
+                {PRODUCT_CATEGORIES.map((category) => {
+                  const checked = categories.includes(category);
+                  return (
+                    <label key={category} className={cn("admin-product-radio", checked && "is-selected")}>
+                      <input type="checkbox" checked={checked} onChange={() => toggleCategory(category)} />
+                      {CATEGORY_LABELS[category] ?? category}
+                      {categories[0] === category ? <span className="admin-product-category-main">Main</span> : null}
+                    </label>
+                  );
+                })}
+              </div>
+              {errors.category ? (
+                <p id="category-error" className="admin-product-error" role="alert">
+                  {errors.category}
+                </p>
+              ) : null}
+            </fieldset>
           </section>
         </div>
       </form>

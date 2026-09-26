@@ -638,8 +638,8 @@
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    color-mix(in srgb, var(--home-accent, #e1e53f) 78%, white) 0%,
-    color-mix(in srgb, var(--home-accent, #e1e53f) 32%, transparent) 55%,
+    color-mix(in srgb, var(--tile-color, var(--home-accent, #e1e53f)) 78%, white) 0%,
+    color-mix(in srgb, var(--tile-color, var(--home-accent, #e1e53f)) 32%, transparent) 55%,
     transparent 72%
   );
   transform: translate(-50%, -50%) scale(0.72);
@@ -664,8 +664,19 @@
   object-position: center center;
   padding: 0.5rem 0.75rem;
   filter: drop-shadow(0 18px 22px rgba(32, 78, 74, 0.14));
-  transition: transform 400ms var(--shop-card-ease);
+  transition:
+    transform 400ms var(--shop-card-ease),
+    opacity 450ms var(--shop-card-ease);
   transform-origin: center center;
+}
+
+.product-card--gallery .product-card-still {
+  opacity: 0;
+}
+
+.product-card--gallery .product-card-still.is-active {
+  z-index: 2;
+  opacity: 1;
 }
 
 .product-card-empty {
@@ -805,8 +816,8 @@
     transform: translate(-50%, -50%) scale(1);
   }
 
-  .product-card:hover .product-card-still,
-  .product-card:focus-within .product-card-still {
+  .product-card:hover .product-card-still.is-active,
+  .product-card:focus-within .product-card-still.is-active {
     transform: scale(1.05);
   }
 
@@ -1500,6 +1511,10 @@
   text-align: left;
 }
 
+.info-page-content.legal-copy {
+  max-width: 44rem;
+}
+
 .info-page-actions {
   justify-content: flex-start;
 }
@@ -1904,8 +1919,32 @@
   font-size: 0.9rem;
 }
 
-.legal-copy p + p {
+.legal-copy p + p,
+.legal-copy .legal-section + .legal-section {
   margin-top: 1rem;
+}
+
+.legal-copy .legal-section {
+  margin-top: 1.75rem;
+}
+
+.legal-copy h2 {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+.legal-copy ul {
+  margin: 0.65rem 0 0.85rem 1.25rem;
+  padding: 0;
+  list-style: disc;
+}
+
+.legal-copy li + li {
+  margin-top: 0.35rem;
 }
 
 @media (prefers-reduced-motion: reduce) {

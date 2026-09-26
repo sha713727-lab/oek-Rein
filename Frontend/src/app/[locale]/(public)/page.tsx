@@ -3,7 +3,7 @@ import nextDynamic from "next/dynamic";
 import { visibleShopCategories } from "@/constants/storefront";
 import { BestSellers } from "@/features/catalog/best-sellers";
 import { HeroHome } from "@/features/catalog/hero-home";
-import { resolveBestSellers } from "@/features/catalog/resolve-best-sellers";
+import { mergeUniqueProducts, resolveBestSellers } from "@/features/catalog/resolve-best-sellers";
 import { RitualFinder } from "@/features/catalog/ritual-finder";
 import { ShopByCategory } from "@/features/catalog/shop-by-category";
 import { HomeMotion } from "@/features/motion/home-motion";
@@ -41,7 +41,15 @@ const GlowStats = nextDynamic(() => import("@/features/catalog/glow-stats").then
 
 export default async function HomePage() {
   const [storefront, wishlist] = await Promise.all([getStorefront(), readWishlist()]);
-  const products = await productService.getBySkus(storefront.content.bestSellerSkus);
+  let products = await productService.getBySkus(storefront.content.bestSellerSkus);
+  if (products.length < 3) {
+    const flagged = await productService.list({ bestSeller: true, limit: 12 });
+    products = mergeUniqueProducts(products, flagged.products);
+  }
+  if (products.length < 3) {
+    const ensured = await productService.ensureBestSellers().catch(() => []);
+    products = mergeUniqueProducts(products, ensured);
+  }
   const bestSellers = resolveBestSellers(products, wishlist.ids, storefront.content.bestSellerColors);
 
   return (

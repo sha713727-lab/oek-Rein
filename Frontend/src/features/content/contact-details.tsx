@@ -1,20 +1,7 @@
 import { IconEnvelope, IconMap, IconPhone } from "@/components/icons/icons";
-import {
-  formatSupportPhoneDisplay,
-  SUPPORT_ADDRESS,
-  SUPPORT_EMAIL,
-  supportPhoneE164,
-  supportWhatsAppUrlFromPhone,
-} from "@/constants/site";
+import { SUPPORT_ADDRESS, SUPPORT_CONTACTS, SUPPORT_EMAIL } from "@/constants/site";
 
-type ContactDetailsProps = {
-  supportPhone?: string;
-};
-
-export function ContactDetails({ supportPhone }: ContactDetailsProps) {
-  const display = formatSupportPhoneDisplay(supportPhone);
-  const tel = supportPhoneE164(supportPhone);
-  const whatsapp = supportWhatsAppUrlFromPhone(supportPhone);
+export function ContactDetails() {
   return (
     <ul className="info-page-contact-list">
       <li className="info-page-contact-item">
@@ -28,16 +15,18 @@ export function ContactDetails({ supportPhone }: ContactDetailsProps) {
         <IconPhone className="info-page-contact-icon" />
         <div>
           <p className="info-page-contact-label">Call / WhatsApp</p>
-          <p className="info-page-contact-value">
-            <a href={`tel:${tel}`} className="info-page-link">
-              {display}
-            </a>
-          </p>
-          <p className="info-page-contact-value">
-            <a href={whatsapp} target="_blank" rel="noreferrer" className="info-page-link">
-              Chat on WhatsApp
-            </a>
-          </p>
+          {SUPPORT_CONTACTS.map((item) => (
+            <p key={item.id} className="info-page-contact-value">
+              <span className="info-page-contact-region">{item.label}</span>
+              <a href={`tel:${item.e164}`} className="info-page-link">
+                {item.display}
+              </a>
+              {" · "}
+              <a href={`https://wa.me/${item.digits}`} target="_blank" rel="noreferrer" className="info-page-link">
+                WhatsApp
+              </a>
+            </p>
+          ))}
         </div>
       </li>
       <li className="info-page-contact-item">

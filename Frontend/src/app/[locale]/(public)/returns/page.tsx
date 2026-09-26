@@ -1,24 +1,14 @@
-import { DEFAULT_RETURN_POLICY } from "@/constants/catalog";
-import { getFreeShippingNote } from "@/constants/commerce";
+import { ReturnRefundPolicyCopy } from "@/features/content/oakrein-policies";
 import { LegalPage } from "@/features/content/legal-page";
-import { getStorefront } from "@/lib/storefront";
 
-export default async function ReturnsPage() {
-  const storefront = await getStorefront();
+export default function ReturnsPage() {
   return (
     <LegalPage
       eyebrow="Policies"
-      title="Returns & Exchange"
-      lead="Unused saddles, bridles, and tack may be exchanged within 14 days of delivery."
+      title="Return & Refund Policy"
+      lead="Eligible products may be returned within 30 days of the date you receive your order."
     >
-      {DEFAULT_RETURN_POLICY.split("\n").map((paragraph) => (
-        <p key={paragraph}>{paragraph}</p>
-      ))}
-      <p>{getFreeShippingNote(storefront.commerce)}</p>
-      <p>
-        Used, fitted, or leather-conditioned items cannot be returned. Contact us with your order reference before
-        sending anything back.
-      </p>
+      <ReturnRefundPolicyCopy />
     </LegalPage>
   );
 }

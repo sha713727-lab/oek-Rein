@@ -8,6 +8,7 @@ export type ProductSqlRow = {
   slug: string;
   sku: string;
   category: string;
+  categories: string[] | null;
   price: string;
   original_price: string | null;
   discount: string;
@@ -45,7 +46,7 @@ export type ProductColorRow = {
   hex: string;
 };
 
-export const PRODUCT_COLUMNS = `id, title, slug, sku, category, price, original_price, discount, discount_type,
+export const PRODUCT_COLUMNS = `id, title, slug, sku, category, categories, price, original_price, discount, discount_type,
   description_intro, description_detail, description_highlights, spec_composition, spec_care, spec_includes,
   return_policy, sizes, tile_color, best_seller, stock, low_stock_threshold, rating, review_count, status, version,
   created_at, updated_at`;
@@ -77,6 +78,7 @@ export function toProductRecord(
     slug: row.slug,
     sku: row.sku,
     category: row.category,
+    categories: [...new Set([row.category, ...(row.categories ?? [])])],
     price,
     originalPrice: row.original_price === null ? null : money(row.original_price),
     discount,
@@ -115,6 +117,7 @@ export function serializeProduct(product: ProductRecord): SerializedProduct {
     ...product,
     _id: product.id,
     category: toFrontendCategory(product.category),
+    categories: [...new Set(product.categories.map(toFrontendCategory))],
     images: product.images.map((image) => ({
       ...image,
       url: resolvePublicAssetSrc(image.url),
