@@ -1,4 +1,5 @@
 import { getFreeShippingNote } from "@/constants/commerce";
+import { SUPPORT_EMAIL } from "@/constants/site";
 import { LegalPage } from "@/features/content/legal-page";
 import { getStorefront } from "@/lib/storefront";
 
@@ -12,7 +13,12 @@ export default async function ShippingPage() {
     >
       <p>
         Orders ship from Pakistan to addresses across the United States and Canada. Transit times vary by destination and
-        carrier. You will receive an order reference after checkout so you can follow up with client care if needed.
+        carrier. You will receive an order reference after checkout so you can follow up with client care at{" "}
+        <a href={`mailto:${SUPPORT_EMAIL}`} className="info-page-link">
+          {SUPPORT_EMAIL}
+        </a>
+        {" "}
+        if needed.
       </p>
       <p>{getFreeShippingNote(storefront.commerce)}</p>
       <p>

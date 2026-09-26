@@ -3,6 +3,7 @@ import {
   formatSupportContactsLine,
   formatSupportPhoneDisplay,
   SUPPORT_CONTACTS,
+  SUPPORT_EMAIL,
   toWhatsAppDigits,
 } from "@/constants/site";
 import { formatMoney } from "@/constants/storefront";
@@ -28,7 +29,7 @@ function customerOrderMessage(order: OrderRecord, opts: SupportPhoneOpts = {}): 
     `Delivery: 3–5 working days`,
     ``,
     `We will call or WhatsApp you on ${order.phone} if we need anything.`,
-    `Questions? Message us on WhatsApp ${contacts}.`,
+    `Questions? Message us on WhatsApp ${contacts} or email ${SUPPORT_EMAIL}.`,
     ``,
     `— ${brandName}`,
   ].join("\n");
@@ -190,7 +191,7 @@ export function orderEmailText(order: OrderRecord, appUrl: string, opts: Support
     `Payment: Cash on delivery`,
     `We will deliver within 3–5 working days.`,
     ``,
-    `Need help? Call or WhatsApp ${contacts}.`,
+    `Need help? Call or WhatsApp ${contacts}, or email ${SUPPORT_EMAIL}.`,
     `WhatsApp: https://wa.me/${SUPPORT_CONTACTS[0]!.digits}`,
     ``,
     `Track a guest order: ${appUrl.replace(/\/$/, "")}/orders/lookup`,

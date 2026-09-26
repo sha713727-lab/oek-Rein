@@ -1,7 +1,7 @@
 import { brandName } from "@/constants/brand";
 import { PRODUCT_STATUS } from "@/constants/catalog";
 import { calculateOrderTotals } from "@/constants/commerce";
-import { ORDER_STATUS, ORDER_STATUS_TRANSITIONS, type OrderStatus } from "@/constants/order-status";
+import { ORDER_STATUS, ORDER_STATUS_TRANSITIONS, PAYMENT_METHODS, type OrderStatus } from "@/constants/order-status";
 import { ADMIN_ROLES, type Role } from "@/constants/roles";
 import { AppError } from "@/lib/app-error";
 import { sha256Hex } from "@/lib/crypto";
@@ -133,7 +133,7 @@ export class OrderService {
           address: payload.address.trim(),
           city: payload.city.trim(),
           postalCode: payload.postalCode.trim(),
-          paymentMethod: payload.paymentMethod,
+          paymentMethod: PAYMENT_METHODS.COD,
           status: ORDER_STATUS.PENDING,
           items: orderItems,
           subtotal,
@@ -164,6 +164,7 @@ export class OrderService {
     const supportOpts = { supportPhone: storefront.content.supportPhone };
     await sendMail({
       to: order.email,
+      replyTo: getEnv().SUPPORT_EMAIL,
       subject: `${brandName} order ${order.orderNumber}`,
       text: orderEmailText(order, getEnv().APP_URL, supportOpts),
     });

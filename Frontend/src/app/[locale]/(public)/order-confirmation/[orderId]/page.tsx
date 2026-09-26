@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { IconShield, IconTruck } from "@/components/icons/icons";
 import { brandName } from "@/constants/brand";
-import { formatSupportContactsLine, SUPPORT_CONTACTS } from "@/constants/site";
+import { formatSupportContactsLine, SUPPORT_CONTACTS, SUPPORT_EMAIL } from "@/constants/site";
 import { OrderSummary } from "@/features/orders/order-summary";
 import { orderService } from "@/lib/api/orders";
 import { readOrderReceipt } from "@/lib/order-receipt-cookie";
@@ -71,6 +71,11 @@ export default async function OrderConfirmationPage({
             A confirmation is sent to your WhatsApp and email when messaging is enabled. Need help? WhatsApp us on{" "}
             <a href={whatsappHref} className="order-confirmation-email" target="_blank" rel="noreferrer">
               {supportDisplay}
+            </a>
+            {" "}
+            or email{" "}
+            <a href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`Order ${order.orderNumber}`)}`} className="order-confirmation-email">
+              {SUPPORT_EMAIL}
             </a>
             .
           </p>

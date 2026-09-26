@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { SUPPORT_EMAIL } from "@/constants/site";
+
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="legal-section">
@@ -313,8 +315,11 @@ export function ReturnRefundPolicyCopy() {
       <Section title="23. Contact Us">
         <p>
           To request a return or ask a question regarding a refund, exchange, damaged item, defective product, or
-          incorrect shipment, please contact Oak &amp; Rein using the customer service information provided on{" "}
-          <strong>oakrein.com</strong>.
+          incorrect shipment, please email{" "}
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="info-page-link">
+            {SUPPORT_EMAIL}
+          </a>{" "}
+          or use the customer service information provided on <strong>oakrein.com</strong>.
         </p>
         <p>
           Please include your <strong>order number</strong> in your message so that your request can be reviewed
@@ -712,7 +717,11 @@ export function TermsAndConditionsCopy() {
       <Section title="29. Contact Us">
         <p>
           For questions regarding these Terms &amp; Conditions, orders, products, or customer service matters, please
-          contact Oak &amp; Rein using the contact information provided on <strong>oakrein.com</strong>.
+          email{" "}
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="info-page-link">
+            {SUPPORT_EMAIL}
+          </a>{" "}
+          or use the contact information provided on <strong>oakrein.com</strong>.
         </p>
       </Section>
     </>

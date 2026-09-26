@@ -13,7 +13,7 @@ export type Locale = (typeof LOCALES)[number];
 
 export const DEFAULT_LOCALE: Locale = "en";
 
-export const SUPPORT_EMAIL = "support@oakrein.com";
+export const SUPPORT_EMAIL = "sales@oakrein.com";
 
 export type SupportContact = {
   readonly id: "pk" | "us";

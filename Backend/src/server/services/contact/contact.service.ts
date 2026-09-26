@@ -9,6 +9,7 @@ export class ContactService {
     const env = getEnv();
     await sendMail({
       to: env.SUPPORT_EMAIL,
+      replyTo: input.email,
       subject: `${brandName} contact from ${input.name}`,
       text: `From: ${input.name} <${input.email}>\n\n${input.message}`,
     });

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import type { ComponentType } from "react";
 
-import { IconFacebook, IconHorseshoe,IconInstagram, IconPinterest } from "@/components/icons/icons";
+import { IconFacebook, IconHorseshoe, IconInstagram, IconPinterest } from "@/components/icons/icons";
 import { brandName, footerSocialLabel, heroCtaHref, heroExploreLabel } from "@/constants/brand";
-import { FOOTER_NAV, FOOTER_SOCIAL, SUPPORT_CONTACTS } from "@/constants/site";
+import { FOOTER_NAV, FOOTER_SOCIAL, SUPPORT_CONTACTS, SUPPORT_EMAIL } from "@/constants/site";
 import { type StorefrontContent, visibleNavLinks } from "@/constants/storefront";
 import { FooterTrail } from "@/features/motion/footer-trail";
 import { NewsletterForm } from "@/features/newsletter/newsletter-form";
@@ -93,6 +93,12 @@ export function SiteFooter({ content }: { content: StorefrontContent }) {
                 <span className="site-footer-phone-label"> {item.label}</span>
               </li>
             ))}
+            <li>
+              <a href={`mailto:${SUPPORT_EMAIL}`} className="site-footer-link">
+                {SUPPORT_EMAIL}
+              </a>
+              <span className="site-footer-phone-label"> Sales</span>
+            </li>
           </ul>
         </div>
         <nav className="site-footer-links" aria-label="Footer">

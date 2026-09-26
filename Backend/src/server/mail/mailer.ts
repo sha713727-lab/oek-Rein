@@ -7,6 +7,7 @@ export async function sendMail(input: {
   to: string;
   subject: string;
   text: string;
+  replyTo?: string;
 }): Promise<boolean> {
   const env = getEnv();
   if (!env.SMTP_HOST || !env.SMTP_PORT) {
@@ -29,6 +30,7 @@ export async function sendMail(input: {
       to: input.to,
       subject: input.subject,
       text: input.text,
+      ...(input.replyTo ? { replyTo: input.replyTo } : {}),
     });
     return true;
   } catch (error) {

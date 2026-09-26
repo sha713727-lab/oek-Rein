@@ -32,7 +32,7 @@ export function ContactDetails() {
       <li className="info-page-contact-item">
         <IconEnvelope className="info-page-contact-icon" />
         <div>
-          <p className="info-page-contact-label">Email</p>
+          <p className="info-page-contact-label">Sales email</p>
           <p className="info-page-contact-value">
             <a href={`mailto:${SUPPORT_EMAIL}`} className="info-page-link">
               {SUPPORT_EMAIL}

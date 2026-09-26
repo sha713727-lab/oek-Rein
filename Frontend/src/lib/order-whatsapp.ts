@@ -1,6 +1,6 @@
 import { brandName } from "@/constants/brand";
 import { DEFAULT_COMMERCE_SETTINGS } from "@/constants/commerce";
-import { formatSupportContactsLine, toWhatsAppDigits } from "@/constants/site";
+import { formatSupportContactsLine, SUPPORT_EMAIL, toWhatsAppDigits } from "@/constants/site";
 import { formatMoney } from "@/constants/storefront";
 
 type OrderWhatsAppInput = {
@@ -29,7 +29,7 @@ export function customerOrderWhatsAppMessage(order: OrderWhatsAppInput): string 
     `Payment: Cash on delivery`,
     `Delivery: Ships to North America`,
     ``,
-    `Questions? WhatsApp us on ${contacts}.`,
+    `Questions? WhatsApp us on ${contacts} or email ${SUPPORT_EMAIL}.`,
     ``,
     `— ${brandName}`,
   ].join("\n");

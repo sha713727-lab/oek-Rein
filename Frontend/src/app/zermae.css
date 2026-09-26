@@ -4589,7 +4589,7 @@
   }
 
   .checkout-form {
-    @apply flex flex-col gap-8;
+    @apply relative flex flex-col gap-8;
   }
 
   .checkout-section {
@@ -4628,8 +4628,12 @@
   }
 
   .checkout-input {
-    @apply w-full border border-brand-border bg-brand-white px-4 py-3 text-sm text-brand-primary outline-none transition-colors placeholder:text-text-muted focus:border-brand-primary;
+    @apply w-full border border-brand-border bg-brand-white px-4 py-3 text-sm text-brand-primary outline-none transition-colors placeholder:text-text-muted/70 focus:border-brand-primary;
     font-family: var(--font-body);
+  }
+
+  .checkout-input[aria-invalid="true"] {
+    @apply border-red-700;
   }
 
   .checkout-payment-options {
@@ -4646,7 +4650,7 @@
   }
 
   .checkout-submit {
-    @apply w-full justify-center px-6 py-3.5 text-[10px] tracking-[0.22em];
+    @apply mt-3 w-full justify-center px-6 py-3.5 text-[10px] tracking-[0.22em];
   }
 
   .checkout-summary {
@@ -4711,6 +4715,21 @@
   .checkout-back-link {
     @apply mt-4 block text-center text-xs uppercase tracking-[0.18em] text-text-muted transition-colors hover:text-brand-primary;
     font-family: var(--font-ui);
+  }
+
+  .checkout-field-error {
+    @apply text-xs text-red-700;
+    font-family: var(--font-body);
+  }
+
+  .checkout-honeypot {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
   }
 
   .checkout-note {

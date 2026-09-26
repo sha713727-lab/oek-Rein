@@ -32,6 +32,7 @@ import {
   NAV_ITEMS,
   PRODUCT_HIGHLIGHTS_IMAGE,
   SHOP_RANGE_CATEGORIES,
+  SUPPORT_EMAIL,
   SUPPORT_PHONE_LOCAL,
 } from "@/constants/site";
 import { resolvePublicAssetSrc } from "@/lib/public-assets";
@@ -506,7 +507,7 @@ export const DEFAULT_STOREFRONT_CONTENT: StorefrontContent = {
   aboutCopy:
     `${brandName} is a premium handcrafted Pakistani leather equestrian brand for North America. From saddles and bridles to halters and leather care, every piece is built for riders who want honest materials, careful stitching, and gear that lasts.`,
   contactLead:
-    "Questions about an order, a fit, or shipping to the US or Canada? We are here to help.",
+    `Questions about an order, a fit, or shipping to the US or Canada? Email ${SUPPORT_EMAIL} — we are here to help.`,
   supportPhone: SUPPORT_PHONE_LOCAL,
   authLoginSrc: AUTH_BANNERS.login.src,
   authRegisterSrc: AUTH_BANNERS.register.src,

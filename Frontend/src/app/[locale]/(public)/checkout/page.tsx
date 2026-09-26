@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 
-import { brandName } from "@/constants/brand";
 import { PRODUCT_STATUS } from "@/constants/catalog";
 import { calculateOrderTotals, getFreeShippingNote } from "@/constants/commerce";
+import { SUPPORT_EMAIL } from "@/constants/site";
 import { formatMoney } from "@/constants/storefront";
 import { CheckoutForm } from "@/features/checkout/checkout-form";
 import { OrderTotals } from "@/features/checkout/order-totals";
@@ -47,7 +47,9 @@ export default async function CheckoutPage() {
         <header className="section-intro checkout-intro">
           <span className="section-intro-eyebrow">Checkout</span>
           <h1 className="section-intro-title">Complete Your Order</h1>
-          <p className="section-intro-description">Enter your details to finalize your {brandName} order.</p>
+          <p className="section-intro-description">
+            Enter your delivery details. We ship to the United States and Canada. Payment is cash on delivery only.
+          </p>
         </header>
         <div className="checkout-layout">
           <CheckoutForm
@@ -78,6 +80,13 @@ export default async function CheckoutPage() {
             <p className="checkout-note">{getFreeShippingNote(commerce)}</p>
             <p className="checkout-note">
               Payment is cash on delivery. Pay the courier in {commerce.currency} when your order arrives. No card is charged online.
+            </p>
+            <p className="checkout-note">
+              Questions before you place the order? Email{" "}
+              <a href={`mailto:${SUPPORT_EMAIL}`} className="checkout-note-link">
+                {SUPPORT_EMAIL}
+              </a>
+              .
             </p>
           </aside>
         </div>
