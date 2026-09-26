@@ -1160,10 +1160,16 @@ html.home-motion-ready .home-flow .home-reveal {
     justify-content: center;
   }
 
-  .best-sellers-rail-track.is-centered .vd-card-entrance,
+  .best-sellers-rail-track.is-centered .vd-card-entrance {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    max-width: 22rem;
+  }
+
   .best-sellers-rail-track.is-centered .product-card {
-    flex: 0 0 calc((100% - 3.5rem) / 3);
-    width: calc((100% - 3.5rem) / 3);
+    flex: none;
+    width: 100%;
     max-width: none;
   }
 
