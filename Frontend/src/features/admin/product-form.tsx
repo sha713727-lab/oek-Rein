@@ -342,10 +342,10 @@ export function ProductForm({
             <ColorField
               name="tileColor"
               label="Card backdrop"
-              defaultValue={product?.tileColor || blush}
+              defaultValue={product?.tileColor || HORSE_COAT.sorrel}
               presets={[
-                { label: "Sorrel", color: blush },
-                { label: "Dapple Grey", color: mint },
+                { label: "Sorrel", color: HORSE_COAT.sorrel },
+                { label: "Dapple Grey", color: HORSE_COAT.dappleGrey },
                 { label: "Blue Roan", color: HORSE_COAT.blueRoan },
               ]}
             />

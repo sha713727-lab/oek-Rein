@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 import { brandName, heroCtaHref, heroCtaLabel, heroHeadline } from "@/constants/brand";
 import type { StorefrontContent } from "@/constants/storefront";
 import { HeroTransparentVideo } from "@/features/catalog/hero-transparent-video";
@@ -17,7 +19,15 @@ export function HeroHome({ content }: { content: StorefrontContent }) {
     <section className="home-hero" aria-label={title}>
       <div className="home-hero-layout">
         <div className="home-hero-scroll">
-          <div className="home-hero-panel">
+          <div
+            className="home-hero-panel"
+            style={
+              {
+                ["--hero-stage"]: content.heroStageColor,
+                ["--tile-color"]: content.heroStageColor,
+              } as CSSProperties
+            }
+          >
             <div className="home-hero-entrance" aria-hidden="true">
               <span className="home-hero-decor home-hero-decor--ring" />
               <span className="home-hero-decor home-hero-decor--stroke" />

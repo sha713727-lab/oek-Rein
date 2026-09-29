@@ -24,7 +24,7 @@ export function ProductGrid({
           product={product}
           wished={wishlistIds.includes(product.id)}
           color={resolveHorseCoatColor(
-            product.tileColor || palette[index % palette.length],
+            palette[index % palette.length] || product.tileColor,
             PRODUCT_CARD_COATS[0]!,
           )}
           currency={currency}

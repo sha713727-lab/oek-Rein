@@ -54,7 +54,7 @@ export function resolveBestSellers(
         image: images[0] ?? "",
         images,
         alt: photo?.alt || matched.title,
-        color: resolveHorseCoatColor(matched.tileColor || colors[index] || fallback, fallback),
+        color: resolveHorseCoatColor(colors[index] || matched.tileColor || fallback, fallback),
         wished: wishlistIds.includes(matched.id),
       };
     })

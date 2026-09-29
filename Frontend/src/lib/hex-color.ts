@@ -1,4 +1,4 @@
-export function asHexColor(value: unknown, fallback = "#f0c5bf"): string {
+export function asHexColor(value: unknown, fallback = "#e1e53f"): string {
   const text = String(value ?? "").trim();
   return /^#[0-9A-Fa-f]{6}$/.test(text) ? text : fallback;
 }

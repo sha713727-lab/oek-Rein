@@ -69,7 +69,11 @@
   border-radius: var(--home-radius-hero) var(--home-radius-hero) 0 0;
   background:
     radial-gradient(circle at 76% 26%, rgba(255, 255, 255, 0.28), transparent 42%),
-    linear-gradient(168deg, #8f9d6e 0%, #6f7c4f 100%);
+    linear-gradient(
+      168deg,
+      var(--hero-stage, var(--home-sage, #8f9d6e)) 0%,
+      color-mix(in srgb, var(--hero-stage, var(--home-sage, #8f9d6e)) 62%, #142221) 100%
+    );
 }
 
 .home-hero-wordmark {
