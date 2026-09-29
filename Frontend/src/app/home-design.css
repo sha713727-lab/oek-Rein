@@ -754,6 +754,10 @@ html.home-motion-ready .home-flow .home-reveal {
   will-change: transform;
 }
 
+.home-hero-wordmark-line {
+  will-change: clip-path, opacity;
+}
+
 .home-hero-positioning,
 .home-hero-lede {
   display: none;

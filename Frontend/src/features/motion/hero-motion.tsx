@@ -13,10 +13,18 @@ import {
 
 const SESSION_KEY = "saddlera-hero-seen";
 
+const WORD_WIPE_FROM = { clipPath: "inset(0% 50% 0% 50%)", opacity: 0 };
+const WORD_WIPE_TO = {
+  clipPath: "inset(0% 0% 0% 0%)",
+  opacity: 1,
+  duration: 0.7,
+  ease: "power2.out",
+} as const;
+
 /**
  * M01 coordinated hero entrance + M02 scroll retreat.
- * Separate wrappers: .home-hero-entrance (decor scale), .home-hero-scroll (scroll).
- * Mobile / coarse / reduced-motion: CSS-visible hero, no GSAP intro.
+ * Wordmark uses a center clip wipe (VOLDOG #voldog-text). Decor / subject / CTA stay desktop-only.
+ * Reduced motion: CSS-visible title, no clip.
  */
 export function useHeroMotion() {
   useEffect(() => {
@@ -39,16 +47,28 @@ export function useHeroMotion() {
       return;
     }
 
+    const reduced = prefersReducedMotion();
+    if (reduced) {
+      root.classList.add("is-hero-ready");
+      return;
+    }
+
     document.documentElement.classList.add("home-motion-ready");
 
-    const reduced = prefersReducedMotion();
     const mobile = isMobileViewport();
     const coarse = isCoarsePointer();
 
-    // Phones / touch / a11y: keep CSS defaults visible; skip the GSAP intro entirely.
-    if (reduced || mobile || coarse) {
+    if (mobile || coarse) {
+      const ctx = gsap.context(() => {
+        if (wordLines.length) {
+          gsap.set(wordLines, WORD_WIPE_FROM);
+          gsap.to(wordLines, WORD_WIPE_TO);
+        }
+      }, root);
       root.classList.add("is-hero-ready");
-      return;
+      return () => {
+        ctx.revert();
+      };
     }
 
     let repeat = false;
@@ -65,7 +85,9 @@ export function useHeroMotion() {
       if (entrance) {
         gsap.set(entrance, { scale: 0.92, opacity: 0.85, transformOrigin: "50% 50%" });
       }
-      gsap.set(wordLines, { yPercent: 110 });
+      if (wordLines.length) {
+        gsap.set(wordLines, WORD_WIPE_FROM);
+      }
       if (subject) {
         gsap.set(subject, { y: 16, scale: 1.01 });
       }
@@ -92,16 +114,9 @@ export function useHeroMotion() {
       if (decor.length) {
         tl.to(decor, { opacity: 1, duration: 0.55 * durationScale }, 0.05);
       }
-      tl.to(
-        wordLines,
-        {
-          yPercent: 0,
-          duration: 0.55 * durationScale,
-          stagger: 0.05,
-          ease: "revealEase",
-        },
-        0.08 * durationScale,
-      );
+      if (wordLines.length) {
+        tl.to(wordLines, WORD_WIPE_TO, 0.08 * durationScale);
+      }
       if (subject) {
         tl.to(
           subject,
