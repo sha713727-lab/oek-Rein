@@ -699,25 +699,25 @@
 
 .card-brand-chip {
   position: absolute;
-  top: 0.85rem;
-  left: 0.85rem;
+  top: 0.7rem;
+  left: 0.7rem;
   z-index: 3;
   display: inline-flex;
-  width: 2.25rem;
-  height: 2.25rem;
   align-items: center;
   justify-content: center;
-  border-radius: 9999px;
-  border: 1px solid color-mix(in srgb, var(--vd-green) 12%, transparent);
-  background: var(--home-paper, #fff);
-  box-shadow: 0 4px 12px rgba(32, 78, 74, 0.1);
+  width: auto;
+  height: auto;
+  background: none;
+  border: 0;
+  box-shadow: none;
   pointer-events: none;
 }
 
 .card-brand-chip .brand-logo-mark,
 .card-brand-chip .brand-logo-mark-img {
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.22));
 }
 
 .product-card .product-card-wishlist {
@@ -785,7 +785,7 @@
 .product-card-price-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
   width: 100%;
@@ -802,14 +802,17 @@
 .product-card-hot {
   flex-shrink: 0;
   margin-left: auto;
+  padding: 0.22em 0.45em 0.18em;
+  border-radius: 0.2em;
   font-family: var(--font-ui, var(--font-nav));
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
   line-height: 1;
   text-transform: uppercase;
   white-space: nowrap;
-  color: var(--vd-green);
+  color: #fff;
+  background: #d32f2f;
 }
 
 .product-card-price {
@@ -923,16 +926,19 @@
   }
 
   .card-brand-chip {
-    top: 0.45rem;
-    left: 0.45rem;
-    width: 1.85rem;
-    height: 1.85rem;
+    top: 0.4rem;
+    left: 0.4rem;
+    width: auto;
+    height: auto;
+    background: none;
+    border: 0;
+    box-shadow: none;
   }
 
   .card-brand-chip .brand-logo-mark,
   .card-brand-chip .brand-logo-mark-img {
-    width: 0.95rem;
-    height: 0.95rem;
+    width: 1.3rem;
+    height: 1.3rem;
   }
 
   .product-card .product-card-wishlist {
