@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { IconHeart } from "@/components/icons/icons";
+import { Logo } from "@/components/ui/logo";
 import { formatMoney, tileStyle } from "@/constants/storefront";
 import { CmsImage } from "@/features/media/cms-image";
 import { PillCta } from "@/features/motion/pill-cta";
@@ -41,6 +42,7 @@ export function ProductCard({
   color,
   currency = "USD",
   ctaLabel = "Shop",
+  hot = false,
 }: {
   product: CatalogProduct;
   wished: boolean;
@@ -48,6 +50,7 @@ export function ProductCard({
   color?: string;
   currency?: string;
   ctaLabel?: string;
+  hot?: boolean | undefined;
 }) {
   const photos = product.images.filter(Boolean);
   const backdrop = color || product.tileColor || undefined;
@@ -115,6 +118,9 @@ export function ProductCard({
             <span className="product-card-empty">No image</span>
           )}
         </div>
+        <span className="card-brand-chip" aria-hidden="true">
+          <Logo size="product" linked={false} />
+        </span>
         <form action={toggleWishlistAction} className="product-card-heart-form">
           <input type="hidden" name="productId" value={product.id} />
           <button
@@ -130,12 +136,19 @@ export function ProductCard({
       <div className="product-card-copy">
         <h3 className="product-card-name">{product.title}</h3>
         <p className="product-card-price-row">
-          {hasSale && product.originalPrice ? (
-            <span className="product-card-price-original">{formatMoney(product.originalPrice, currency)}</span>
-          ) : null}
-          <span className={`product-card-price${hasSale ? " product-card-price--sale" : ""}`}>
-            {formatMoney(product.price, currency)}
+          <span className="product-card-price-group">
+            {hasSale && product.originalPrice ? (
+              <span className="product-card-price-original">{formatMoney(product.originalPrice, currency)}</span>
+            ) : null}
+            <span className={`product-card-price${hasSale ? " product-card-price--sale" : ""}`}>
+              {formatMoney(product.price, currency)}
+            </span>
           </span>
+          {hot ? (
+            <span className="product-card-hot" aria-label="Best seller">
+              HOT
+            </span>
+          ) : null}
         </p>
         {product.description ? (
           <p className="product-card-desc">

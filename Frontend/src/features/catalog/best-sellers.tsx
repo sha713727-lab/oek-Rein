@@ -128,6 +128,7 @@ export function BestSellers({ items, currency = "USD" }: { items: ResolvedBestSe
                         currency={currency}
                         ctaLabel="Shop"
                         color={item.color}
+                        hot
                         product={{
                           id: item.productId,
                           title: item.title,

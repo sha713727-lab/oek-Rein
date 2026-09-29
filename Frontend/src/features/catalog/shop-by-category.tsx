@@ -8,6 +8,7 @@ import {
   IconShield,
   IconStitch,
 } from "@/components/icons/icons";
+import { Logo } from "@/components/ui/logo";
 import {
   SHOP_RANGE_CATEGORIES,
   SHOP_RANGE_SIGNATURE,
@@ -87,6 +88,9 @@ export function ShopByCategory({ categories }: { categories: StorefrontShopCateg
                   <Link href={category.href} className="shop-range-card-hit" aria-label={category.title} />
                   <div className="shop-range-card-media" aria-hidden="true">
                     <span className="shop-range-card-glow" />
+                    <span className="card-brand-chip">
+                      <Logo size="product" linked={false} />
+                    </span>
                     <div className="shop-range-card-product">
                       {category.image ? (
                         <CmsImage

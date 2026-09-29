@@ -1446,6 +1446,29 @@
     pointer-events: none;
   }
 
+  .shop-range-card-media .card-brand-chip {
+    position: absolute;
+    top: 0.85rem;
+    left: 0.85rem;
+    z-index: 3;
+    display: inline-flex;
+    width: 2.25rem;
+    height: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    border: 1px solid color-mix(in srgb, var(--vd-green) 12%, transparent);
+    background: var(--home-paper, #fff);
+    box-shadow: 0 4px 12px rgba(32, 78, 74, 0.1);
+    pointer-events: none;
+  }
+
+  .shop-range-card-media .card-brand-chip .brand-logo-mark,
+  .shop-range-card-media .card-brand-chip .brand-logo-mark-img {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
   .shop-range-card-glow {
     position: absolute;
     left: 50%;
@@ -1726,6 +1749,19 @@
 
     .shop-range-card-media {
       min-height: 11.5rem;
+    }
+
+    .shop-range-card-media .card-brand-chip {
+      top: 0.45rem;
+      left: 0.45rem;
+      width: 1.85rem;
+      height: 1.85rem;
+    }
+
+    .shop-range-card-media .card-brand-chip .brand-logo-mark,
+    .shop-range-card-media .card-brand-chip .brand-logo-mark-img {
+      width: 0.95rem;
+      height: 0.95rem;
     }
 
     .shop-range-card-product {
