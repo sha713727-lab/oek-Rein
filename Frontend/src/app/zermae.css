@@ -3163,6 +3163,88 @@
     @apply border-brand-border bg-transparent text-brand-primary hover:border-brand-primary/35;
   }
 
+  .product-custom-box {
+    @apply mt-4 space-y-3.5 border border-brand-border bg-brand-white p-4;
+  }
+
+  .product-custom-title {
+    @apply text-brand-primary;
+    font-family: var(--font-ui);
+    font-size: clamp(0.72rem, 0.86vw, 0.82rem);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .product-custom-hint,
+  .product-custom-status {
+    @apply text-text-muted;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .product-custom-field {
+    @apply block space-y-2;
+  }
+
+  .product-custom-input {
+    @apply w-full border border-brand-border bg-brand-white px-3 py-2.5 text-sm text-brand-primary outline-none transition-colors placeholder:text-text-muted/70 focus:border-brand-primary;
+    font-family: var(--font-body);
+  }
+
+  .product-custom-notes {
+    @apply min-h-[5.5rem] resize-y;
+  }
+
+  .product-custom-file {
+    @apply w-full text-sm text-brand-primary;
+    font-family: var(--font-body);
+  }
+
+  .product-custom-color {
+    @apply flex items-center gap-2;
+  }
+
+  .product-custom-swatch {
+    @apply h-10 w-10 shrink-0 cursor-pointer border border-brand-border bg-transparent p-0.5;
+  }
+
+  .product-custom-logo-row {
+    @apply flex flex-wrap items-center gap-3;
+  }
+
+  .product-custom-clear {
+    @apply border-0 bg-transparent p-0 text-brand-primary/70 underline-offset-4 hover:text-brand-primary hover:underline;
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .product-custom-error {
+    @apply text-sm text-red-800;
+    font-family: var(--font-body);
+  }
+
+  .custom-details {
+    @apply mt-1 space-y-0.5 text-sm text-text-sub;
+    font-family: var(--font-body);
+  }
+
+  .custom-details-color,
+  .custom-details-logo {
+    @apply flex items-center gap-2;
+  }
+
+  .custom-details-swatch {
+    @apply inline-block h-3.5 w-3.5 shrink-0 border border-brand-border;
+  }
+
+  .custom-details-logo-image {
+    @apply h-14 w-14 object-contain;
+  }
+
   .product-qty {
     @apply inline-flex items-center border border-brand-border bg-transparent;
   }
@@ -4746,6 +4828,14 @@
     font-family: var(--font-ui);
   }
 
+  .checkout-summary-line {
+    @apply items-start;
+  }
+
+  .checkout-summary-line-title {
+    @apply block;
+  }
+
   .checkout-summary-total {
     @apply flex items-center justify-between py-5 text-base font-semibold text-brand-primary md:text-lg;
     font-family: var(--font-ui);
@@ -6069,6 +6159,11 @@
 
   .admin-orders-line-name {
     @apply text-[13px] font-medium text-[#242424];
+    font-family: var(--font-body);
+  }
+
+  .admin-orders-custom {
+    @apply mt-1 space-y-0.5 text-[12px] text-[#666666];
     font-family: var(--font-body);
   }
 

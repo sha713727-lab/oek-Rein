@@ -2,19 +2,45 @@ import { brandName } from "@/constants/brand";
 import { DEFAULT_COMMERCE_SETTINGS } from "@/constants/commerce";
 import { formatSupportContactsLine, SUPPORT_EMAIL, toWhatsAppDigits } from "@/constants/site";
 import { formatMoney } from "@/constants/storefront";
+import type { LineCustomization } from "@/schemas/order";
 
 type OrderWhatsAppInput = {
   orderNumber: string;
   customer: string;
   phone: string;
-  items: readonly { name: string; quantity: number }[];
+  items: readonly {
+    name: string;
+    quantity: number;
+    size?: string | null;
+    customization?: LineCustomization | null;
+  }[];
   total: number;
   currency?: string;
   supportPhone?: string;
 };
 
 export function customerOrderWhatsAppMessage(order: OrderWhatsAppInput): string {
-  const lines = order.items.map((item) => `• ${item.name} × ${item.quantity}`).join("\n");
+  const lines = order.items
+    .map((item) => {
+      const size = item.size ? ` (${item.size})` : "";
+      const base = `• ${item.name} × ${item.quantity}${size}`;
+      const custom = item.customization;
+      if (!custom?.name) {
+        return base;
+      }
+      const bits = [`Name: ${custom.name}`];
+      if (custom.color) {
+        bits.push(`Color: ${custom.color}`);
+      }
+      if (custom.logoUrl) {
+        bits.push("Logo attached");
+      }
+      if (custom.notes) {
+        bits.push(`Notes: ${custom.notes}`);
+      }
+      return `${base}\n  ${bits.join(" · ")}`;
+    })
+    .join("\n");
   const money = formatMoney(order.total, order.currency ?? DEFAULT_COMMERCE_SETTINGS.currency);
   const contacts = formatSupportContactsLine();
   return [

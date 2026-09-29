@@ -105,6 +105,31 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                     {item.size ? ` · ${item.size}` : ""}
                     {item.color ? ` · ${item.color}` : ""}
                   </p>
+                  {item.customization ? (
+                    <div className="admin-orders-custom">
+                      <p>Name: {item.customization.name}</p>
+                      {item.customization.color ? (
+                        <p className="custom-details-color">
+                          Color:{" "}
+                          <span className="custom-details-swatch" style={{ background: item.customization.color }} aria-hidden="true" />
+                          {item.customization.color}
+                        </p>
+                      ) : null}
+                      {item.customization.notes ? <p>Notes: {item.customization.notes}</p> : null}
+                      {item.customization.logoUrl ? (
+                        <p className="custom-details-logo">
+                          Logo:{" "}
+                          <CmsImage
+                            src={item.customization.logoUrl}
+                            alt={`Logo for ${item.customization.name}`}
+                            width={56}
+                            height={56}
+                            className="custom-details-logo-image"
+                          />
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
                   <p className="admin-orders-muted">Qty {item.quantity}</p>
                 </div>
                 <p className="admin-orders-line-price">{formatMoney(item.price * item.quantity, currency)}</p>

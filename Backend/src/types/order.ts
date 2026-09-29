@@ -1,3 +1,5 @@
+import type { LineCustomization } from "@/schemas/order";
+
 export type OrderItemRecord = {
   readonly productId: string;
   readonly name: string;
@@ -8,6 +10,7 @@ export type OrderItemRecord = {
   readonly colorHex: string | null;
   readonly price: number;
   readonly imageUrl: string | null;
+  readonly customization: LineCustomization | null;
 };
 
 export type OrderRecord = {

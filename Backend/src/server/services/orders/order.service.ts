@@ -1,11 +1,12 @@
 import { brandName } from "@/constants/brand";
 import { PRODUCT_STATUS } from "@/constants/catalog";
 import { calculateOrderTotals } from "@/constants/commerce";
-import { ORDER_STATUS, ORDER_STATUS_TRANSITIONS, PAYMENT_METHODS, type OrderStatus } from "@/constants/order-status";
+import { ORDER_STATUS, ORDER_STATUS_TRANSITIONS, type OrderStatus,PAYMENT_METHODS } from "@/constants/order-status";
 import { ADMIN_ROLES, type Role } from "@/constants/roles";
 import { AppError } from "@/lib/app-error";
 import { sha256Hex } from "@/lib/crypto";
 import { getEnv } from "@/lib/env";
+import type { LineCustomization } from "@/schemas/order";
 import { withTransaction } from "@/server/database/query";
 import { idempotencyRepository } from "@/server/database/repositories/idempotency/idempotency.repository";
 import { orderRepository } from "@/server/database/repositories/order/order.repository";
@@ -42,6 +43,7 @@ export class OrderService {
         size?: string | null | undefined;
         color?: string | null | undefined;
         colorHex?: string | null | undefined;
+        customization?: LineCustomization | null | undefined;
       }>;
       notes?: string | null | undefined;
       promoCode?: string | undefined;
@@ -106,6 +108,7 @@ export class OrderService {
           colorHex: item.colorHex ?? null,
           price: unitPrice,
           imageUrl: product.images[0]?.url ?? null,
+          customization: item.customization ?? null,
         });
       }
 

@@ -1,6 +1,7 @@
 import type { PoolClient } from "pg";
 
 import { AppError } from "@/lib/app-error";
+import { parseLineCustomization } from "@/schemas/order";
 import { decodeCursor, encodeCursor, paginate } from "@/server/database/cursor";
 import { query } from "@/server/database/query";
 import type { Pagination } from "@/types/api";
@@ -48,6 +49,7 @@ export type OrderItemSqlRow = {
   color_hex: string | null;
   price: string;
   image_url: string | null;
+  customization: unknown;
 };
 
 const ORDER_COLUMNS = `id, order_number, account_id, customer, email, phone, shipping_address, shipping_city,
@@ -107,6 +109,7 @@ function toItem(row: OrderItemSqlRow): OrderItemRecord {
     colorHex: row.color_hex,
     price: money(row.price),
     imageUrl: row.image_url,
+    customization: parseLineCustomization(row.customization),
   };
 }
 
@@ -143,7 +146,7 @@ export class OrderRepository {
     }
     const ids = rows.map((row) => row.id);
     const items = await query<OrderItemSqlRow>(
-      `SELECT sales_order_id, product_id, name, sku, quantity, size, color, color_hex, price, image_url
+      `SELECT sales_order_id, product_id, name, sku, quantity, size, color, color_hex, price, image_url, customization
        FROM sales_order_item
        WHERE sales_order_id = ANY($1::uuid[])
        ORDER BY created_at ASC`,
@@ -200,7 +203,7 @@ export class OrderRepository {
     if (input.items.length > 0) {
       const values: unknown[] = [];
       const placeholders = input.items.map((item, index) => {
-        const offset = index * 10;
+        const offset = index * 11;
         values.push(
           row.id,
           item.productId,
@@ -212,12 +215,13 @@ export class OrderRepository {
           item.colorHex,
           item.price,
           item.imageUrl,
+          item.customization ? JSON.stringify(item.customization) : null,
         );
-        return `($${offset + 1},$${offset + 2},$${offset + 3},$${offset + 4},$${offset + 5},$${offset + 6},$${offset + 7},$${offset + 8},$${offset + 9},$${offset + 10})`;
+        return `($${offset + 1},$${offset + 2},$${offset + 3},$${offset + 4},$${offset + 5},$${offset + 6},$${offset + 7},$${offset + 8},$${offset + 9},$${offset + 10},$${offset + 11}::jsonb)`;
       });
       await query(
         `INSERT INTO sales_order_item (
-           sales_order_id, product_id, name, sku, quantity, size, color, color_hex, price, image_url
+           sales_order_id, product_id, name, sku, quantity, size, color, color_hex, price, image_url, customization
          ) VALUES ${placeholders.join(", ")}`,
         values,
         client,

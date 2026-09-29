@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 
 import { cartCookieName } from "@/constants/cookies";
 import { bagApi, type BagItem } from "@/lib/api/bag";
+import { sameCartLine } from "@/lib/cart-line";
 import { getEnv } from "@/lib/env";
 import { getSessionUser } from "@/lib/session";
 import { cartStateSchema } from "@/schemas/order";
@@ -44,7 +45,12 @@ function decode(value: string | undefined): CartState {
 }
 
 function sameLine(left: CartItem, right: CartItem): boolean {
-  return left.productId === right.productId && (left.size ?? null) === (right.size ?? null) && (left.color ?? null) === (right.color ?? null);
+  return sameCartLine(left, {
+    productId: right.productId,
+    size: right.size ?? null,
+    color: right.color ?? null,
+    customization: right.customization ?? null,
+  });
 }
 
 export async function readCart(): Promise<CartState> {

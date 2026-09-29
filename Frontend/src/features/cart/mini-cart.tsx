@@ -8,6 +8,8 @@ import { IconClose, IconTrash } from "@/components/icons/icons";
 import { ConfirmSubmit } from "@/components/ui/confirm-submit";
 import { formatMoney } from "@/constants/storefront";
 import { getMiniCartAction, type MiniCartSnapshot, removeFromCartAction } from "@/features/cart/actions";
+import { CartLineHiddenFields } from "@/features/cart/cart-line-fields";
+import { CustomizationDetails } from "@/features/catalog/customization-details";
 import { OrderTotals } from "@/features/checkout/order-totals";
 import { BAG_EVENT } from "@/lib/bag-events";
 import { resolvePublicAssetSrc } from "@/lib/public-assets";
@@ -130,7 +132,7 @@ export function MiniCart({
         ) : (
           <ul className="mini-cart-lines">
             {cart.lines.map((line) => (
-              <li key={`${line.productId}-${line.size ?? ""}-${line.color ?? ""}`} className="mini-cart-line">
+              <li key={`${line.productId}-${line.size ?? ""}-${line.color ?? ""}-${line.customization?.name ?? ""}-${line.customization?.logoUrl ?? ""}`} className="mini-cart-line">
                 <Link href={`/product/${line.productId}`} className="mini-cart-media" onClick={onClose}>
                   {line.image ? (
                     <Image
@@ -153,6 +155,7 @@ export function MiniCart({
                     Qty {line.quantity}
                     {line.size ? ` · ${line.size}` : ""}
                   </p>
+                  <CustomizationDetails customization={line.customization} />
                   <p className="mini-cart-price">{formatMoney(line.lineTotal, cart.currency)}</p>
                   <form
                     action={async (formData) => {
@@ -160,9 +163,12 @@ export function MiniCart({
                       refresh();
                     }}
                   >
-                    <input type="hidden" name="productId" value={line.productId} />
-                    {line.size ? <input type="hidden" name="size" value={line.size} /> : null}
-                    {line.color ? <input type="hidden" name="color" value={line.color} /> : null}
+                    <CartLineHiddenFields
+                      productId={line.productId}
+                      size={line.size}
+                      color={line.color}
+                      customization={line.customization}
+                    />
                     <ConfirmSubmit
                       className="mini-cart-remove"
                       message="Remove this item from your bag?"

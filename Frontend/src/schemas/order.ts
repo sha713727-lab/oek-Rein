@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { isCustomSize } from "@/constants/catalog";
 import { ORDER_STATUS, PAYMENT_METHODS } from "@/constants/order-status";
 import { paginationSchema, uuidSchema } from "@/schemas/common";
 
@@ -27,6 +28,74 @@ function isCheckoutPhone(value: string): boolean {
 function isNorthAmericaPostal(value: string): boolean {
   const next = value.toUpperCase().trim();
   return /^\d{5}(-\d{4})?$/.test(next) || /^[A-Z]\d[A-Z][ -]?\d[A-Z]\d$/.test(next);
+}
+
+const hexColor = z
+  .string()
+  .trim()
+  .regex(/^#[0-9A-Fa-f]{6}$/);
+
+export const customizationSchema = z
+  .object({
+    name: z.string().trim().min(1, "Enter a name or initials.").max(80),
+    logoUrl: z
+      .string()
+      .trim()
+      .regex(/^\/uploads\/[A-Za-z0-9._-]+$/)
+      .nullable()
+      .optional(),
+    color: hexColor.nullable().optional(),
+    notes: z.string().trim().max(500).nullable().optional(),
+  })
+  .transform((value) => ({
+    name: value.name,
+    logoUrl: value.logoUrl || null,
+    color: value.color || null,
+    notes: value.notes || null,
+  }));
+
+export type LineCustomization = z.infer<typeof customizationSchema>;
+
+const lineOptionFields = {
+  size: z.string().trim().nullable().optional(),
+  color: z.string().trim().nullable().optional(),
+  colorHex: hexColor.nullable().optional(),
+  customization: customizationSchema.nullable().optional(),
+};
+
+function refineCustomSize(
+  item: { size?: string | null | undefined; customization?: LineCustomization | null | undefined },
+  ctx: z.RefinementCtx,
+): void {
+  if (isCustomSize(item.size) && !item.customization?.name?.trim()) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Enter a name or initials for a custom size.",
+      path: ["customization", "name"],
+    });
+  }
+}
+
+function stripNonCustomSize<T extends { size?: string | null | undefined; customization?: LineCustomization | null | undefined }>(
+  item: T,
+): T {
+  if (isCustomSize(item.size)) {
+    return item;
+  }
+  return { ...item, customization: null };
+}
+
+export function parseLineCustomization(value: unknown): LineCustomization | null {
+  let next = value;
+  if (typeof next === "string") {
+    try {
+      next = JSON.parse(next) as unknown;
+    } catch {
+      return null;
+    }
+  }
+  const parsed = customizationSchema.safeParse(next);
+  return parsed.success ? parsed.data : null;
 }
 
 export const checkoutSchema = z.object({
@@ -73,18 +142,14 @@ export const checkoutSchema = z.object({
   paymentMethod: z.literal(PAYMENT_METHODS.COD),
   items: z
     .array(
-      z.object({
-        productId: uuidSchema,
-        quantity: z.coerce.number().int().min(1),
-        size: z.string().trim().nullable().optional(),
-        color: z.string().trim().nullable().optional(),
-        colorHex: z
-          .string()
-          .trim()
-          .regex(/^#[0-9A-Fa-f]{6}$/)
-          .nullable()
-          .optional(),
-      }),
+      z
+        .object({
+          productId: uuidSchema,
+          quantity: z.coerce.number().int().min(1),
+          ...lineOptionFields,
+        })
+        .superRefine(refineCustomSize)
+        .transform(stripNonCustomSize),
     )
     .min(1),
   notes: z.string().trim().max(500).nullable().optional(),
@@ -104,18 +169,13 @@ export const updateOrderStatusSchema = z.object({
   status: z.enum(Object.values(ORDER_STATUS) as [string, ...string[]]),
 });
 
-export const cartItemSchema = z.object({
-  productId: uuidSchema,
-  quantity: z.coerce.number().int().min(1).max(20),
-  size: z.string().trim().nullable().optional(),
-  color: z.string().trim().nullable().optional(),
-  colorHex: z
-    .string()
-    .trim()
-    .regex(/^#[0-9A-Fa-f]{6}$/)
-    .nullable()
-    .optional(),
-});
+export const cartItemSchema = z
+  .object({
+    productId: uuidSchema,
+    quantity: z.coerce.number().int().min(1).max(20),
+    ...lineOptionFields,
+  })
+  .transform(stripNonCustomSize);
 
 export const cartStateSchema = z.object({
   items: z.array(cartItemSchema).max(50),

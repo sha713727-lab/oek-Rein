@@ -3,13 +3,17 @@
 import { useState, useTransition } from "react";
 
 import { IconBag, IconHeart, IconMinus, IconPlus, IconShield, IconTruck } from "@/components/icons/icons";
+import { isCustomSize } from "@/constants/catalog";
 import { formatMoney } from "@/constants/storefront";
 import { buyNowAction } from "@/features/cart/actions";
 import { AddToBagForm } from "@/features/cart/add-to-bag-form";
+import { uploadCustomLogoAction } from "@/features/catalog/custom-size-actions";
+import { CustomSizePanel } from "@/features/catalog/custom-size-panel";
 import { ShareProduct } from "@/features/catalog/share-product";
 import { SizeGuide } from "@/features/catalog/size-guide";
 import { toggleWishlistAction } from "@/features/wishlist/actions";
 import { notifyToast } from "@/lib/bag-events";
+import type { LineCustomization } from "@/schemas/order";
 
 export type ProductBuyModel = {
   id: string;
@@ -31,6 +35,13 @@ export function ProductBuyBox({ product, currency = "USD" }: { product: ProductB
   const [size, setSize] = useState(product.sizes[0] ?? "");
   const [color, setColor] = useState(product.colors[0]?.name ?? "");
   const [quantity, setQuantity] = useState(1);
+  const [customName, setCustomName] = useState("");
+  const [customColor, setCustomColor] = useState("");
+  const [customNotes, setCustomNotes] = useState("");
+  const [customLogoUrl, setCustomLogoUrl] = useState<string | null>(null);
+  const [customLogoLabel, setCustomLogoLabel] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [logoError, setLogoError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const hasSale = Boolean(product.originalPrice && product.originalPrice > product.price);
   const volumeLabel = size || product.volume;
@@ -38,6 +49,40 @@ export function ProductBuyBox({ product, currency = "USD" }: { product: ProductB
   const maxQty = Math.max(1, Math.min(20, product.stock || 1));
   const lowStock = product.stock > 0 && product.stock <= 8;
   const selectedColor = product.colors.find((item) => item.name === color);
+  const customSelected = isCustomSize(size);
+  const customReady = !customSelected || customName.trim().length > 0;
+  const actionsDisabled = soldOut || !customReady || logoUploading;
+  const customization: LineCustomization | null =
+    customSelected && customName.trim()
+      ? {
+          name: customName.trim(),
+          logoUrl: customLogoUrl,
+          color: /^#[0-9A-Fa-f]{6}$/.test(customColor.trim()) ? customColor.trim() : null,
+          notes: customNotes.trim() || null,
+        }
+      : null;
+
+  async function handleLogoFile(file: File | null) {
+    if (!file) {
+      setCustomLogoUrl(null);
+      setCustomLogoLabel(null);
+      setLogoError(null);
+      return;
+    }
+    setLogoUploading(true);
+    setLogoError(null);
+    const formData = new FormData();
+    formData.set("logo", file);
+    const result = await uploadCustomLogoAction(formData);
+    setLogoUploading(false);
+    if (result.error || !result.url) {
+      setLogoError(result.error ?? "Unable to upload logo.");
+      notifyToast(result.error ?? "Unable to upload logo.", "error");
+      return;
+    }
+    setCustomLogoUrl(result.url);
+    setCustomLogoLabel(file.name);
+  }
 
   return (
     <div className="product-info">
@@ -71,6 +116,28 @@ export function ProductBuyBox({ product, currency = "USD" }: { product: ProductB
               </button>
             ))}
           </div>
+          {customSelected ? (
+            <CustomSizePanel
+              name={customName}
+              color={customColor}
+              notes={customNotes}
+              logoUrl={customLogoUrl}
+              logoLabel={customLogoLabel}
+              uploading={logoUploading}
+              error={logoError}
+              onNameChange={setCustomName}
+              onColorChange={setCustomColor}
+              onNotesChange={setCustomNotes}
+              onLogoFile={(file) => {
+                void handleLogoFile(file);
+              }}
+              onClearLogo={() => {
+                setCustomLogoUrl(null);
+                setCustomLogoLabel(null);
+                setLogoError(null);
+              }}
+            />
+          ) : null}
         </div>
       ) : null}
       {product.colors.length > 0 ? (
@@ -115,6 +182,11 @@ export function ProductBuyBox({ product, currency = "USD" }: { product: ProductB
           </button>
         </div>
       </div>
+      {customSelected && !customReady ? (
+        <p className="product-custom-error" role="status">
+          Enter a name or initials to add this custom size.
+        </p>
+      ) : null}
       <div className="product-actions">
         <AddToBagForm
           productId={product.id}
@@ -122,9 +194,10 @@ export function ProductBuyBox({ product, currency = "USD" }: { product: ProductB
           size={size}
           color={color}
           colorHex={selectedColor?.hex}
-          disabled={soldOut}
+          customization={customization}
+          disabled={actionsDisabled}
         >
-          <button type="submit" className="product-btn-cart" disabled={soldOut}>
+          <button type="submit" className="product-btn-cart" disabled={actionsDisabled}>
             <IconBag />
             {soldOut ? "Out Of Stock" : "Add To Cart"}
           </button>
@@ -144,7 +217,8 @@ export function ProductBuyBox({ product, currency = "USD" }: { product: ProductB
           {size ? <input type="hidden" name="size" value={size} /> : null}
           {color ? <input type="hidden" name="color" value={color} /> : null}
           {selectedColor ? <input type="hidden" name="colorHex" value={selectedColor.hex} /> : null}
-          <button type="submit" className="product-btn-buy" disabled={soldOut || pending}>
+          {customization ? <input type="hidden" name="customization" value={JSON.stringify(customization)} /> : null}
+          <button type="submit" className="product-btn-buy" disabled={actionsDisabled || pending}>
             Buy It Now
           </button>
         </form>

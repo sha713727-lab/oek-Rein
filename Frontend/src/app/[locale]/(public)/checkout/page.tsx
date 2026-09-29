@@ -4,6 +4,7 @@ import { PRODUCT_STATUS } from "@/constants/catalog";
 import { calculateOrderTotals, getFreeShippingNote } from "@/constants/commerce";
 import { SUPPORT_EMAIL } from "@/constants/site";
 import { formatMoney } from "@/constants/storefront";
+import { CustomizationDetails } from "@/features/catalog/customization-details";
 import { CheckoutForm } from "@/features/checkout/checkout-form";
 import { OrderTotals } from "@/features/checkout/order-totals";
 import { addressService } from "@/lib/api/addresses";
@@ -31,6 +32,8 @@ export default async function CheckoutPage() {
       return {
         title: String(product.title),
         quantity: item.quantity,
+        size: item.size ?? null,
+        customization: item.customization ?? null,
         lineTotal: price * item.quantity,
       };
     })
@@ -61,9 +64,13 @@ export default async function CheckoutPage() {
             <p className="checkout-summary-title">Order Summary</p>
             <ul className="checkout-summary-items">
               {lines.map((line, index) => (
-                <li key={`${line.title}-${index}`} className="checkout-summary-row">
+                <li key={`${line.title}-${index}`} className="checkout-summary-row checkout-summary-line">
                   <span>
-                    {line.title} × {line.quantity}
+                    <span className="checkout-summary-line-title">
+                      {line.title} × {line.quantity}
+                      {line.size ? ` · ${line.size}` : ""}
+                    </span>
+                    <CustomizationDetails customization={line.customization} />
                   </span>
                   <span>{formatMoney(line.lineTotal, commerce.currency)}</span>
                 </li>

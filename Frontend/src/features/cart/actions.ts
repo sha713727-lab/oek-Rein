@@ -3,16 +3,17 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { PRODUCT_STATUS } from "@/constants/catalog";
+import { isCustomSize, PRODUCT_STATUS } from "@/constants/catalog";
 import { calculateOrderTotals, getFreeShippingNote } from "@/constants/commerce";
 import { orderService } from "@/lib/api/orders";
 import { productService } from "@/lib/api/products";
 import { readCart, writeCart } from "@/lib/cart-cookie";
+import { readCustomizationInput, sameCartLine } from "@/lib/cart-line";
 import { parseSchema } from "@/lib/parse-schema";
 import { resolveAndPruneCart } from "@/lib/resolve-cart";
 import { readWishlist, writeWishlist } from "@/lib/wishlist-cookie";
 import { uuidSchema } from "@/schemas/common";
-import { cartItemSchema } from "@/schemas/order";
+import { cartItemSchema, type LineCustomization } from "@/schemas/order";
 
 export type CartActionResult = { ok?: boolean; error?: string };
 
@@ -23,6 +24,7 @@ export type MiniCartLine = {
   quantity: number;
   size: string | null;
   color: string | null;
+  customization: LineCustomization | null;
   lineTotal: number;
 };
 
@@ -45,15 +47,24 @@ async function applyCartItem(formData: FormData): Promise<CartActionResult> {
     size: formData.get("size") ? String(formData.get("size")) : null,
     color: formData.get("color") ? String(formData.get("color")) : null,
     colorHex: formData.get("colorHex") ? String(formData.get("colorHex")) : null,
+    customization: readCustomizationInput(formData),
   });
+  if (isCustomSize(item.size) && !item.customization?.name) {
+    return { error: "Enter a name or initials for a custom size." };
+  }
   const products = await productService.getByIds([item.productId]);
   const product = products[0];
   if (!product || product.status !== PRODUCT_STATUS.PUBLISHED) {
     return { error: "This product is no longer available." };
   }
   const cart = await readCart();
-  const existing = cart.items.find(
-    (entry) => entry.productId === item.productId && entry.size === item.size && entry.color === item.color,
+  const existing = cart.items.find((entry) =>
+    sameCartLine(entry, {
+      productId: item.productId,
+      size: item.size ?? null,
+      color: item.color ?? null,
+      customization: item.customization ?? null,
+    }),
   );
   const nextQuantity = (existing?.quantity ?? 0) + item.quantity;
   if (product.stock < 1) {
@@ -85,14 +96,20 @@ function lineKey(formData: FormData) {
     productId: String(formData.get("productId") ?? ""),
     size: formData.get("size") ? String(formData.get("size")) : null,
     color: formData.get("color") ? String(formData.get("color")) : null,
+    customization: readCustomizationInput(formData),
   };
 }
 
 function sameLine(
-  item: { productId: string; size?: string | null | undefined; color?: string | null | undefined },
-  key: { productId: string; size: string | null; color: string | null },
+  item: {
+    productId: string;
+    size?: string | null | undefined;
+    color?: string | null | undefined;
+    customization?: LineCustomization | null | undefined;
+  },
+  key: ReturnType<typeof lineKey>,
 ): boolean {
-  return item.productId === key.productId && (item.size ?? null) === key.size && (item.color ?? null) === key.color;
+  return sameCartLine(item, key);
 }
 
 export async function removeFromCartAction(formData: FormData): Promise<void> {
@@ -170,6 +187,7 @@ export async function getMiniCartAction(): Promise<MiniCartSnapshot> {
         quantity: item.quantity,
         size: item.size ?? null,
         color: item.color ?? null,
+        customization: item.customization ?? null,
         lineTotal: price * item.quantity,
       };
     })

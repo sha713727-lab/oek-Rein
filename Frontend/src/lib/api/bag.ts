@@ -1,4 +1,5 @@
 import { apiRequest } from "@/lib/api/client";
+import type { LineCustomization } from "@/schemas/order";
 
 export type BagItem = {
   productId: string;
@@ -6,6 +7,7 @@ export type BagItem = {
   size?: string | null | undefined;
   color?: string | null | undefined;
   colorHex?: string | null | undefined;
+  customization?: LineCustomization | null | undefined;
 };
 
 export const bagApi = {

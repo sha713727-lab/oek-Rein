@@ -137,6 +137,10 @@ export const PRODUCT_SPECIFICATION_FIELDS = [
 
 export const PRODUCT_VOLUME_OPTIONS = ["Cob", "Full", "Extra Full", "Pony", "Custom"] as const;
 
+export function isCustomSize(size: string | null | undefined): boolean {
+  return (size ?? "").trim().toLowerCase() === "custom";
+}
+
 export const DEFAULT_RETURN_POLICY = `Unused items may be exchanged within 14 days of delivery.
 Ships to North America. Free shipping may apply above the published order threshold.
 Payment is cash on delivery.`;

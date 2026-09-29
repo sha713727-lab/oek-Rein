@@ -7,6 +7,8 @@ import { CATEGORY_LABELS } from "@/constants/catalog";
 import { calculateOrderTotals, getFreeShippingNote } from "@/constants/commerce";
 import { formatMoney } from "@/constants/storefront";
 import { moveCartItemToWishlistAction,removeFromCartAction, updateCartQuantityAction } from "@/features/cart/actions";
+import { CartLineHiddenFields } from "@/features/cart/cart-line-fields";
+import { CustomizationDetails } from "@/features/catalog/customization-details";
 import { OrderTotals } from "@/features/checkout/order-totals";
 import { orderService } from "@/lib/api/orders";
 import { resolvePublicAssetSrc } from "@/lib/public-assets";
@@ -64,7 +66,7 @@ export default async function CartPage() {
                   const image = line.product?.images?.[0]?.url;
                   const category = String(line.product?.category ?? "all");
                   return (
-                    <article key={`${line.productId}-${line.size ?? ""}-${line.color ?? ""}`} className="cart-item-card">
+                    <article key={`${line.productId}-${line.size ?? ""}-${line.color ?? ""}-${line.customization?.name ?? ""}-${line.customization?.logoUrl ?? ""}`} className="cart-item-card">
                       <Link href={`/product/${line.productId}`} className="cart-item-media">
                         {image ? (
                           <Image
@@ -88,24 +90,31 @@ export default async function CartPage() {
                               {line.color ? <span className="cart-item-color">{line.color}</span> : null}
                               {line.size ? <span className="cart-item-size">Size: {line.size}</span> : null}
                             </div>
+                            <CustomizationDetails customization={line.customization} />
                           </div>
                           <div className="cart-item-side">
                             <div className="cart-item-qty" aria-label="Quantity">
                               <form action={updateCartQuantityAction}>
-                                <input type="hidden" name="productId" value={line.productId} />
-                                {line.size ? <input type="hidden" name="size" value={line.size} /> : null}
-                                {line.color ? <input type="hidden" name="color" value={line.color} /> : null}
-                                <input type="hidden" name="quantity" value={line.quantity - 1} />
+                                <CartLineHiddenFields
+                                  productId={line.productId}
+                                  size={line.size}
+                                  color={line.color}
+                                  customization={line.customization}
+                                  quantity={line.quantity - 1}
+                                />
                                 <button type="submit" className="cart-item-qty-btn" aria-label="Decrease quantity">
                                   <IconMinus />
                                 </button>
                               </form>
                               <span className="cart-item-qty-value">{line.quantity}</span>
                               <form action={updateCartQuantityAction}>
-                                <input type="hidden" name="productId" value={line.productId} />
-                                {line.size ? <input type="hidden" name="size" value={line.size} /> : null}
-                                {line.color ? <input type="hidden" name="color" value={line.color} /> : null}
-                                <input type="hidden" name="quantity" value={line.quantity + 1} />
+                                <CartLineHiddenFields
+                                  productId={line.productId}
+                                  size={line.size}
+                                  color={line.color}
+                                  customization={line.customization}
+                                  quantity={line.quantity + 1}
+                                />
                                 <button type="submit" className="cart-item-qty-btn" aria-label="Increase quantity">
                                   <IconPlus />
                                 </button>
@@ -116,9 +125,12 @@ export default async function CartPage() {
                         </div>
                         <div className="cart-item-actions">
                           <form action={moveCartItemToWishlistAction}>
-                            <input type="hidden" name="productId" value={line.productId} />
-                            {line.size ? <input type="hidden" name="size" value={line.size} /> : null}
-                            {line.color ? <input type="hidden" name="color" value={line.color} /> : null}
+                            <CartLineHiddenFields
+                              productId={line.productId}
+                              size={line.size}
+                              color={line.color}
+                              customization={line.customization}
+                            />
                             <ConfirmSubmit
                               className="cart-item-link"
                               message="Move this item to your wishlist?"
@@ -131,9 +143,12 @@ export default async function CartPage() {
                             />
                           </form>
                           <form action={removeFromCartAction}>
-                            <input type="hidden" name="productId" value={line.productId} />
-                            {line.size ? <input type="hidden" name="size" value={line.size} /> : null}
-                            {line.color ? <input type="hidden" name="color" value={line.color} /> : null}
+                            <CartLineHiddenFields
+                              productId={line.productId}
+                              size={line.size}
+                              color={line.color}
+                              customization={line.customization}
+                            />
                             <ConfirmSubmit
                               className="cart-item-link"
                               message="Remove this item from your bag?"

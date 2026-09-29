@@ -9,12 +9,37 @@ import {
 import { formatMoney } from "@/constants/storefront";
 import { getEnv } from "@/lib/env";
 import { logger } from "@/lib/logger";
-import type { OrderRecord } from "@/types/order";
+import type { LineCustomization } from "@/schemas/order";
+import type { OrderItemRecord, OrderRecord } from "@/types/order";
 
 type SupportPhoneOpts = { supportPhone?: string | null };
 
-function customerOrderMessage(order: OrderRecord, opts: SupportPhoneOpts = {}): string {
-  const lines = order.items.map((item) => `• ${item.name} × ${item.quantity}`).join("\n");
+function formatCustomization(customization: LineCustomization | null | undefined): string | null {
+  if (!customization?.name) {
+    return null;
+  }
+  const bits = [`Name: ${customization.name}`];
+  if (customization.color) {
+    bits.push(`Color: ${customization.color}`);
+  }
+  if (customization.logoUrl) {
+    bits.push("Logo attached");
+  }
+  if (customization.notes) {
+    bits.push(`Notes: ${customization.notes}`);
+  }
+  return bits.join(" · ");
+}
+
+function formatOrderItemLine(item: OrderItemRecord, prefix = "• "): string {
+  const size = item.size ? ` (${item.size})` : "";
+  const line = `${prefix}${item.name} × ${item.quantity}${size}`;
+  const custom = formatCustomization(item.customization);
+  return custom ? `${line}\n  ${custom}` : line;
+}
+
+function customerOrderMessage(order: OrderRecord, _opts: SupportPhoneOpts = {}): string {
+  const lines = order.items.map((item) => formatOrderItemLine(item)).join("\n");
   const contacts = formatSupportContactsLine();
   return [
     `Assalam o Alaikum ${order.customer},`,
@@ -45,7 +70,7 @@ export function customerWhatsAppSendUrl(order: OrderRecord, opts: SupportPhoneOp
 }
 
 export function shopOrderAlertEmail(order: OrderRecord, opts: SupportPhoneOpts = {}): string {
-  const lines = order.items.map((item) => `${item.name} × ${item.quantity}`).join("\n");
+  const lines = order.items.map((item) => formatOrderItemLine(item, "")).join("\n");
   const sendUrl = customerWhatsAppSendUrl(order, opts);
   const display = formatSupportPhoneDisplay(opts.supportPhone);
   return [
@@ -69,7 +94,7 @@ export function shopOrderAlertEmail(order: OrderRecord, opts: SupportPhoneOpts =
 }
 
 function businessOrderMessage(order: OrderRecord): string {
-  const lines = order.items.map((item) => `• ${item.name} × ${item.quantity}`).join("\n");
+  const lines = order.items.map((item) => formatOrderItemLine(item)).join("\n");
   return [
     `🛒 New ${brandName} order`,
     `Order: ${order.orderNumber}`,
@@ -177,8 +202,8 @@ export async function notifyOrderPlaced(order: OrderRecord, opts: SupportPhoneOp
   );
 }
 
-export function orderEmailText(order: OrderRecord, appUrl: string, opts: SupportPhoneOpts = {}): string {
-  const lines = order.items.map((item) => `${item.name} × ${item.quantity}`).join("\n");
+export function orderEmailText(order: OrderRecord, appUrl: string, _opts: SupportPhoneOpts = {}): string {
+  const lines = order.items.map((item) => formatOrderItemLine(item, "")).join("\n");
   const contacts = formatSupportContactsLine();
   return [
     `Assalam o Alaikum ${order.customer},`,

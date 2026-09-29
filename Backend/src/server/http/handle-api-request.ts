@@ -64,7 +64,9 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       apiPath === "/admin/uploads" ||
       apiPath === "/admin/uploads/" ||
       apiPath === "/admin/uploads/hero-video" ||
-      apiPath === "/admin/uploads/hero-video/"
+      apiPath === "/admin/uploads/hero-video/" ||
+      apiPath === "/shop/custom-logo" ||
+      apiPath === "/shop/custom-logo/"
         ? MAX_UPLOAD_JSON_BYTES
         : undefined;
     const rawBody = await readBody(req, uploadBody);

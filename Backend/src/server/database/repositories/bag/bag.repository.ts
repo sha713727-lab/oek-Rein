@@ -1,3 +1,4 @@
+import type { LineCustomization } from "@/schemas/order";
 import { query } from "@/server/database/query";
 
 export type BagItem = {
@@ -6,6 +7,7 @@ export type BagItem = {
   size?: string | null | undefined;
   color?: string | null | undefined;
   colorHex?: string | null | undefined;
+  customization?: LineCustomization | null | undefined;
 };
 
 export class BagRepository {
