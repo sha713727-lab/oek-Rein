@@ -13,7 +13,9 @@ export default async function WishlistPage() {
     productService.getByIds(wishlist.ids),
     getStorefront(),
   ]);
-  const products = productsRaw.map(toCatalogProduct);
+  const products = productsRaw.map((item) =>
+    toCatalogProduct(item, { hotSkus: storefront.content.bestSellerSkus }),
+  );
   const empty = products.length === 0;
 
   return (

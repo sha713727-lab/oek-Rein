@@ -51,12 +51,15 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const images = productImageUrls(product);
   const uniqueImages = images.filter((image, index) => images.indexOf(image) === index);
   const category = product.category;
-  const related = (await productService.list({ category, limit: 8 })).products
+  const [relatedRaw, wishlist, storefront] = await Promise.all([
+    productService.list({ category, limit: 8 }),
+    readWishlist(),
+    getStorefront(),
+  ]);
+  const related = relatedRaw.products
     .filter((item) => item.id !== product.id)
     .slice(0, 3)
-    .map(toCatalogProduct);
-  const wishlist = await readWishlist();
-  const storefront = await getStorefront();
+    .map((item) => toCatalogProduct(item, { hotSkus: storefront.content.bestSellerSkus }));
   const wished = wishlist.ids.includes(product.id);
   const featureImage = uniqueImages[1];
   const words = product.title.trim().split(/\s+/);

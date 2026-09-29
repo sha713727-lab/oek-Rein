@@ -21,6 +21,7 @@ export type CatalogProduct = {
   originalPrice?: number | null | undefined;
   images: string[];
   tileColor?: string | null;
+  bestSeller?: boolean | undefined;
 };
 
 function usePrefersReducedMotion(): boolean {
@@ -55,6 +56,7 @@ export function ProductCard({
   const photos = product.images.filter(Boolean);
   const backdrop = color || product.tileColor || undefined;
   const href = `/product/${product.id}`;
+  const showHot = Boolean(hot || product.bestSeller);
   const hasSale = Boolean(product.originalPrice && product.originalPrice > product.price);
   const reducedMotion = usePrefersReducedMotion();
   const [hovered, setHovered] = useState(false);
@@ -144,7 +146,7 @@ export function ProductCard({
               {formatMoney(product.price, currency)}
             </span>
           </span>
-          {hot ? (
+          {showHot ? (
             <span className="product-card-hot" aria-label="Best seller">
               HOT
             </span>

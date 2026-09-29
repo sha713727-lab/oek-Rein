@@ -68,7 +68,9 @@ export async function CollectionView({
     getStorefront(),
   ]);
 
-  let products: CatalogProduct[] = result.products.map(toCatalogProduct);
+  let products: CatalogProduct[] = result.products.map((item) =>
+    toCatalogProduct(item, { hotSkus: storefront.content.bestSellerSkus }),
+  );
   let totalPages = result.pagination.totalPages;
   let paginationPage = result.pagination.page;
   let hasPrev = result.pagination.hasPrev;
@@ -76,7 +78,9 @@ export async function CollectionView({
 
   if (bestSeller && products.length === 0) {
     const fallback = await productService.getBySkus(storefront.content.bestSellerSkus);
-    products = fallback.map(toCatalogProduct);
+    products = fallback.map((item) =>
+      toCatalogProduct(item, { hotSkus: storefront.content.bestSellerSkus }),
+    );
     totalPages = 1;
     paginationPage = 1;
     hasPrev = false;

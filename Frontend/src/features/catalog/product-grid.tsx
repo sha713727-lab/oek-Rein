@@ -28,6 +28,7 @@ export function ProductGrid({
             PRODUCT_CARD_COATS[0]!,
           )}
           currency={currency}
+          hot={Boolean(product.bestSeller)}
         />
       ))}
     </div>

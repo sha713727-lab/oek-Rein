@@ -136,6 +136,7 @@ export function BestSellers({ items, currency = "USD" }: { items: ResolvedBestSe
                           price: item.price,
                           images: item.images,
                           tileColor: item.color,
+                          bestSeller: true,
                         }}
                       />
                     </div>
