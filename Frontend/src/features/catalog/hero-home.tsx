@@ -46,6 +46,14 @@ export function HeroHome({ content }: { content: StorefrontContent }) {
                 </div>
               </div>
 
+              <h1 className="home-hero-wordmark">
+                <span className="home-hero-wordmark-scroll">
+                  <span className="home-hero-wordmark-reveal">
+                    <span className="home-hero-wordmark-line">{brandName}</span>
+                  </span>
+                </span>
+              </h1>
+
               <HeroTransparentVideo
                 key={hero.src}
                 src={hero.src}
@@ -59,15 +67,6 @@ export function HeroHome({ content }: { content: StorefrontContent }) {
                 </PillCta>
               </div>
             </div>
-
-            {/* Outside the scaled scene so the WebGL horse cannot paint over the title. */}
-            <h1 className="home-hero-wordmark">
-              <span className="home-hero-wordmark-scroll">
-                <span className="home-hero-wordmark-reveal">
-                  <span className="home-hero-wordmark-line">{brandName}</span>
-                </span>
-              </span>
-            </h1>
           </div>
 
           <RibbonMarquee tone="lime" pathId="heroRibbonPath" merged />

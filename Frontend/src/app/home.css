@@ -148,14 +148,13 @@ html:not(.hero-intro-active) .home-hero-backdrop-intro {
   left: 0;
   right: 0;
   top: calc(var(--hero-header-slot, 6.25rem) + 0.2rem);
-  /* Sibling above .home-hero-scene so the WebGL canvas cannot cover the letters. */
-  z-index: 5;
+  /* Behind the horse, like VOLDOG: the animal covers the centre of the word. */
+  z-index: 2;
   margin: 0;
   padding-inline: 0.5rem;
   text-align: center;
   pointer-events: none;
   user-select: none;
-  transform: translateZ(0);
 }
 
 .home-hero-wordmark-scroll,
@@ -196,14 +195,13 @@ html:not(.hero-intro-active) .home-hero-backdrop-intro {
 }
 
 /* Cropped silhouette — layout centers on this wrapper; GSAP does not.
- * Bottom tucks under the merged ribbon so the wave masks the straight crop edge.
- * z-index below .ribbon-marquee--merged (8); wordmark stays above the horse. */
+ * In front of the wordmark (VOLDOG). Ribbon (.ribbon-marquee--merged) stays above this. */
 .home-hero-subject {
   position: absolute;
   left: 50%;
   top: clamp(3.25rem, 7vh, 5.25rem);
   bottom: calc(var(--hero-ribbon-overlap) * 0.12);
-  z-index: 1;
+  z-index: 4;
   display: flex;
   align-items: flex-end;
   justify-content: center;
