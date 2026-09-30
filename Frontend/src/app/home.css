@@ -87,12 +87,9 @@ html.hero-intro-active .home-hero-panel {
 .home-hero-scene {
   position: absolute;
   inset: 0;
-  z-index: 0;
-  /* Contain transformed media; do not trap the ribbon sibling. */
+  z-index: 1;
   isolation: isolate;
   transform-origin: 50% 50%;
-  /* Keep GPU layers inside this box so the canvas cannot escape above the ribbon. */
-  transform: translateZ(0);
 }
 
 .home-hero-backdrop-intro {
@@ -151,14 +148,14 @@ html:not(.hero-intro-active) .home-hero-backdrop-intro {
   left: 0;
   right: 0;
   top: calc(var(--hero-header-slot, 6.25rem) + 0.2rem);
-  /* Above the transparent horse cutout; below CTA (40). Ribbon stays outside the scene. */
-  z-index: 25;
+  /* Sibling above .home-hero-scene so the WebGL canvas cannot cover the letters. */
+  z-index: 5;
   margin: 0;
   padding-inline: 0.5rem;
   text-align: center;
   pointer-events: none;
   user-select: none;
-  isolation: isolate;
+  transform: translateZ(0);
 }
 
 .home-hero-wordmark-scroll,

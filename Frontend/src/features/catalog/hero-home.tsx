@@ -53,21 +53,21 @@ export function HeroHome({ content }: { content: StorefrontContent }) {
                 posterSrc={hero.posterSrc}
               />
 
-              {/* Wordmark after the cutout so it paints above the transparent horse (old stacking). */}
-              <h1 className="home-hero-wordmark">
-                <span className="home-hero-wordmark-scroll">
-                  <span className="home-hero-wordmark-reveal">
-                    <span className="home-hero-wordmark-line">{brandName}</span>
-                  </span>
-                </span>
-              </h1>
-
               <div className="home-hero-cta-wrap">
                 <PillCta href={heroCtaHref} className="home-hero-cta">
                   {heroCtaLabel}
                 </PillCta>
               </div>
             </div>
+
+            {/* Outside the scaled scene so the WebGL horse cannot paint over the title. */}
+            <h1 className="home-hero-wordmark">
+              <span className="home-hero-wordmark-scroll">
+                <span className="home-hero-wordmark-reveal">
+                  <span className="home-hero-wordmark-line">{brandName}</span>
+                </span>
+              </span>
+            </h1>
           </div>
 
           <RibbonMarquee tone="lime" pathId="heroRibbonPath" merged />
