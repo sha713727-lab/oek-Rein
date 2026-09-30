@@ -37,6 +37,40 @@ export function writeHeroSessionSeen(): void {
   }
 }
 
+/** True for a full document reload — intro should replay (VOLDOG reload behavior). */
+export function isDocumentReload(): boolean {
+  if (typeof window === "undefined" || typeof performance === "undefined") {
+    return false;
+  }
+  try {
+    const entries = performance.getEntriesByType("navigation");
+    const nav = entries[0] as PerformanceNavigationTiming | undefined;
+    if (nav?.type === "reload") {
+      return true;
+    }
+  } catch {
+    /* ignore */
+  }
+  return false;
+}
+
+/**
+ * Soft client navigations keep the session skip; a browser refresh replays the intro.
+ * Nonzero restored scroll still skips so back/forward does not fight scroll position.
+ */
+export function shouldPlayHeroIntro(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  if (window.scrollY > 8) {
+    return false;
+  }
+  if (isDocumentReload()) {
+    return true;
+  }
+  return !readHeroSessionSeen();
+}
+
 let lastCompact: boolean | null = null;
 
 export function readHeroCompact(): boolean | null {

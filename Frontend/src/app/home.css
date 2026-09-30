@@ -55,7 +55,8 @@
 
 .home-hero-panel {
   position: relative;
-  isolation: isolate;
+  /* Don’t isolate the panel — merged ribbon must multiply into this olive surface. */
+  isolation: auto;
   display: block;
   /* Full viewport scene; header overlays the top of this panel. */
   min-height: max(32rem, calc(100vh - var(--hero-top-pad) + var(--hero-ribbon-crest)));
@@ -66,7 +67,27 @@
   padding-bottom: calc(var(--hero-ribbon-overlap) + 5.5rem);
   overflow: hidden;
   border-radius: var(--home-radius-hero) var(--home-radius-hero) 0 0;
+  /* Stable fill for the ribbon join. Progress scales .home-hero-scene, not this box. */
+  background:
+    radial-gradient(circle at 76% 26%, rgba(255, 255, 255, 0.28), transparent 42%),
+    linear-gradient(
+      168deg,
+      var(--hero-stage, var(--home-sage, #8f9d6e)) 0%,
+      color-mix(in srgb, var(--hero-stage, var(--home-sage, #8f9d6e)) 62%, #142221) 100%
+    );
+}
+
+/* During the intro, hide the panel fill so the scaled backdrop reads against the page. */
+html.hero-intro-active .home-hero-panel {
   background: transparent;
+}
+
+.home-hero-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  isolation: isolate;
+  transform-origin: 50% 50%;
 }
 
 .home-hero-backdrop-intro {
@@ -83,6 +104,12 @@
       var(--hero-stage, var(--home-sage, #8f9d6e)) 0%,
       color-mix(in srgb, var(--hero-stage, var(--home-sage, #8f9d6e)) 62%, #142221) 100%
     );
+}
+
+/* Settled: backdrop is redundant with the panel fill — keep it painted for intro only. */
+html:not(.hero-intro-active) .home-hero-backdrop-intro {
+  opacity: 0;
+  visibility: hidden;
 }
 
 .home-hero-intro-anchor {
@@ -201,6 +228,7 @@
 }
 
 .home-hero-panel,
+.home-hero-scene,
 .home-hero-backdrop-intro,
 .home-hero-intro-motion,
 .home-hero-intro-type,
@@ -348,12 +376,20 @@
   }
 
   .home-hero-wordmark-line {
-    font-size: clamp(32px, 10.5vw, 48px);
+    font-size: clamp(1.85rem, 8.8vw, 2.65rem);
     letter-spacing: -0.025em;
+    line-height: 0.92;
+    max-width: 100%;
   }
 
   .home-hero-intro-type {
-    font-size: clamp(1.5rem, 7vw, 2rem);
+    font-size: clamp(1.35rem, 6.5vw, 1.85rem);
+  }
+
+  .home-hero-scene {
+    /* Keep absolute fill; don’t let progress leftovers clip mobile layout. */
+    transform: none;
+    opacity: 1;
   }
 
   .home-hero-pill {

@@ -28,41 +28,44 @@ export function HeroHome({ content }: { content: StorefrontContent }) {
               } as CSSProperties
             }
           >
-            <div className="home-hero-backdrop-intro" aria-hidden="true" />
+            {/* Scene scales on scroll; panel keeps olive fill so the ribbon join never gaps. */}
+            <div className="home-hero-scene">
+              <div className="home-hero-backdrop-intro" aria-hidden="true" />
 
-            <div className="home-hero-entrance" aria-hidden="true">
-              <span className="home-hero-decor home-hero-decor--ring" />
-              <span className="home-hero-decor home-hero-decor--stroke" />
-              <span className="home-hero-accent-dot" />
-            </div>
+              <div className="home-hero-entrance" aria-hidden="true">
+                <span className="home-hero-decor home-hero-decor--ring" />
+                <span className="home-hero-decor home-hero-decor--stroke" />
+                <span className="home-hero-accent-dot" />
+              </div>
 
-            <div className="home-hero-intro-anchor" aria-hidden="true">
-              <div className="home-hero-intro-motion">
-                <div className="home-hero-intro-mask">
-                  <span className="home-hero-intro-type">{brandName}</span>
+              <div className="home-hero-intro-anchor" aria-hidden="true">
+                <div className="home-hero-intro-motion">
+                  <div className="home-hero-intro-mask">
+                    <span className="home-hero-intro-type">{brandName}</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <h1 className="home-hero-wordmark">
-              <span className="home-hero-wordmark-scroll">
-                <span className="home-hero-wordmark-reveal">
-                  <span className="home-hero-wordmark-line">{brandName}</span>
+              <h1 className="home-hero-wordmark">
+                <span className="home-hero-wordmark-scroll">
+                  <span className="home-hero-wordmark-reveal">
+                    <span className="home-hero-wordmark-line">{brandName}</span>
+                  </span>
                 </span>
-              </span>
-            </h1>
+              </h1>
 
-            <HeroTransparentVideo
-              key={hero.src}
-              src={hero.src}
-              mobileSrc={hero.mobileSrc}
-              posterSrc={hero.posterSrc}
-            />
+              <HeroTransparentVideo
+                key={hero.src}
+                src={hero.src}
+                mobileSrc={hero.mobileSrc}
+                posterSrc={hero.posterSrc}
+              />
 
-            <div className="home-hero-cta-wrap">
-              <PillCta href={heroCtaHref} className="home-hero-cta">
-                {heroCtaLabel}
-              </PillCta>
+              <div className="home-hero-cta-wrap">
+                <PillCta href={heroCtaHref} className="home-hero-cta">
+                  {heroCtaLabel}
+                </PillCta>
+              </div>
             </div>
           </div>
 

@@ -8,7 +8,7 @@ import {
   isHeroDesktopLayout,
   notifyHeroCompact,
   notifyHeroIntro,
-  readHeroSessionSeen,
+  shouldPlayHeroIntro,
   writeHeroSessionSeen,
 } from "@/features/motion/hero-wordmark-events";
 import {
@@ -28,6 +28,7 @@ type HeroNodes = {
   hero: HTMLElement;
   scrollWrap: HTMLElement;
   panel: HTMLElement;
+  scene: HTMLElement;
   backdrop: HTMLElement | null;
   introAnchor: HTMLElement | null;
   introMotion: HTMLElement | null;
@@ -41,7 +42,13 @@ function queryHero(root: HTMLElement): HeroNodes | null {
   const hero = root.querySelector(".home-hero");
   const scrollWrap = root.querySelector(".home-hero-scroll");
   const panel = root.querySelector(".home-hero-panel");
-  if (!(hero instanceof HTMLElement) || !(scrollWrap instanceof HTMLElement) || !(panel instanceof HTMLElement)) {
+  const scene = root.querySelector(".home-hero-scene");
+  if (
+    !(hero instanceof HTMLElement) ||
+    !(scrollWrap instanceof HTMLElement) ||
+    !(panel instanceof HTMLElement) ||
+    !(scene instanceof HTMLElement)
+  ) {
     return null;
   }
   const backdrop = root.querySelector(".home-hero-backdrop-intro");
@@ -56,6 +63,7 @@ function queryHero(root: HTMLElement): HeroNodes | null {
     hero,
     scrollWrap,
     panel,
+    scene,
     backdrop: backdrop instanceof HTMLElement ? backdrop : null,
     introAnchor: introAnchor instanceof HTMLElement ? introAnchor : null,
     introMotion: introMotion instanceof HTMLElement ? introMotion : null,
@@ -102,8 +110,14 @@ function hideIntro(nodes: HeroNodes): void {
 }
 
 function settleEntrance(nodes: HeroNodes): void {
+  // Panel owns the settled olive fill; hide the intro-only backdrop copy.
   if (nodes.backdrop) {
-    gsap.set(nodes.backdrop, { scale: 1, opacity: 1, transformOrigin: "50% 50%" });
+    gsap.set(nodes.backdrop, {
+      scale: 1,
+      opacity: 0,
+      visibility: "hidden",
+      clearProps: "willChange",
+    });
   }
   if (nodes.wordmarkReveal) {
     gsap.set(nodes.wordmarkReveal, { y: 0, opacity: 1, skewY: 0 });
@@ -139,6 +153,7 @@ function clearFeatureStyles(nodes: HeroNodes): void {
   if (nodes.wordmarkScroll) {
     gsap.set(nodes.wordmarkScroll, { clearProps: "transform,opacity,y,scale" });
   }
+  gsap.set(nodes.scene, { clearProps: "transform,opacity,scale" });
   gsap.set(nodes.panel, { clearProps: "transform,opacity,scale" });
   document.documentElement.classList.remove("hero-intro-active");
   notifyHeroIntro(false);
@@ -155,7 +170,7 @@ function applyHeroProgress(nodes: HeroNodes, rawProgress: number, compactRef: { 
       transformOrigin: "50% 0%",
     });
   }
-  gsap.set(nodes.panel, {
+  gsap.set(nodes.scene, {
     scale: 1 - 0.5 * q,
     opacity: 1 - 0.2 * q,
     transformOrigin: "50% 50%",
@@ -171,7 +186,7 @@ function resetProgressStyles(nodes: HeroNodes): void {
   if (nodes.wordmarkScroll) {
     gsap.set(nodes.wordmarkScroll, { y: 0, scale: 1, opacity: 1, transformOrigin: "50% 0%" });
   }
-  gsap.set(nodes.panel, { scale: 1, opacity: 1, transformOrigin: "50% 50%" });
+  gsap.set(nodes.scene, { scale: 1, opacity: 1, transformOrigin: "50% 50%" });
 }
 
 function attachInterrupts(onSettle: () => void): () => void {
@@ -264,7 +279,13 @@ function armIntro(nodes: HeroNodes): void {
     gsap.set(nodes.introAnchor, { autoAlpha: 1 });
   }
   if (nodes.backdrop) {
-    gsap.set(nodes.backdrop, { scale: 0.2, opacity: 0, transformOrigin: "50% 50%", willChange: "transform, opacity" });
+    gsap.set(nodes.backdrop, {
+      scale: 0.2,
+      opacity: 0,
+      visibility: "visible",
+      transformOrigin: "50% 50%",
+      willChange: "transform, opacity",
+    });
   }
   if (nodes.introMotion) {
     gsap.set(nodes.introMotion, { y: 50, scale: 0.9, opacity: 0, willChange: "transform, opacity" });
@@ -380,7 +401,7 @@ export function useHeroMotion() {
 
       let removeInterrupts: (() => void) | undefined;
       let restrainedTween: gsap.core.Tween | undefined;
-      const playRestrained = !readHeroSessionSeen() && window.scrollY <= INTERRUPT_SCROLL_PX;
+      const playRestrained = shouldPlayHeroIntro();
       if (playRestrained && nodes.wordmarkReveal) {
         gsap.set(nodes.wordmarkReveal, { y: 24, skewY: 4, opacity: 0 });
         restrainedTween = gsap.to(nodes.wordmarkReveal, {
@@ -455,9 +476,7 @@ export function useHeroMotion() {
       // Refresh first so restored scrollY maps to the correct progress before any header notify.
       syncProgress();
 
-      const seen = readHeroSessionSeen();
-      const restored = window.scrollY > INTERRUPT_SCROLL_PX;
-      if (seen || restored) {
+      if (!shouldPlayHeroIntro()) {
         settleEntrance(nodes);
         syncProgress();
         writeHeroSessionSeen();

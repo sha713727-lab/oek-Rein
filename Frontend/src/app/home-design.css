@@ -120,7 +120,7 @@
   }
 
   .home-flow .home-hero-wordmark-line {
-    font-size: clamp(32px, 8.8vw, 42px);
+    font-size: clamp(1.85rem, 8.8vw, 2.65rem);
     letter-spacing: -0.025em;
     line-height: 0.92;
     max-width: 100%;
