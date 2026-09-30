@@ -89,7 +89,7 @@ html.hero-intro-active .home-hero-panel {
   inset: 0;
   z-index: 1;
   isolation: isolate;
-  transform-origin: 50% 50%;
+  transform-origin: 50% 100%;
 }
 
 .home-hero-backdrop-intro {

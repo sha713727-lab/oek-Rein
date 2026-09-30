@@ -173,7 +173,7 @@ function applyHeroProgress(nodes: HeroNodes, rawProgress: number, compactRef: { 
   gsap.set(nodes.scene, {
     scale: 1 - 0.5 * q,
     opacity: 1 - 0.2 * q,
-    transformOrigin: "50% 50%",
+    transformOrigin: "50% 100%",
   });
   const compact = p >= 0.5;
   if (compact !== compactRef.value) {
@@ -186,7 +186,7 @@ function resetProgressStyles(nodes: HeroNodes): void {
   if (nodes.wordmarkScroll) {
     gsap.set(nodes.wordmarkScroll, { y: 0, scale: 1, opacity: 1, transformOrigin: "50% 0%" });
   }
-  gsap.set(nodes.scene, { scale: 1, opacity: 1, transformOrigin: "50% 50%" });
+  gsap.set(nodes.scene, { scale: 1, opacity: 1, transformOrigin: "50% 100%" });
 }
 
 function attachInterrupts(onSettle: () => void): () => void {
