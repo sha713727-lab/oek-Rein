@@ -192,13 +192,14 @@ html:not(.hero-intro-active) .home-hero-backdrop-intro {
 }
 
 /* Cropped silhouette — layout centers on this wrapper; GSAP does not.
- * Bottom tucks under the merged ribbon so the wave masks the straight crop edge. */
+ * Bottom sits on the panel edge; media translateY tucks the crop under the ribbon.
+ * z-index stays below .ribbon-marquee--merged (8) so the wave covers the crop. */
 .home-hero-subject {
   position: absolute;
   left: 50%;
   top: clamp(3.25rem, 7vh, 5.25rem);
-  bottom: calc(var(--hero-ribbon-overlap) * 0.12);
-  z-index: 20;
+  bottom: 0;
+  z-index: 2;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -284,8 +285,8 @@ html:not(.hero-intro-active) .home-hero-backdrop-intro {
 @media (min-width: 768px) {
   .home-hero-poster,
   .home-hero-video-canvas {
-    /* Small tuck into the ribbon overlap zone (panel clips overflow). */
-    transform: translateY(1.15rem);
+    /* Tuck into the ribbon overlap so the wave hides the straight crop. */
+    transform: translateY(calc(var(--hero-ribbon-overlap) * 0.55 + 0.35rem));
   }
 }
 
@@ -398,7 +399,7 @@ html:not(.hero-intro-active) .home-hero-backdrop-intro {
 
   .home-hero-subject {
     top: clamp(5.75rem, 16vw, 7rem);
-    bottom: calc(var(--hero-ribbon-overlap) * 0.08);
+    bottom: 0;
     width: min(100%, 22rem);
     max-width: calc(100% - 1rem);
     align-items: flex-end;
@@ -413,7 +414,7 @@ html:not(.hero-intro-active) .home-hero-backdrop-intro {
 
   .home-hero-poster,
   .home-hero-video-canvas {
-    transform: none;
+    transform: translateY(calc(var(--hero-ribbon-overlap) * 0.5 + 0.25rem));
   }
 
   .home-hero-cta-wrap {
@@ -448,13 +449,13 @@ html:not(.hero-intro-active) .home-hero-backdrop-intro {
 
   .home-hero-subject {
     top: clamp(4.5rem, 8vh, 6.5rem);
-    bottom: calc(var(--hero-ribbon-overlap) * 0.05);
+    bottom: 0;
     width: min(98rem, 99%);
   }
 
   .home-hero-poster,
   .home-hero-video-canvas {
-    transform: translateY(1.35rem);
+    transform: translateY(calc(var(--hero-ribbon-overlap) * 0.6 + 0.45rem));
   }
 
   .home-hero-wordmark {
