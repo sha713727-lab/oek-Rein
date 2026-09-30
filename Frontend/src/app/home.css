@@ -55,6 +55,8 @@
 
 .home-hero-panel {
   position: relative;
+  /* Explicit stacking context so the WebGL horse canvas cannot paint over the ribbon. */
+  z-index: 1;
   /* Don’t isolate the panel — merged ribbon must multiply into this olive surface. */
   isolation: auto;
   display: block;
@@ -86,8 +88,11 @@ html.hero-intro-active .home-hero-panel {
   position: absolute;
   inset: 0;
   z-index: 0;
+  /* Contain transformed media; do not trap the ribbon sibling. */
   isolation: isolate;
   transform-origin: 50% 50%;
+  /* Keep GPU layers inside this box so the canvas cannot escape above the ribbon. */
+  transform: translateZ(0);
 }
 
 .home-hero-backdrop-intro {
@@ -270,7 +275,7 @@ html:not(.hero-intro-active) .home-hero-backdrop-intro {
 
 .home-hero-video-canvas {
   position: relative;
-  z-index: 1;
+  z-index: 0;
   display: block;
   width: auto;
   height: 100%;
@@ -486,12 +491,15 @@ html:not(.hero-intro-active) .home-hero-backdrop-intro {
  * the panel's side inset, so the silver above the band is the panel itself and no
  * white can peek through where the wave dips.
  * mix-blend multiply: dark ribbon darkens into the olive hero (VOLDOG join).
+ * z-index must beat the panel (1) so ribbon type never sits under the horse canvas.
  */
 .ribbon-marquee--merged {
+  position: relative;
   width: 100%;
   max-width: none;
   margin: calc(-1 * var(--hero-ribbon-overlap)) 0 -1.5vw;
-  z-index: 8;
+  z-index: 12;
+  isolation: isolate;
 }
 
 .ribbon-marquee--merged .ribbon-marquee-band {
@@ -499,9 +507,12 @@ html:not(.hero-intro-active) .home-hero-backdrop-intro {
   mix-blend-mode: multiply;
 }
 
-.ribbon-marquee-type-layer {
+.ribbon-marquee--merged .ribbon-marquee-type-layer {
   isolation: isolate;
   mix-blend-mode: normal;
+  /* Promote type above the band stroke inside the SVG stacking. */
+  position: relative;
+  z-index: 2;
 }
 
 .home-hero-scroll {
