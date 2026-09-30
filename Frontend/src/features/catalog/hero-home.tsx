@@ -46,6 +46,14 @@ export function HeroHome({ content }: { content: StorefrontContent }) {
                 </div>
               </div>
 
+              <HeroTransparentVideo
+                key={hero.src}
+                src={hero.src}
+                mobileSrc={hero.mobileSrc}
+                posterSrc={hero.posterSrc}
+              />
+
+              {/* Wordmark after the cutout so it paints above the transparent horse (old stacking). */}
               <h1 className="home-hero-wordmark">
                 <span className="home-hero-wordmark-scroll">
                   <span className="home-hero-wordmark-reveal">
@@ -53,13 +61,6 @@ export function HeroHome({ content }: { content: StorefrontContent }) {
                   </span>
                 </span>
               </h1>
-
-              <HeroTransparentVideo
-                key={hero.src}
-                src={hero.src}
-                mobileSrc={hero.mobileSrc}
-                posterSrc={hero.posterSrc}
-              />
 
               <div className="home-hero-cta-wrap">
                 <PillCta href={heroCtaHref} className="home-hero-cta">

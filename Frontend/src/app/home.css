@@ -146,12 +146,14 @@ html:not(.hero-intro-active) .home-hero-backdrop-intro {
   left: 0;
   right: 0;
   top: calc(var(--hero-header-slot, 6.25rem) + 0.2rem);
-  z-index: 10;
+  /* Above the transparent horse cutout; below CTA (40). Ribbon stays outside the scene. */
+  z-index: 25;
   margin: 0;
   padding-inline: 0.5rem;
   text-align: center;
   pointer-events: none;
   user-select: none;
+  isolation: isolate;
 }
 
 .home-hero-wordmark-scroll,
@@ -192,14 +194,14 @@ html:not(.hero-intro-active) .home-hero-backdrop-intro {
 }
 
 /* Cropped silhouette — layout centers on this wrapper; GSAP does not.
- * Bottom sits on the panel edge; media translateY tucks the crop under the ribbon.
- * z-index stays below .ribbon-marquee--merged (8) so the wave covers the crop. */
+ * Bottom tucks under the merged ribbon so the wave masks the straight crop edge.
+ * z-index below .ribbon-marquee--merged (8); wordmark stays above the horse. */
 .home-hero-subject {
   position: absolute;
   left: 50%;
   top: clamp(3.25rem, 7vh, 5.25rem);
-  bottom: 0;
-  z-index: 2;
+  bottom: calc(var(--hero-ribbon-overlap) * 0.12);
+  z-index: 1;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -285,8 +287,8 @@ html:not(.hero-intro-active) .home-hero-backdrop-intro {
 @media (min-width: 768px) {
   .home-hero-poster,
   .home-hero-video-canvas {
-    /* Tuck into the ribbon overlap so the wave hides the straight crop. */
-    transform: translateY(calc(var(--hero-ribbon-overlap) * 0.55 + 0.35rem));
+    /* Small tuck into the ribbon overlap zone (panel clips overflow; ribbon paints above). */
+    transform: translateY(1.15rem);
   }
 }
 
@@ -399,7 +401,7 @@ html:not(.hero-intro-active) .home-hero-backdrop-intro {
 
   .home-hero-subject {
     top: clamp(5.75rem, 16vw, 7rem);
-    bottom: 0;
+    bottom: calc(var(--hero-ribbon-overlap) * 0.08);
     width: min(100%, 22rem);
     max-width: calc(100% - 1rem);
     align-items: flex-end;
@@ -414,7 +416,8 @@ html:not(.hero-intro-active) .home-hero-backdrop-intro {
 
   .home-hero-poster,
   .home-hero-video-canvas {
-    transform: translateY(calc(var(--hero-ribbon-overlap) * 0.5 + 0.25rem));
+    /* Mobile: light tuck so the wave still masks the crop edge. */
+    transform: translateY(0.85rem);
   }
 
   .home-hero-cta-wrap {
@@ -449,13 +452,13 @@ html:not(.hero-intro-active) .home-hero-backdrop-intro {
 
   .home-hero-subject {
     top: clamp(4.5rem, 8vh, 6.5rem);
-    bottom: 0;
+    bottom: calc(var(--hero-ribbon-overlap) * 0.05);
     width: min(98rem, 99%);
   }
 
   .home-hero-poster,
   .home-hero-video-canvas {
-    transform: translateY(calc(var(--hero-ribbon-overlap) * 0.6 + 0.45rem));
+    transform: translateY(1.35rem);
   }
 
   .home-hero-wordmark {
