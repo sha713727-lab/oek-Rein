@@ -30,17 +30,19 @@ export function HeroTransparentVideo({ src, mobileSrc, posterSrc, className = ""
 
   return (
     <div ref={rootRef} className={`home-hero-subject ${className}`.trim()}>
-      <div className="home-hero-subject-motion">
-        <CmsImage
-          src={posterSrc}
-          alt=""
-          fill
-          sizes="(max-width: 767px) 88vw, 52vh"
-          preload
-          className={`home-hero-poster${live ? " is-hidden" : ""}`}
-        />
-        <video ref={videoRef} className="home-hero-video-source" muted playsInline loop preload="auto" aria-hidden="true" />
-        <canvas ref={canvasRef} className={`home-hero-video-canvas${live ? " is-live" : ""}`} aria-hidden="true" />
+      <div className="home-hero-subject-reveal">
+        <div className="home-hero-subject-motion">
+          <CmsImage
+            src={posterSrc}
+            alt=""
+            fill
+            sizes="(max-width: 767px) 88vw, 52vh"
+            preload
+            className={`home-hero-poster${live ? " is-hidden" : ""}`}
+          />
+          <video ref={videoRef} className="home-hero-video-source" muted playsInline loop preload="auto" aria-hidden="true" />
+          <canvas ref={canvasRef} className={`home-hero-video-canvas${live ? " is-live" : ""}`} aria-hidden="true" />
+        </div>
       </div>
     </div>
   );

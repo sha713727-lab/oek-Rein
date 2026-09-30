@@ -16,7 +16,6 @@ import {
 } from "react";
 
 import { IconBag, IconClose, IconHeart, IconMenu, IconSearch, IconUser } from "@/components/icons/icons";
-import { Logo } from "@/components/ui/logo";
 import { heroCtaHref, heroCtaLabel } from "@/constants/brand";
 import { MAIN_NAV, type MainNavItem } from "@/constants/navigation-ia";
 import {
@@ -27,8 +26,18 @@ import {
 } from "@/constants/storefront";
 import { MiniCart } from "@/features/cart/mini-cart";
 import { RibbonMarquee } from "@/features/catalog/ribbon-marquee";
+import {
+  HERO_COMPACT_EVENT,
+  HERO_DESKTOP_LAYOUT_MQ,
+  HERO_INTRO_EVENT,
+  type HeroCompactDetail,
+  type HeroIntroDetail,
+  readHeroCompact,
+} from "@/features/motion/hero-wordmark-events";
 import { EASE, MOTION } from "@/features/motion/motion-config";
 import { PillCta } from "@/features/motion/pill-cta";
+import { HeaderBrand } from "@/features/navigation/header-brand";
+import { useHeaderBrandTimeline } from "@/features/navigation/header-brand-motion";
 import { SearchModal } from "@/features/navigation/search-modal";
 import { SiteToast } from "@/features/navigation/site-toast";
 import { BAG_EVENT } from "@/lib/bag-events";
@@ -200,6 +209,8 @@ export function SiteHeader({
   const [searchOpen, setSearchOpen] = useState(false);
   const [bagOpen, setBagOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [introActive, setIntroActive] = useState(false);
+  const [heroDesktop, setHeroDesktop] = useState(false);
   const [desktopOpenId, setDesktopOpenId] = useState<string | null>(null);
   const [mobileOpenId, setMobileOpenId] = useState<string | null>(null);
   const path = pathname.replace(/\/$/, "") || "/";
@@ -208,6 +219,7 @@ export function SiteHeader({
   const toggleRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const desktopNavRef = useRef<HTMLDivElement>(null);
+  const brandRef = useRef<HTMLDivElement>(null);
   const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const unlockScrollRef = useRef<(() => void) | null>(null);
@@ -270,6 +282,41 @@ export function SiteHeader({
   }, []);
 
   useEffect(() => {
+    const mq = window.matchMedia(HERO_DESKTOP_LAYOUT_MQ);
+    const sync = () => setHeroDesktop(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    const onIntro = (event: Event) => {
+      const detail = (event as CustomEvent<HeroIntroDetail>).detail;
+      setIntroActive(Boolean(detail?.active));
+    };
+    window.addEventListener(HERO_INTRO_EVENT, onIntro);
+    return () => window.removeEventListener(HERO_INTRO_EVENT, onIntro);
+  }, []);
+
+  useEffect(() => {
+    if (isHome && heroDesktop) {
+      const onCompact = (event: Event) => {
+        const detail = (event as CustomEvent<HeroCompactDetail>).detail;
+        setScrolled(Boolean(detail?.compact));
+      };
+      const current = readHeroCompact();
+      const frame = window.requestAnimationFrame(() => {
+        if (current !== null) {
+          setScrolled(current);
+        }
+      });
+      window.addEventListener(HERO_COMPACT_EVENT, onCompact);
+      return () => {
+        window.cancelAnimationFrame(frame);
+        window.removeEventListener(HERO_COMPACT_EVENT, onCompact);
+      };
+    }
+
     const hero = document.querySelector(".home-hero-panel");
     const threshold =
       isHome && hero instanceof HTMLElement ? Math.max(160, hero.getBoundingClientRect().height * 0.55) : 48;
@@ -283,7 +330,6 @@ export function SiteHeader({
       past = next;
       setScrolled(next);
     };
-    // Sync initial scrolled state after mount (async) so we avoid setState in the effect body.
     const frame = window.requestAnimationFrame(() => {
       setScrolled(past);
     });
@@ -292,7 +338,9 @@ export function SiteHeader({
       window.cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
     };
-  }, [pathname, isHome]);
+  }, [pathname, isHome, heroDesktop]);
+
+  useHeaderBrandTimeline(brandRef, scrolled || open, isHome && heroDesktop && reduceMotion !== true);
 
   const [navEpoch, setNavEpoch] = useState(pathname);
   if (navEpoch !== pathname) {
@@ -416,7 +464,7 @@ export function SiteHeader({
     };
   }, [desktopOpenId, closeDesktop]);
 
-  const overlay = isHome && !scrolled && !open;
+  const overlay = isHome && !scrolled && !open && !introActive;
   const tone = overlay ? "site-header-light" : "site-header-dark";
   const logoTheme = overlay ? "light" : "dark";
   const badgeCount = cartCount;
@@ -538,8 +586,8 @@ export function SiteHeader({
           })}
         </nav>
 
-        <div className="site-header-brand">
-          <Logo theme={open ? "light" : logoTheme} size="nav" priority />
+        <div ref={brandRef} className="site-header-brand">
+          <HeaderBrand theme={open ? "light" : logoTheme} />
         </div>
 
         <div className="site-header-end">

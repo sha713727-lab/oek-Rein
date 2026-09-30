@@ -55,8 +55,7 @@
 
 .home-hero-panel {
   position: relative;
-  /* Don’t isolate — merged ribbon needs to multiply into this olive surface. */
-  isolation: auto;
+  isolation: isolate;
   display: block;
   /* Full viewport scene; header overlays the top of this panel. */
   min-height: max(32rem, calc(100vh - var(--hero-top-pad) + var(--hero-ribbon-crest)));
@@ -67,6 +66,16 @@
   padding-bottom: calc(var(--hero-ribbon-overlap) + 5.5rem);
   overflow: hidden;
   border-radius: var(--home-radius-hero) var(--home-radius-hero) 0 0;
+  background: transparent;
+}
+
+.home-hero-backdrop-intro {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  transform-origin: 50% 50%;
   background:
     radial-gradient(circle at 76% 26%, rgba(255, 255, 255, 0.28), transparent 42%),
     linear-gradient(
@@ -76,38 +85,93 @@
     );
 }
 
+.home-hero-intro-anchor {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.home-hero-intro-anchor.is-active {
+  visibility: visible;
+}
+
+.home-hero-intro-motion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: min(450px, calc(100% - 2rem));
+  width: 100%;
+}
+
+.home-hero-intro-mask {
+  overflow: hidden;
+  max-width: 100%;
+  padding-block: 0.12em;
+}
+
 .home-hero-wordmark {
   position: absolute;
   left: 0;
   right: 0;
-  top: clamp(5.5rem, 11vh, 7.25rem);
-  z-index: 1;
+  top: calc(var(--hero-header-slot, 6.25rem) + 0.2rem);
+  z-index: 10;
   margin: 0;
+  padding-inline: 0.5rem;
   text-align: center;
   pointer-events: none;
   user-select: none;
 }
 
-.home-hero-wordmark .home-hero-wordmark-line,
-.home-hero-wordmark span {
+.home-hero-wordmark-scroll,
+.home-hero-wordmark-reveal {
   display: block;
-  font-family: var(--vd-display);
-  font-size: clamp(2.85rem, 10.5vw, 8.75rem);
-  font-weight: 700;
+  width: 100%;
+}
+
+.home-hero-wordmark-line,
+.home-hero-intro-type {
+  display: block;
+  width: 100%;
+  font-family: var(--font-display, var(--vd-display));
+  font-size: clamp(32px, 13vw, 248px);
+  font-weight: 600;
   letter-spacing: -0.035em;
   line-height: 0.9;
   text-transform: uppercase;
   color: #ffffff;
+  text-align: center;
+  white-space: nowrap;
 }
 
-/* Cropped silhouette — layout centers; GSAP animates .home-hero-subject-motion.
+.home-hero-intro-type {
+  font-size: clamp(1.75rem, 5vw, 2.85rem);
+}
+
+@media (max-width: 389px) {
+  .home-hero-wordmark-line {
+    font-size: clamp(28px, 9.6vw, 34px);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .home-hero-wordmark-line {
+    font-size: clamp(48px, 9vw, 104px);
+  }
+}
+
+/* Cropped silhouette — layout centers on this wrapper; GSAP does not.
  * Bottom tucks under the merged ribbon so the wave masks the straight crop edge. */
 .home-hero-subject {
   position: absolute;
   left: 50%;
   top: clamp(3.25rem, 7vh, 5.25rem);
   bottom: calc(var(--hero-ribbon-overlap) * 0.12);
-  z-index: 1;
+  z-index: 20;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -116,21 +180,34 @@
   pointer-events: none;
 }
 
+.home-hero-subject-reveal,
 .home-hero-subject-motion {
   display: flex;
   align-items: flex-end;
   justify-content: center;
   width: 100%;
   height: 100%;
-  transform-origin: 50% 100%;
   position: relative;
-  opacity: 1;
 }
 
-/* Always visible by default — desktop GSAP may briefly set transforms; never hide via CSS. */
+.home-hero-subject-motion {
+  transform-origin: 50% 100%;
+}
+
+/* Settled H1 and CTA stay readable if JS never runs. */
 .home-hero-wordmark-line,
 .home-hero-cta-wrap {
   opacity: 1;
+}
+
+.home-hero-panel,
+.home-hero-backdrop-intro,
+.home-hero-intro-motion,
+.home-hero-intro-type,
+.home-hero-wordmark-scroll,
+.home-hero-wordmark-reveal,
+.home-hero-subject-reveal {
+  transition: none;
 }
 
 /* Poster (a `fill` image over the whole box) and canvas share containment and anchoring,
@@ -267,11 +344,16 @@
 
   .home-hero-wordmark {
     top: clamp(4.25rem, 11vw, 5.25rem);
+    padding-inline: 0.65rem;
   }
 
-  .home-hero-wordmark span,
-  .home-hero-wordmark .home-hero-wordmark-line {
-    font-size: clamp(2.15rem, 10.2vw, 3.15rem);
+  .home-hero-wordmark-line {
+    font-size: clamp(32px, 10.5vw, 48px);
+    letter-spacing: -0.025em;
+  }
+
+  .home-hero-intro-type {
+    font-size: clamp(1.5rem, 7vw, 2rem);
   }
 
   .home-hero-pill {
@@ -306,7 +388,6 @@
     justify-content: center;
     padding-inline: 1rem;
     bottom: calc(var(--hero-ribbon-overlap) + 1.15rem);
-    /* Avoid translateX — GSAP owns transform for entrance */
   }
 
   .home-hero-cta {

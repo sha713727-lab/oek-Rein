@@ -6,12 +6,7 @@ import { useCardEntrances } from "@/features/motion/card-entrances";
 import { useDrawAndParallax } from "@/features/motion/draw-parallax";
 import { useHeadingReveals } from "@/features/motion/heading-reveals";
 import { useHeroMotion } from "@/features/motion/hero-motion";
-import {
-  armScrollTriggerLayoutRefresh,
-  isCoarsePointer,
-  prefersReducedMotion,
-  registerGsapPlugins,
-} from "@/features/motion/motion-config";
+import { armScrollTriggerLayoutRefresh, isCoarsePointer, registerGsapPlugins } from "@/features/motion/motion-config";
 
 function DeferredHomeScenes() {
   useHeadingReveals();
@@ -33,25 +28,11 @@ export function HomeMotion() {
     registerGsapPlugins();
     document.documentElement.classList.add("home-motion-ready");
 
-    const root = document.querySelector(".home-flow");
-    if (root instanceof HTMLElement && prefersReducedMotion()) {
-      root.classList.add("is-hero-ready");
-    }
-
     const disposeRefresh = armScrollTriggerLayoutRefresh();
-
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const onReduced = () => {
-      if (reduced.matches && root instanceof HTMLElement) {
-        root.classList.add("is-hero-ready");
-      }
-    };
-    reduced.addEventListener("change", onReduced);
 
     // Touch / coarse: don't mount heavy scroll scenes at all.
     if (isCoarsePointer()) {
       return () => {
-        reduced.removeEventListener("change", onReduced);
         document.documentElement.classList.remove("home-motion-ready");
         disposeRefresh();
       };
@@ -74,7 +55,6 @@ export function HomeMotion() {
     }
 
     return () => {
-      reduced.removeEventListener("change", onReduced);
       window.removeEventListener("load", onLoad);
       document.documentElement.classList.remove("home-motion-ready");
       if (timeoutId) {

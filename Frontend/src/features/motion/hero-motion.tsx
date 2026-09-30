@@ -3,28 +3,333 @@
 import { useEffect } from "react";
 
 import {
+  HERO_COMPACT_MQ,
+  HERO_DESKTOP_MQ,
+  isHeroDesktopLayout,
+  notifyHeroCompact,
+  notifyHeroIntro,
+  readHeroSessionSeen,
+  writeHeroSessionSeen,
+} from "@/features/motion/hero-wordmark-events";
+import {
   gsap,
-  isCoarsePointer,
-  isMobileViewport,
-  prefersReducedMotion,
   registerGsapPlugins,
   ScrollTrigger,
 } from "@/features/motion/motion-config";
 
-const SESSION_KEY = "saddlera-hero-seen";
+const FONT_DEADLINE_MS = 800;
+const SCROLL_DISTANCE = 700;
+const PIN_DISTANCE = 400;
+const INTERRUPT_SCROLL_PX = 8;
+const SCROLL_KEYS = new Set([" ", "PageDown", "PageUp", "ArrowDown", "ArrowUp", "Home", "End"]);
 
-const WORD_WIPE_FROM = { clipPath: "inset(0% 50% 0% 50%)", opacity: 0 };
-const WORD_WIPE_TO = {
-  clipPath: "inset(0% 0% 0% 0%)",
-  opacity: 1,
-  duration: 0.7,
-  ease: "power2.out",
-} as const;
+type HeroNodes = {
+  root: HTMLElement;
+  hero: HTMLElement;
+  scrollWrap: HTMLElement;
+  panel: HTMLElement;
+  backdrop: HTMLElement | null;
+  introAnchor: HTMLElement | null;
+  introMotion: HTMLElement | null;
+  introType: HTMLElement | null;
+  wordmarkScroll: HTMLElement | null;
+  wordmarkReveal: HTMLElement | null;
+  subjectReveal: HTMLElement | null;
+};
+
+function queryHero(root: HTMLElement): HeroNodes | null {
+  const hero = root.querySelector(".home-hero");
+  const scrollWrap = root.querySelector(".home-hero-scroll");
+  const panel = root.querySelector(".home-hero-panel");
+  if (!(hero instanceof HTMLElement) || !(scrollWrap instanceof HTMLElement) || !(panel instanceof HTMLElement)) {
+    return null;
+  }
+  const backdrop = root.querySelector(".home-hero-backdrop-intro");
+  const introAnchor = root.querySelector(".home-hero-intro-anchor");
+  const introMotion = root.querySelector(".home-hero-intro-motion");
+  const introType = root.querySelector(".home-hero-intro-type");
+  const wordmarkScroll = root.querySelector(".home-hero-wordmark-scroll");
+  const wordmarkReveal = root.querySelector(".home-hero-wordmark-reveal");
+  const subjectReveal = root.querySelector(".home-hero-subject-reveal");
+  return {
+    root,
+    hero,
+    scrollWrap,
+    panel,
+    backdrop: backdrop instanceof HTMLElement ? backdrop : null,
+    introAnchor: introAnchor instanceof HTMLElement ? introAnchor : null,
+    introMotion: introMotion instanceof HTMLElement ? introMotion : null,
+    introType: introType instanceof HTMLElement ? introType : null,
+    wordmarkScroll: wordmarkScroll instanceof HTMLElement ? wordmarkScroll : null,
+    wordmarkReveal: wordmarkReveal instanceof HTMLElement ? wordmarkReveal : null,
+    subjectReveal: subjectReveal instanceof HTMLElement ? subjectReveal : null,
+  };
+}
+
+function waitForFonts(ms: number): Promise<"ready" | "timeout"> {
+  if (!document.fonts) {
+    return Promise.resolve("ready");
+  }
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (value: "ready" | "timeout") => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      window.clearTimeout(timer);
+      resolve(value);
+    };
+    const timer = window.setTimeout(() => finish("timeout"), ms);
+    void document.fonts.ready.then(() => finish("ready"));
+  });
+}
+
+function hideIntro(nodes: HeroNodes): void {
+  if (nodes.introAnchor) {
+    nodes.introAnchor.classList.remove("is-active");
+    gsap.set(nodes.introAnchor, { autoAlpha: 0 });
+  }
+  if (nodes.introMotion) {
+    gsap.set(nodes.introMotion, { clearProps: "willChange" });
+  }
+  if (nodes.introType) {
+    gsap.set(nodes.introType, { clearProps: "willChange" });
+  }
+  if (nodes.backdrop) {
+    gsap.set(nodes.backdrop, { clearProps: "willChange" });
+  }
+}
+
+function settleEntrance(nodes: HeroNodes): void {
+  if (nodes.backdrop) {
+    gsap.set(nodes.backdrop, { scale: 1, opacity: 1, transformOrigin: "50% 50%" });
+  }
+  if (nodes.wordmarkReveal) {
+    gsap.set(nodes.wordmarkReveal, { y: 0, opacity: 1, skewY: 0 });
+  }
+  if (nodes.subjectReveal) {
+    gsap.set(nodes.subjectReveal, { opacity: 1 });
+  }
+  hideIntro(nodes);
+  notifyHeroIntro(false);
+}
+
+function clearFeatureStyles(nodes: HeroNodes): void {
+  settleEntrance(nodes);
+  resetProgressStyles(nodes);
+  if (nodes.backdrop) {
+    gsap.set(nodes.backdrop, { clearProps: "transform,opacity,scale,willChange" });
+  }
+  if (nodes.introMotion) {
+    gsap.set(nodes.introMotion, { clearProps: "transform,opacity,scale,y,willChange" });
+  }
+  if (nodes.introType) {
+    gsap.set(nodes.introType, { clearProps: "transform,opacity,scale,y,skewY,willChange" });
+  }
+  if (nodes.introAnchor) {
+    gsap.set(nodes.introAnchor, { clearProps: "autoAlpha,opacity,visibility" });
+  }
+  if (nodes.wordmarkReveal) {
+    gsap.set(nodes.wordmarkReveal, { clearProps: "transform,opacity,y,skewY" });
+  }
+  if (nodes.subjectReveal) {
+    gsap.set(nodes.subjectReveal, { clearProps: "opacity" });
+  }
+  if (nodes.wordmarkScroll) {
+    gsap.set(nodes.wordmarkScroll, { clearProps: "transform,opacity,y,scale" });
+  }
+  gsap.set(nodes.panel, { clearProps: "transform,opacity,scale" });
+  document.documentElement.classList.remove("hero-intro-active");
+  notifyHeroIntro(false);
+}
+
+function applyHeroProgress(nodes: HeroNodes, rawProgress: number, compactRef: { value: boolean }): void {
+  const p = Math.max(0, Math.min(1, rawProgress));
+  const q = Math.max(0, p - 0.5);
+  if (nodes.wordmarkScroll) {
+    gsap.set(nodes.wordmarkScroll, {
+      y: 50 * p,
+      scale: 1 - 0.5 * p,
+      opacity: Math.max(0, 1 - 2 * p),
+      transformOrigin: "50% 0%",
+    });
+  }
+  gsap.set(nodes.panel, {
+    scale: 1 - 0.5 * q,
+    opacity: 1 - 0.2 * q,
+    transformOrigin: "50% 50%",
+  });
+  const compact = p >= 0.5;
+  if (compact !== compactRef.value) {
+    compactRef.value = compact;
+    notifyHeroCompact(compact);
+  }
+}
+
+function resetProgressStyles(nodes: HeroNodes): void {
+  if (nodes.wordmarkScroll) {
+    gsap.set(nodes.wordmarkScroll, { y: 0, scale: 1, opacity: 1, transformOrigin: "50% 0%" });
+  }
+  gsap.set(nodes.panel, { scale: 1, opacity: 1, transformOrigin: "50% 50%" });
+}
+
+function attachInterrupts(onSettle: () => void): () => void {
+  const onScroll = () => {
+    if (window.scrollY > INTERRUPT_SCROLL_PX) {
+      onSettle();
+    }
+  };
+  const onWheel = () => onSettle();
+  const onTouch = () => onSettle();
+  const onKey = (event: KeyboardEvent) => {
+    if (SCROLL_KEYS.has(event.key)) {
+      onSettle();
+    }
+  };
+  const onPointer = (event: Event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) {
+      return;
+    }
+    if (target.closest("[data-saddlera-header] a, [data-saddlera-header] button, .home-hero-cta, .home-hero-cta-wrap")) {
+      onSettle();
+    }
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("wheel", onWheel, { passive: true });
+  window.addEventListener("touchmove", onTouch, { passive: true });
+  window.addEventListener("keydown", onKey);
+  document.addEventListener("pointerdown", onPointer, true);
+  return () => {
+    window.removeEventListener("scroll", onScroll);
+    window.removeEventListener("wheel", onWheel);
+    window.removeEventListener("touchmove", onTouch);
+    window.removeEventListener("keydown", onKey);
+    document.removeEventListener("pointerdown", onPointer, true);
+  };
+}
+
+function createIntroTimeline(nodes: HeroNodes): gsap.core.Timeline {
+  const tl = gsap.timeline({ paused: true });
+  if (nodes.backdrop) {
+    tl.fromTo(
+      nodes.backdrop,
+      { scale: 0.2, opacity: 0, transformOrigin: "50% 50%" },
+      { scale: 0.3, opacity: 1, duration: 1.2, ease: "power1.inOut", immediateRender: false },
+      0,
+    );
+    tl.to(nodes.backdrop, { scale: 1, duration: 1.2, ease: "power4.out" }, 1.9);
+  }
+  if (nodes.introMotion) {
+    tl.fromTo(
+      nodes.introMotion,
+      { y: 50, scale: 0.9, opacity: 0 },
+      { y: 0, scale: 1, opacity: 1, duration: 0.8, ease: "power2.out", immediateRender: false },
+      0.4,
+    );
+    tl.to(nodes.introMotion, { opacity: 0, scale: 0.9, duration: 0.6, ease: "power1.inOut" }, 2.0);
+  }
+  if (nodes.introType) {
+    tl.fromTo(
+      nodes.introType,
+      { y: 200, skewY: 15, opacity: 0 },
+      { y: 0, skewY: 0, opacity: 1, duration: 0.8, ease: "power2.out", immediateRender: false },
+      0.6,
+    );
+    tl.to(nodes.introType, { opacity: 0, scale: 0.85, duration: 0.7, ease: "power4.out" }, 1.4);
+  }
+  if (nodes.wordmarkReveal) {
+    tl.fromTo(
+      nodes.wordmarkReveal,
+      { y: -30, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.6, ease: "revealEase", immediateRender: false },
+      2.4,
+    );
+  }
+  if (nodes.subjectReveal) {
+    tl.fromTo(
+      nodes.subjectReveal,
+      { opacity: 0 },
+      { opacity: 1, duration: 0.65, ease: "power2.out", immediateRender: false },
+      2.4,
+    );
+  }
+  return tl;
+}
+
+function armIntro(nodes: HeroNodes): void {
+  nodes.introAnchor?.classList.add("is-active");
+  if (nodes.introAnchor) {
+    gsap.set(nodes.introAnchor, { autoAlpha: 1 });
+  }
+  if (nodes.backdrop) {
+    gsap.set(nodes.backdrop, { scale: 0.2, opacity: 0, transformOrigin: "50% 50%", willChange: "transform, opacity" });
+  }
+  if (nodes.introMotion) {
+    gsap.set(nodes.introMotion, { y: 50, scale: 0.9, opacity: 0, willChange: "transform, opacity" });
+  }
+  if (nodes.introType) {
+    gsap.set(nodes.introType, { y: 200, skewY: 15, opacity: 0, willChange: "transform, opacity" });
+  }
+  if (nodes.wordmarkReveal) {
+    gsap.set(nodes.wordmarkReveal, { y: -30, opacity: 0 });
+  }
+  if (nodes.subjectReveal) {
+    gsap.set(nodes.subjectReveal, { opacity: 0 });
+  }
+  notifyHeroIntro(true);
+}
+
+function bindDebugTimeline(tl: gsap.core.Timeline): () => void {
+  if (process.env.NODE_ENV !== "development") {
+    return () => undefined;
+  }
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has("heroDebug")) {
+      return () => undefined;
+    }
+    (window as Window & { __oakreinHeroTl?: gsap.core.Timeline }).__oakreinHeroTl = tl;
+    return () => {
+      const tagged = window as Window & { __oakreinHeroTl?: gsap.core.Timeline };
+      if (tagged.__oakreinHeroTl === tl) {
+        delete tagged.__oakreinHeroTl;
+      }
+    };
+  } catch {
+    return () => undefined;
+  }
+}
+
+function setupProgress(nodes: HeroNodes, compactRef: { value: boolean }, withPin: boolean): ScrollTrigger[] {
+  const triggers: ScrollTrigger[] = [];
+  if (withPin) {
+    triggers.push(
+      ScrollTrigger.create({
+        trigger: nodes.hero,
+        start: "top top",
+        end: `+=${PIN_DISTANCE}`,
+        pin: nodes.scrollWrap,
+        pinSpacing: true,
+        anticipatePin: 1,
+      }),
+    );
+  }
+  triggers.push(
+    ScrollTrigger.create({
+      trigger: nodes.hero,
+      start: "top top",
+      end: `+=${SCROLL_DISTANCE}`,
+      onUpdate: (self) => applyHeroProgress(nodes, self.progress, compactRef),
+      onRefresh: (self) => applyHeroProgress(nodes, self.progress, compactRef),
+    }),
+  );
+  return triggers;
+}
 
 /**
- * M01 coordinated hero entrance + M02 scroll retreat.
- * Wordmark uses a center clip wipe (VOLDOG #voldog-text). Decor / subject / CTA stay desktop-only.
- * Reduced motion: CSS-visible title, no clip.
+ * Three-layer hero wordmark: temporary intro, progress-driven H1, compact header notify.
  */
 export function useHeroMotion() {
   useEffect(() => {
@@ -34,200 +339,183 @@ export function useHeroMotion() {
       return;
     }
 
-    const hero = root.querySelector(".home-hero");
-    const scrollWrap = root.querySelector(".home-hero-scroll");
-    const entrance = root.querySelector(".home-hero-entrance");
-    const wordLines = root.querySelectorAll(".home-hero-wordmark-line");
-    const subject = root.querySelector(".home-hero-subject-motion") ?? root.querySelector(".home-hero-subject");
-    const cta = root.querySelector(".home-hero-cta-wrap");
-    const decor = root.querySelectorAll(".home-hero-decor, .home-hero-accent-dot");
-
-    if (!(hero instanceof HTMLElement) || !(scrollWrap instanceof HTMLElement)) {
-      root.classList.add("is-hero-ready");
-      return;
-    }
-
-    const reduced = prefersReducedMotion();
-    if (reduced) {
+    const nodes = queryHero(root);
+    if (!nodes) {
       root.classList.add("is-hero-ready");
       return;
     }
 
     document.documentElement.classList.add("home-motion-ready");
 
-    const mobile = isMobileViewport();
-    const coarse = isCoarsePointer();
+    const mm = gsap.matchMedia();
 
-    if (mobile || coarse) {
-      const ctx = gsap.context(() => {
-        if (wordLines.length) {
-          gsap.set(wordLines, WORD_WIPE_FROM);
-          gsap.to(wordLines, WORD_WIPE_TO);
-        }
-      }, root);
+    mm.add("(prefers-reduced-motion: reduce)", () => {
+      settleEntrance(nodes);
+      resetProgressStyles(nodes);
       root.classList.add("is-hero-ready");
-      return () => {
-        ctx.revert();
-      };
-    }
-
-    let repeat = false;
-    try {
-      repeat = sessionStorage.getItem(SESSION_KEY) === "1";
-    } catch {
-      repeat = false;
-    }
-
-    let removeEarlyScroll: (() => void) | undefined;
-
-    const ctx = gsap.context(() => {
-      // Mild entrance only — never hide subject/CTA at 0 / 0.35 (FOUC risk on slow JS).
-      if (entrance) {
-        gsap.set(entrance, { scale: 0.92, opacity: 0.85, transformOrigin: "50% 50%" });
-      }
-      if (wordLines.length) {
-        gsap.set(wordLines, WORD_WIPE_FROM);
-      }
-      if (subject) {
-        gsap.set(subject, { y: 16, scale: 1.01 });
-      }
-      if (cta) {
-        gsap.set(cta, { y: 10 });
-      }
-
-      const durationScale = repeat ? 0.4 : 0.72;
-      const tl = gsap.timeline({
-        defaults: { ease: "power3.out" },
-        onComplete: () => {
-          root.classList.add("is-hero-ready");
-          try {
-            sessionStorage.setItem(SESSION_KEY, "1");
-          } catch {
-            /* ignore */
-          }
-        },
-      });
-
-      if (entrance) {
-        tl.to(entrance, { scale: 1, opacity: 1, duration: 0.85 * durationScale, ease: "power4.out" }, 0);
-      }
-      if (decor.length) {
-        tl.to(decor, { opacity: 1, duration: 0.55 * durationScale }, 0.05);
-      }
-      if (wordLines.length) {
-        tl.to(wordLines, WORD_WIPE_TO, 0.08 * durationScale);
-      }
-      if (subject) {
-        tl.to(
-          subject,
-          { y: 0, scale: 1, duration: 0.55 * durationScale, ease: "power3.out" },
-          0.06 * durationScale,
-        );
-      }
-      if (cta) {
-        tl.to(cta, { y: 0, duration: 0.4 * durationScale, ease: "power2.out" }, 0.22 * durationScale);
-      }
-
-      let interrupted = false;
-      const settleIntro = () => {
-        if (interrupted) {
+      const compactRef = { value: false };
+      const onScroll = () => {
+        if (!isHeroDesktopLayout()) {
           return;
         }
-        interrupted = true;
-        tl.progress(1);
-        root.classList.add("is-hero-ready");
-      };
-
-      const onEarlyScroll = () => {
-        if (window.scrollY > 8) {
-          settleIntro();
-          window.removeEventListener("scroll", onEarlyScroll);
+        const p = Math.max(0, Math.min(1, window.scrollY / SCROLL_DISTANCE));
+        const compact = p >= 0.5;
+        if (compact !== compactRef.value) {
+          compactRef.value = compact;
+          notifyHeroCompact(compact);
         }
       };
-      window.addEventListener("scroll", onEarlyScroll, { passive: true });
-      removeEarlyScroll = () => window.removeEventListener("scroll", onEarlyScroll);
+      onScroll();
+      window.addEventListener("scroll", onScroll, { passive: true });
+      return () => {
+        window.removeEventListener("scroll", onScroll);
+        clearFeatureStyles(nodes);
+      };
+    });
 
-      const scene = scrollWrap.querySelector(".home-hero-panel") ?? scrollWrap;
-      gsap.fromTo(
-        scene,
-        { scale: 1, opacity: 1 },
-        {
-          scale: 0.8,
-          opacity: 0.9,
-          ease: "none",
-          transformOrigin: "50% 100%",
-          scrollTrigger: {
-            trigger: hero,
-            start: "top top",
-            end: "+=700",
-            scrub: 0.55,
-            pin: false,
-            onUpdate: (self) => {
-              if (self.progress > 0.02) {
-                settleIntro();
-              }
-            },
-          },
-        },
-      );
+    mm.add(HERO_COMPACT_MQ, () => {
+      notifyHeroCompact(false);
+      settleEntrance(nodes);
+      resetProgressStyles(nodes);
 
-      const media = scrollWrap.querySelector(".home-hero-subject-motion") ?? scrollWrap.querySelector(".home-hero-subject");
-      const wordmark = scrollWrap.querySelector(".home-hero-wordmark");
-      if (wordmark) {
-        gsap.to(wordmark, {
-          y: -40,
-          ease: "none",
-          scrollTrigger: {
-            trigger: hero,
-            start: "top top",
-            end: "+=700",
-            scrub: 0.55,
+      let removeInterrupts: (() => void) | undefined;
+      let restrainedTween: gsap.core.Tween | undefined;
+      const playRestrained = !readHeroSessionSeen() && window.scrollY <= INTERRUPT_SCROLL_PX;
+      if (playRestrained && nodes.wordmarkReveal) {
+        gsap.set(nodes.wordmarkReveal, { y: 24, skewY: 4, opacity: 0 });
+        restrainedTween = gsap.to(nodes.wordmarkReveal, {
+          y: 0,
+          skewY: 0,
+          opacity: 1,
+          duration: 0.6,
+          ease: "power2.out",
+          onComplete: () => {
+            writeHeroSessionSeen();
+            root.classList.add("is-hero-ready");
           },
         });
+        const settle = () => {
+          restrainedTween?.progress(1);
+          writeHeroSessionSeen();
+          root.classList.add("is-hero-ready");
+          removeInterrupts?.();
+        };
+        removeInterrupts = attachInterrupts(settle);
+      } else {
+        root.classList.add("is-hero-ready");
+        if (!playRestrained) {
+          writeHeroSessionSeen();
+        }
       }
-      if (media) {
-        gsap.to(media, {
-          y: 48,
-          ease: "none",
-          scrollTrigger: {
-            trigger: hero,
-            start: "top top",
-            end: "+=700",
-            scrub: 0.7,
-          },
-        });
-      }
-      if (entrance) {
-        gsap.to(entrance, {
-          y: -40,
-          rotate: 2,
-          ease: "none",
-          scrollTrigger: {
-            trigger: hero,
-            start: "top top",
-            end: "+=700",
-            scrub: 1.2,
-          },
-        });
-      }
-    }, root);
 
-    // Height-only resizes are the mobile URL bar, not a layout change.
-    let lastWidth = window.innerWidth;
-    let resizeTimer = 0;
-    const onResize = () => {
-      if (window.innerWidth === lastWidth) return;
-      lastWidth = window.innerWidth;
-      window.clearTimeout(resizeTimer);
-      resizeTimer = window.setTimeout(() => ScrollTrigger.refresh(), 200);
-    };
-    window.addEventListener("resize", onResize);
+      return () => {
+        removeInterrupts?.();
+        restrainedTween?.kill();
+        clearFeatureStyles(nodes);
+      };
+    });
+
+    mm.add(HERO_DESKTOP_MQ, () => {
+      const compactRef = { value: false };
+      let active = true;
+      let settled = false;
+      let removeInterrupts: (() => void) | undefined;
+      let clearDebug: (() => void) | undefined;
+      let settleRaf = 0;
+      const introTl = createIntroTimeline(nodes);
+      const progressTriggers = setupProgress(nodes, compactRef, true);
+      const currentProgress = () => progressTriggers[progressTriggers.length - 1]?.progress ?? 0;
+
+      const syncProgress = () => {
+        ScrollTrigger.refresh();
+        applyHeroProgress(nodes, currentProgress(), compactRef);
+      };
+
+      const settleIntro = () => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        introTl.progress(1).pause();
+        settleEntrance(nodes);
+        applyHeroProgress(nodes, currentProgress(), compactRef);
+        window.cancelAnimationFrame(settleRaf);
+        settleRaf = window.requestAnimationFrame(() => {
+          if (!active) {
+            return;
+          }
+          applyHeroProgress(nodes, currentProgress(), compactRef);
+        });
+        writeHeroSessionSeen();
+        root.classList.add("is-hero-ready");
+        removeInterrupts?.();
+        document.documentElement.classList.remove("hero-intro-active");
+      };
+
+      // Refresh first so restored scrollY maps to the correct progress before any header notify.
+      syncProgress();
+
+      const seen = readHeroSessionSeen();
+      const restored = window.scrollY > INTERRUPT_SCROLL_PX;
+      if (seen || restored) {
+        settleEntrance(nodes);
+        syncProgress();
+        writeHeroSessionSeen();
+        root.classList.add("is-hero-ready");
+      } else {
+        void waitForFonts(FONT_DEADLINE_MS)
+          .then((fonts) => {
+            if (!active) {
+              return;
+            }
+            if (window.scrollY > INTERRUPT_SCROLL_PX || fonts === "timeout") {
+              settleEntrance(nodes);
+              syncProgress();
+              writeHeroSessionSeen();
+              root.classList.add("is-hero-ready");
+              return;
+            }
+
+            document.documentElement.classList.add("hero-intro-active");
+            armIntro(nodes);
+            introTl.eventCallback("onComplete", () => {
+              settled = true;
+              settleEntrance(nodes);
+              applyHeroProgress(nodes, currentProgress(), compactRef);
+              writeHeroSessionSeen();
+              root.classList.add("is-hero-ready");
+              document.documentElement.classList.remove("hero-intro-active");
+              removeInterrupts?.();
+            });
+            clearDebug = bindDebugTimeline(introTl);
+            removeInterrupts = attachInterrupts(settleIntro);
+            introTl.play(0);
+            ScrollTrigger.refresh();
+          })
+          .catch(() => {
+            if (!active) {
+              return;
+            }
+            settleEntrance(nodes);
+            syncProgress();
+            root.classList.add("is-hero-ready");
+            document.documentElement.classList.remove("hero-intro-active");
+          });
+      }
+
+      return () => {
+        active = false;
+        window.cancelAnimationFrame(settleRaf);
+        removeInterrupts?.();
+        clearDebug?.();
+        introTl.kill();
+        progressTriggers.forEach((trigger) => trigger.kill());
+        clearFeatureStyles(nodes);
+      };
+    });
 
     return () => {
-      removeEarlyScroll?.();
-      window.clearTimeout(resizeTimer);
-      window.removeEventListener("resize", onResize);
-      ctx.revert();
+      mm.revert();
     };
   }, []);
 }

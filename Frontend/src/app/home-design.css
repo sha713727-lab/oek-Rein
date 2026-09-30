@@ -103,13 +103,12 @@
   border-radius: var(--home-radius-hero) var(--home-radius-hero) 0 0;
 }
 
-.home-flow .home-hero-wordmark .home-hero-wordmark-line,
-.home-flow .home-hero-wordmark span {
-  font-family: var(--font-display);
+.home-flow .home-hero-wordmark-line,
+.home-flow .home-hero-intro-type {
+  font-family: var(--font-display, var(--vd-display));
   font-weight: 600;
   letter-spacing: -0.035em;
   line-height: 0.9;
-  font-size: clamp(2.85rem, 10.5vw, 8.75rem);
 }
 
 @media (max-width: 767px) {
@@ -120,10 +119,8 @@
     box-sizing: border-box;
   }
 
-  /* Beat the desktop clamp above — full “Oak & Rein” must fit without side crop */
-  .home-flow .home-hero-wordmark .home-hero-wordmark-line,
-  .home-flow .home-hero-wordmark span {
-    font-size: clamp(1.85rem, 8.8vw, 2.65rem);
+  .home-flow .home-hero-wordmark-line {
+    font-size: clamp(32px, 8.8vw, 42px);
     letter-spacing: -0.025em;
     line-height: 0.92;
     max-width: 100%;
@@ -588,7 +585,8 @@ html.home-motion-ready .home-flow .home-reveal {
     letter-spacing: 0.1em;
   }
 
-  .site-header-brand .brand-logo-mark--nav .brand-logo-mark-img {
+  .site-header-brand .brand-logo-mark--nav .brand-logo-mark-img,
+  .header-brand-crest .brand-logo-mark-img {
     width: 3.35rem;
     height: 3.35rem;
   }
@@ -693,9 +691,13 @@ html.home-motion-ready .home-flow .home-reveal {
 .home-hero-entrance {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 1;
   pointer-events: none;
   overflow: hidden;
+}
+
+html.hero-intro-active .home-hero-entrance {
+  opacity: 0;
 }
 
 .home-hero-decor {
@@ -736,7 +738,6 @@ html.home-motion-ready .home-flow .home-reveal {
   text-align: center;
 }
 
-.home-hero-wordmark-mask,
 .home-hero-positioning-mask,
 .vd-reveal-mask {
   display: inline-block;
@@ -747,15 +748,10 @@ html.home-motion-ready .home-flow .home-reveal {
   margin-bottom: -0.08em;
 }
 
-.home-hero-wordmark-line,
 .home-hero-positioning-line,
 .vd-reveal-word {
   display: inline-block;
   will-change: transform;
-}
-
-.home-hero-wordmark-line {
-  will-change: clip-path, opacity;
 }
 
 .home-hero-positioning,
@@ -768,7 +764,7 @@ html.home-motion-ready .home-flow .home-reveal {
   left: clamp(1rem, 3vw, 2.5rem);
   right: auto;
   bottom: calc(var(--hero-ribbon-overlap) + clamp(1rem, 3vw, 2.5rem));
-  z-index: 9;
+  z-index: 40;
 }
 
 @media (max-width: 767px) {
@@ -1575,7 +1571,8 @@ html.home-motion-ready .home-flow .home-reveal {
     white-space: nowrap;
   }
 
-  .site-header-brand .brand-logo-mark--nav .brand-logo-mark-img {
+  .site-header-brand .brand-logo-mark--nav .brand-logo-mark-img,
+  .header-brand-crest .brand-logo-mark-img {
     width: 3.5rem;
     height: 3.5rem;
   }
@@ -1651,6 +1648,71 @@ html.home-motion-ready .home-flow .home-reveal {
   display: flex;
   justify-content: center;
   justify-self: center;
+}
+
+.header-brand-link {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  text-decoration: none;
+}
+
+.header-brand-slot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(9.25rem, 14vw, 12.5rem);
+  min-height: clamp(3.5rem, 5.5vw, 4.75rem);
+}
+
+.header-brand-crest,
+.header-brand-type {
+  grid-area: 1 / 1;
+  justify-self: center;
+  align-self: center;
+  transition: none;
+}
+
+.header-brand-crest {
+  display: flex;
+  clip-path: inset(0% 0% 0% 0%);
+  opacity: 1;
+}
+
+.header-brand-crest .brand-logo-mark-img {
+  width: clamp(4rem, 7vw, 5.5rem);
+  height: clamp(4rem, 7vw, 5.5rem);
+}
+
+.header-brand-type {
+  font-family: var(--font-display, var(--vd-display));
+  font-size: clamp(0.92rem, 1.15vw, 1.12rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--vd-green, #204e4a);
+  white-space: nowrap;
+  clip-path: inset(0 50% 0 50%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.site-header--overlay .header-brand-type,
+.site-header--menu-open .header-brand-type {
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) and (min-width: 1024px) {
+  .site-header--home.site-header-compact .header-brand-crest {
+    clip-path: inset(0 50% 0 50%);
+    opacity: 0;
+  }
+
+  .site-header--home.site-header-compact .header-brand-type {
+    clip-path: inset(0);
+    opacity: 1;
+  }
 }
 
 .site-header-brand .brand-logo-type--nav {

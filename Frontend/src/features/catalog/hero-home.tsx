@@ -28,15 +28,27 @@ export function HeroHome({ content }: { content: StorefrontContent }) {
               } as CSSProperties
             }
           >
+            <div className="home-hero-backdrop-intro" aria-hidden="true" />
+
             <div className="home-hero-entrance" aria-hidden="true">
               <span className="home-hero-decor home-hero-decor--ring" />
               <span className="home-hero-decor home-hero-decor--stroke" />
               <span className="home-hero-accent-dot" />
             </div>
 
+            <div className="home-hero-intro-anchor" aria-hidden="true">
+              <div className="home-hero-intro-motion">
+                <div className="home-hero-intro-mask">
+                  <span className="home-hero-intro-type">{brandName}</span>
+                </div>
+              </div>
+            </div>
+
             <h1 className="home-hero-wordmark">
-              <span className="home-hero-wordmark-mask">
-                <span className="home-hero-wordmark-line">{brandName}</span>
+              <span className="home-hero-wordmark-scroll">
+                <span className="home-hero-wordmark-reveal">
+                  <span className="home-hero-wordmark-line">{brandName}</span>
+                </span>
               </span>
             </h1>
 
